@@ -1532,10 +1532,10 @@ function detect_adj_type(lemma, decl, old)
 	elseif decl == "+ія" and old then
 		singdecl == g == "f" and "+яя" or g == "n" and "+ее"
 	elseif decl == "+ьи" then
-		singdecl = g == m and (old and "+ьій" or "ьий") or g == "f" and "ья" or g == "n" and "+ье"
+		singdecl = g == m and (old and "+ьій" or "+ьий") or g == "f" and "+ья" or g == "n" and "+ье"
 	elseif decl == "+ы-mixed" or decl == "+ы-short" then
 		local beg = g == "m" and (old and "ъ" or "") or g == "f" and "а" or g == "n" and "о"
-		singdecl = beg and beg .. usub(decl, 2)
+		singdecl = beg and "+" .. beg .. usub(decl, 2)
 	end
 	if singdecl then
 		was_plural = true
