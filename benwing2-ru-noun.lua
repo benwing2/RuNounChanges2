@@ -702,11 +702,14 @@ local function do_show(frame, old)
 		default_stem = stem
 		local was_accented, was_plural, was_autodetected
 		if rfind(decl_class, "^%+") then
-			stem, decl_class, was_accented, was_autodetected =
+			stem, decl_class, was_accented, was_plural, was_autodetected =
 				detect_adj_type(stem, decl_class, old)
 		else
 			stem, decl_class, was_accented, was_plural, was_autodetected =
 				determine_decl(stem, decl_class, args)
+		end
+		if was_plural then
+			args.n = "p"
 		end
 		local allow_unaccented
 		stem, allow_unaccented = rsubb(stem, "^%*", "")
@@ -1414,28 +1417,27 @@ function detect_adj_type(stem, decl, old)
 	local was_accented = com.is_stressed(decl)
 	local was_autodetected
 	local base, ending
+	local basedecl, gender = rmatch(decl, "^(%+)([mfn])$")
+	if not basedecl then
+		gender, basedecl = rmatch(decl, "^%+([mfn])%-([a-z]+)$")
+		if basedecl then
+			basedecl = "+" .. basedecl
+		end
+	end
+	decl = basedecl or decl
 	if decl == "+" then
 		base, ending = rmatch(stem, "^(.*)([ыиіьаяое]́?[йея])$")
 		if base then
 			was_accented = com.is_stressed(ending)
 			ending = com.remove_accents(ending)
-			if rfind(ending, "^[іи]й$") and rfind(base, "[" .. com.velar .. com.sib .. "]$") then
-				ending = "+ый"
-			-- The following is necessary for -ц, unclear if makes sense for
-			-- sibilants. (Would be necessary -- I think -- if we were
-			-- inferring short adjective forms, but we're not.)
-			elseif ending == "ее" and rfind(base, "[" .. com.sib_c .. "]$") then
-				ending = "+ое"
-			else
-				ending = "+" .. ending
-			end
+			ending = "+" .. ending
 		else
 			error("Cannot determine stem type of adjective: " .. stem)
 		end
 		was_autodetected = true
 	elseif decl == "+short" or decl == "+mixed" then
 		-- FIXME! Not clear if this works with accented endings, check it
-		base, ending = rmatch(stem, "^(.-)([оеаъ]?́?)$")
+		base, ending = rmatch(stem, "^(.-)([оеаыиъ]?́?)$")
 		assert(base)
 		was_accented = com.is_stressed(ending)
 		ending = com.remove_accents(ending)
@@ -1444,9 +1446,38 @@ function detect_adj_type(stem, decl, old)
 		end
 		ending = "+" .. ending .. "-" .. usub(decl, 2)
 	else
+		-- FIXME, might not work in the presence of slash declensions
+		was_accented = com.is_stressed(decl)
+		decl = com.remove_accents(decl)
 		base, ending = stem, decl
 	end
-	return base, canonicalize_decl(ending, old), was_accented, was_autodetected
+	decl = canonicalize_decl(ending, old)
+	function convert_sib_velar_variant(decl)
+		local iend = rmatch(decl, "^%+[іи]([йея]?)$")
+		-- Convert ій/ий to ый after velar or sibilant. This is important for
+		-- velars; doesn't really matter one way or the other for sibilants as
+		-- the sibilant rules will convert both sets of endings to the same
+		-- thing (whereas there will be a difference with о vs. е for velars).
+		if iend and rfind(base, "[" .. com.velar .. com.sib .. "]$") then
+			decl = "+ы" .. iend
+		-- The following is necessary for -ц, unclear if makes sense for
+		-- sibilants. (Would be necessary -- I think -- if we were
+		-- inferring short adjective forms, but we're not.)
+		elseif decl == "+ее" and rfind(base, "[" .. com.sib_c .. "]$") then
+			decl = "+ое"
+		end
+		return decl
+	end
+
+	decl = map_decl(decl, convert_sib_velar_variant)
+	local was_plural = rfind(decl, "^%+[ыіи][ея]?$")
+	if was_plural then
+		error("Autodetection of plural adjectival nouns not yet supported")
+		-- FIXME!!! Detect plural and convert to singular; requires that
+		-- gender be specified.
+	end
+
+	return base, canonicalize_decl(decl, old), was_accented, was_plural, was_autodetected
 end
 
 -- Detect stress pattern (1 or 2) based on whether ending is stressed or
@@ -1472,45 +1503,54 @@ function detect_stress_pattern(decl, was_accented)
 	end
 end
 
--- Canonicalize decl class into non-accented and alias-resolved form;
--- but note that some canonical decl class names with an accent in them
--- (e.g. е́, not the same as е, whose accented version is ё; and various
--- adjective declensions).
-function canonicalize_decl(decl, old)
+function map_decl(decl, fun)
 	if rfind(decl, "/") then
 		local split_decl = rsplit(decl, "/")
 		if #split_decl ~= 2 then
 			error("Mixed declensional class " .. decl
 				.. "needs exactly two classes, singular and plural")
 		end
-		return canonicalize_decl(split_decl[1], old) .. "/" ..
-			canonicalize_decl(split_decl[2], old)
+		return fun(split_decl[1]) .. "/" .. fun(split_decl[2])
+	else
+		return fun(decl)
 	end
-	-- remove accents, but not from е́ or from adj decls
-	if decl ~= "е́" and not rfind(decl, "^%+") then
-		decl = com.remove_accents(decl)
-	end
+end
 
-	local decl_aliases = old and declensions_old_aliases or declensions_aliases
-	local decl_cats = old and declensions_old_cat or declensions_cat
-	if decl_aliases[decl] then
-		-- If we find an alias, map it, and sanity-check that there's
-		-- a category entry for the result.
-		decl = decl_aliases[decl]
-		assert(decl_cats[decl])
-	elseif not decl_cats[decl] then
-		error("Unrecognized declension class " .. decl)
+-- Canonicalize decl class into non-accented and alias-resolved form;
+-- but note that some canonical decl class names with an accent in them
+-- (e.g. е́, not the same as е, whose accented version is ё; and various
+-- adjective declensions).
+function canonicalize_decl(decl_class, old)
+	local function do_canon(decl)
+		-- remove accents, but not from е́ (for adj decls, accent matters
+		-- as well but we handle that by noticing the accent and converting
+		-- to the accented version in a detection function)
+		if decl ~= "е́" then
+			decl = com.remove_accents(decl)
+		end
+
+		local decl_aliases = old and declensions_old_aliases or declensions_aliases
+		local decl_cats = old and declensions_old_cat or declensions_cat
+		if decl_aliases[decl] then
+			-- If we find an alias, map it, and sanity-check that there's
+			-- a category entry for the result.
+			decl = decl_aliases[decl]
+			assert(decl_cats[decl])
+		elseif not decl_cats[decl] then
+			error("Unrecognized declension class " .. decl)
+		end
+		-- We can't yet sanity-check that there is an actual declension,
+		-- because there's still the detect_decl step, which conceivably
+		-- could convert the user-visible declension class (which always
+		-- has a category object) to an internal declension variant.
+		-- We don't much do this any more, but it's still possible.
+		return decl
 	end
-	-- We can't yet sanity-check that there is an actual declension,
-	-- because there's still the detect_decl step, which conceivably
-	-- could convert the user-visible declension class (which always
-	-- has a category object) to an internal declension variant.
-	-- We don't much do this any more, but it's still possible.
-	return decl
+	return map_decl(decl_class, do_canon)
 end
 
 function is_reducible(decl_cat)
-	if decl_cat.suffix or decl_cat.cant_reduce then
+	if decl_cat.suffix or decl_cat.cant_reduce or decl_cat.adj then
 		return false
 	elseif decl_cat.decl == "3rd" and decl_cat.g == "f" or decl_cat.g == "m" then
 		return true
@@ -1533,7 +1573,7 @@ function export.reduce_nom_sg_stem(stem, decl, can_err)
 end
 
 function is_unreducible(decl_cat)
-	if decl_cat.suffix or decl_cat.cant_reduce then
+	if decl_cat.suffix or decl_cat.cant_reduce or decl_cat.adj then
 		return false
 	elseif decl_cat.decl == "1st" or decl_cat.decl == "2nd" and decl_cat.g == "n" then
 		return true
@@ -2145,30 +2185,6 @@ end
 declensions_old_aliases["+ой"] = "+о́й"
 declensions_old_aliases["+е-short"] = "+о-short"
 declensions_old_aliases["+е-mixed"] = "+о-mixed"
-
--- Convert ій/ий to ый after velar or sibilant. This is important for
--- velars; doesn't really matter one way or the other for sibilants as
--- the sibilant rules will convert both sets of endings to the same thing
--- (whereas there will be a difference with о vs. е for velars).
-detect_decl_old["+ій"] = function(stem, stress)
-	if rfind(stem, "[" .. com.velar .. com.sib .. "]$") then
-		return "+ый"
-	else
-		return "+ій"
-	end
-end
-
--- Convert ее to ое after sibilant or ц. This is important for ц;
--- doesn't really matter one way or the other for sibilants as
--- the sibilant rules will convert both sets of endings to the same thing
--- (whereas there will be a difference with ы vs. и for ц).
-detect_decl_old["+ее"] = function(stem, stress)
-	if rfind(stem, "[" .. com.sib_c .. "]$") then
-		return "+ое"
-	else
-		return "+ее"
-	end
-end
 
 -- For stressed and unstressed ое and ая, convert to the right stress
 -- variant according to the stress pattern (1 or 2).
