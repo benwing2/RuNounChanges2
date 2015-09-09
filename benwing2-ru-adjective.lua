@@ -8,9 +8,7 @@
 		2: declension type (usually just the ending); can be omitted to
 		   autodetect; also can specify short accent type and irregular
 		   short stem; see below.
-		3 or short_m: masculine singular short form (if exists); also used
-		  for irregular (often just reducible) nominative masculine singular
-		  forms in declension-type 'short' or 'mixed'
+		3 or short_m: masculine singular short form (if exists)
 		4 or short_n: neuter singular short form (if exists)
 		5 or short_f: feminine singular short form (if exists)
 		6 or short_p: plural short form (if exists)
@@ -45,8 +43,9 @@
 			(blank)
 		DECLTYPE is the declension type, usually omitted; or one of
 			ый ий ой ьий short mixed (new-style)
-			ый ій ьій short mixed ъ-short ъ-mixed (old-style, where
-			    ъ-short and ъ-mixed are synonyms for short and mixed)
+			ый ій ьій short mixed proper stressed-proper ъ-short ъ-mixed
+				ъ-proper ъ-stressed-proper (old-style, where ъ-* is a synonym
+				for just *, for any *)
 		SHORTACCENT is one of a a' b b' c c' c'' to auto-generate the
 		    short forms with the specified accent pattern (following
 			Zaliznyak); if omitted, no short forms will be auto-generated.
@@ -281,8 +280,8 @@ local function generate_forms(args, old, manual)
 		overall_short_forms_allowed = overall_short_forms_allowed or short_forms_allowed
 		if not short_forms_allowed then
 			-- FIXME: We might want to allow this in case we have a reducible
-			-- short or mixed possessive adjective. But in that case we need
-			-- to reduce rather than unreduce to get the stem.
+			-- short, mixed or proper possessive adjective. But in that case
+			-- we need to reduce rather than unreduce to get the stem.
 			if short_accent or short_stem then
 				error("Cannot specify short accent or short stem with declension type " .. decl_type .. ", as short forms aren't allowed")
 			end
@@ -319,16 +318,17 @@ local function generate_forms(args, old, manual)
 				short_stem)
 		end
 
-		decline(args, decls[decl_type], decl_type == "ой")
+		decline(args, decls[decl_type], ut.contains({"ой", "stressed-proper", "ъ-stressed-proper"}, decl_type))
 		if short_forms_allowed and short_accent then
 			decline_short(args, short_decls[short_decl_type],
 				short_stress_patterns[short_accent])
 		end
 
-		-- FIXME, can they ever both occur? Seems unlikely.
+		-- FIXME, can any of these ever co-occur? Seems unlikely.
 		if decl_type == "mixed" then
 			args.internal_notes = "<sup>1</sup> Dated."
-		elseif short_decl_type == "ой-rare" then
+		elseif decl_type == "proper" or decl_type == "stressed-proper" or
+				or short_decl_type == "ой-rare" then
 			args.internal_notes = "<sup>1</sup> Rare."
 		end
 	end
@@ -510,7 +510,8 @@ function categorize(decl_type, args, orig_short_accent, short_accent,
 
 	-- FIXME: For compatibility with old {{temp|ru-adj7}}, {{temp|ru-adj8}},
 	-- {{temp|ru-adj9}}; maybe there's a better way.
-	if ut.contains({"ьій", "ьий", "short", "mixed", "ъ-short", "ъ-mixed"}, decl_type) then
+	if ut.contains({"ьій", "ьий", "short", "mixed", "proper", "stressed-proper",
+		"ъ-short", "ъ-mixed", "ъ-proper", "ъ-stressed-proper"}, decl_type) then
 		insert_cat("possessive ~")
 	end
 
@@ -520,6 +521,8 @@ function categorize(decl_type, args, orig_short_accent, short_accent,
 		insert_cat("short possessive ~")
 	elseif ut.contains({"mixed", "ъ-mixed"}) then
 		insert_cat("mixed possessive ~")
+	elseif ut.contains({"proper", "ъ-proper", "stressed-proper", "ъ-stressed-proper"}) then
+		insert_cat("proper-name ~")
 	elseif decl_type == "-" then
 		insert_cat("invariable ~")
 	else
@@ -708,14 +711,31 @@ function detect_stem_and_accent_type(stem, decl)
 	if not decl then
 		local base, ending = rmatch(stem, "^(.*)([ыиіо]́?й)$")
 		if base then
-			-- -ий/-ій will be converted to -ый after velars and sibilants by the caller
+			-- -ий/-ій will be converted to -ый after velars and sibilants
+			-- by the caller
 			return base, com.make_unstressed(ending), short_accent, short_stem
 		else
-			-- It appears that short and mixed adjectives are always either
-			-- of the -ов/ев/ёв or -ин/ын types. The former type is always
-			-- (or almost always?) short, while the latter can be either;
-			-- apparently mixed is the more "modern" type of declension,
-			-- and short is "older".
+			-- It appears that short, mixed and proper adjectives are always
+			-- either of the -ов/ев/ёв or -ин/ын types. The former type is
+			-- always (or almost always?) short, while the latter can be
+			-- either; apparently mixed is the more "modern" type of
+			-- declension, and short is "older". However, both -ов/ев/ёв or
+			-- -ин/ын are of type "proper" (similar to "short") when
+			-- capitalized.
+			--
+			-- NOTE: Following regexp is accented
+			base = rmatch(stem, "^([" .. com.uppercase .. "].*[иы]́н)ъ?$")
+			if base then
+				return base, "stressed-proper", short_accent, short_stem
+			end
+			base = rmatch(stem, "^([" .. com.uppercase .. "].*[еёо]́?в)ъ?$")
+			if not base then
+				-- Following regexp is not stressed
+				base = rmatch(stem, "^([" .. com.uppercase .. "].*[иы]н)ъ?$")
+			end
+			if base then
+				return base, "proper", short_accent, short_stem
+			end
 			base = rmatch(stem, "^(.*[еёо]́?в)ъ?$")
 			if base then
 				return base, "short", short_accent, short_stem
@@ -727,7 +747,7 @@ function detect_stem_and_accent_type(stem, decl)
 			end
 			error("Cannot determine stem type of adjective: " .. stem)
 		end
-	elseif decl == "short" or decl == "mixed" then
+	elseif ut.contains({"short", "mixed", "proper", "stressed-proper"}, decl) then
 		local base, ending = rmatch(stem, "^(.-)ъ?$")
 		assert(base)
 		return base, decl, short_accent, short_stem
@@ -774,14 +794,15 @@ end
 
 -- Construct and set bare and short form in args, and canonicalize
 -- short accent spec, handling cases *, (1) and (2). Return canonicalized
--- short accent.
-function construct_bare_and_short_stem(args, short_accent, short_stem, accented_stem,
-	old, decl)
+-- short accent and the short declension, which is usually the same as
+-- the corresponding long one.
+function construct_bare_and_short_stem(args, short_accent, short_stem,
+	accented_stem, old, decl)
 	-- Check if short forms allowed; if not, no short-form params can be given.
 	-- Construct bare version of stem; used for cases where the ending
 	-- is non-syllabic (i.e. short masculine singular of long adjectives,
-	-- and masculine singular of short or mixed adjectives). Comes from
-	-- short masculine or 3rd argument if explicitly given, else from the
+	-- and masculine singular of short, mixed and proper adjectives). Comes
+	-- from short masculine or 3rd argument if explicitly given, else from the
 	-- accented stem, possibly with the unreduction transformation applied
 	-- (if * occurs in the short accent spec).
 	local reducible, sc1, sc2
@@ -987,6 +1008,29 @@ declensions["mixed"] = {
 	["pre_p"] = "ых",
 }
 
+declensions["proper"] = {
+	["nom_m"] = "",
+	["nom_n"] = nil,
+	["nom_f"] = "а́",
+	["nom_p"] = "ы́",
+	["gen_m"] = "а́",
+	["gen_f"] = "о́й",
+	["gen_p"] = "ы́х",
+	["dat_m"] = "у́",
+	["dat_f"] = "о́й",
+	["dat_p"] = "ы́м",
+	["acc_f"] = "у́",
+	["acc_n"] = nil,
+	["ins_m"] = "ы́м",
+	["ins_f"] = "о́й",
+	["ins_p"] = "ы́ми",
+	["pre_m"] = "е́",
+	["pre_f"] = "о́й",
+	["pre_p"] = "ы́х",
+}
+
+declensions["stressed-proper"] = declensions["proper"]
+
 declensions["-"] = {
 	["nom_m"] = "-",
 	["nom_n"] = "-",
@@ -1117,7 +1161,7 @@ declensions_old["short"] = {
 	["pre_p"] = "ыхъ",
 }
 
-declensions_old["ъ"] = declensions_old["short"]
+declensions_old["ъ-short"] = declensions_old["short"]
 
 declensions_old["mixed"] = {
 	["nom_m"] = "ъ",
@@ -1141,6 +1185,33 @@ declensions_old["mixed"] = {
 }
 
 declensions_old["ъ-mixed"] = declensions_old["mixed"]
+
+declensions_old["proper"] = {
+	["nom_m"] = "ъ",
+	["nom_n"] = nil,
+	["nom_f"] = "а́",
+	["nom_p"] = "ы́",
+	["gen_m"] = "а́",
+	["gen_f"] = "о́й",
+	["gen_p"] = "ы́хъ",
+	["dat_m"] = "у́",
+	["dat_f"] = "о́й",
+	["dat_p"] = "ы́мъ",
+	["acc_f"] = "у́",
+	["acc_n"] = nil,
+	["ins_m"] = "ы́мъ",
+    ["ins_f"] = {"о́й", "о́ю1"},
+	["ins_p"] = "ы́ми",
+	["pre_m"] = "ѣ́",
+	["pre_f"] = "о́й",
+	["pre_p"] = "ы́хъ",
+}
+
+declensions_old["stressed-proper"] = declensions_old["proper"]
+
+declensions_old["ъ-proper"] = declensions_old["proper"]
+
+declensions_old["ъ-stressed-proper"] = declensions_old["proper"]
 
 declensions_old["-"] = declensions["-"]
 
@@ -1401,6 +1472,7 @@ local title_temp = [=[Declension of <b lang="ru" class="Cyrl">{lemma}</b>]=]
 local old_title_temp = [=[Pre-reform declension of <b lang="ru" class="Cyrl">{lemma}</b>]=]
 
 local template = nil
+local proper_name_template = nil
 local template_mp = nil
 local short_clause = nil
 local internal_notes_template = nil
@@ -1445,7 +1517,7 @@ function make_table(args)
 		end
 	end
 
-	local temp = template
+	local temp = not args.nom_n and proper_name_template or template
 
 	if old then
 		if args.nom_mp then
@@ -1503,14 +1575,6 @@ short_clause_mp = [===[
 | colspan="2" | {short_p}]===]
 
 -- Used for both new-style and old-style templates
-internal_notes_template = [===[
-<div style="width:100%;text-align:left">
-<div style="display:inline-block;text-align:left;padding-left:1em;padding-right:1em">
-{internal_notes}
-</div></div>
-]===]
-
--- Used for both new-style and old-style templates
 notes_template = [===[
 <div style="width:100%;text-align:left">
 <div style="display:inline-block;text-align:left;padding-left:1em;padding-right:1em">
@@ -1519,14 +1583,25 @@ notes_template = [===[
 ]===]
 
 -- Used for both new-style and old-style templates
-template = [===[
+internal_notes_template = rsub(notes_template, "notes", "internal_notes")
+
+function template_preamble(min_width)
+	min_width = min_width or "70"
+	return [===[
 <div>
-<div class="NavFrame" style="display: inline-block; min-width: 70em">
+<div class="NavFrame" style="display: inline-block; min-width: ]===] .. min_width .. [===[em">
 <div class="NavHead" style="background:#eff7ff">{title}</div>
 <div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:70em" class="inflection-table"
-|-
-! style="width:20%;background:#d9ebff" colspan="2" | 
+{\op}| style="background:#F9F9F9;text-align:center; min-width:]===] .. min_width .. [===[em" class="inflection-table"
+|-]===]
+
+function template_postlude()
+	return [===[|-{short_clause}
+|{\cl}{internal_notes_clause}{notes_clause}</div></div></div>]===]
+
+-- Used for both new-style and old-style templates
+template = template_preamble() .. [===[
+! style="width:20%;background:#d9ebff" colspan="2" |
 ! style="background:#d9ebff" | masculine
 ! style="background:#d9ebff" | neuter
 ! style="background:#d9ebff" | feminine
@@ -1568,18 +1643,49 @@ template = [===[
 | colspan="2" | {pre_m}
 | {pre_f}
 | {pre_p}
-|-{short_clause}
-|{\cl}{internal_notes_clause}{notes_clause}</div></div></div>]===]
+]===] .. template_postlude()
+
+-- Used for both new-style and old-style templates
+proper_name_template = template_preamble("55") .. [===[
+! style="width:20%;background:#d9ebff" colspan="2" |
+! style="background:#d9ebff" | masculine
+! style="background:#d9ebff" | feminine
+! style="background:#d9ebff" | plural
+|-
+! style="background:#eff7ff" colspan="2" | nominative
+| {nom_m}
+| {nom_f}
+| {nom_p}
+|-
+! style="background:#eff7ff" colspan="2" | genitive
+| {gen_m}
+| {gen_f}
+| {gen_p}
+|-
+! style="background:#eff7ff" colspan="2" | dative
+| {dat_m}
+| {dat_f}
+| {dat_p}
+|-
+! style="background:#eff7ff" colspan="2" | accusative
+| {gen_m}
+| {acc_f}
+| {gen_p}
+|-
+! style="background:#eff7ff" colspan="2" | instrumental
+| {ins_m}
+| {ins_f}
+| {ins_p}
+|-
+! style="background:#eff7ff" colspan="2" | prepositional
+| {pre_m}
+| {pre_f}
+| {pre_p}
+]===] .. template_postlude()
 
 -- Used for old-style templates
-template_mp = [===[
-<div>
-<div class="NavFrame" style="display: inline-block; min-width: 70em">
-<div class="NavHead" style="background:#eff7ff">{title}</div>
-<div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:70em" class="inflection-table"
-|-
-! style="width:20%;background:#d9ebff" colspan="2" | 
+template_mp = template_preable() .. [===[
+! style="width:20%;background:#d9ebff" colspan="2" |
 ! style="background:#d9ebff" | masculine
 ! style="background:#d9ebff" | neuter
 ! style="background:#d9ebff" | feminine
@@ -1603,7 +1709,7 @@ template_mp = [===[
 | {dat_f}
 | colspan="2" | {dat_p}
 |-
-! style="background:#eff7ff" rowspan="2" | accusative 
+! style="background:#eff7ff" rowspan="2" | accusative
 ! style="background:#eff7ff" | animate
 | {gen_m}
 | rowspan="2" | {acc_n}
@@ -1624,8 +1730,7 @@ template_mp = [===[
 | colspan="2" | {pre_m}
 | {pre_f}
 | colspan="2" | {pre_p}
-|-{short_clause}
-|{\cl}{internal_notes_clause}{notes_clause}</div></div></div>]===]
+]===] .. template_postlude()
 
 return export
 
