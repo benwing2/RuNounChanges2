@@ -233,7 +233,17 @@ local function do_show(frame, old)
 	for _, stem_set in ipairs(stem_sets) do
 		local stress_arg = stem_set[1] or "1"
 		local decl_class = stem_set[3] or ""
-		args.stem = stem_set[2] or default_stem
+		if decl_class == "manual" then
+			decl_class = "$"
+			args.manual = true
+			if #stem_sets > 1 then
+				error("Can't specify multiple stem sets when manual")
+			end
+			if stem_set[4] or stem_set[5] then
+				error("Can't specify optional stem parameters when manual")
+			end
+		end
+		args.stem = stem_set[2] or default_stem or args.manual and "-"
 		if not args.stem then
 			error("Stem in first stem set must be specified")
 		end
@@ -906,7 +916,7 @@ declensions_old["мя-1"] = {
 --------------------------------------------------------------------------
 
 -- Invariable declension; no endings.
-declensions_old["*"] = {
+declensions_old["$"] = {
 	["nom_sg"] = "",
 	["gen_sg"] = "",
 	["dat_sg"] = "",
@@ -920,6 +930,7 @@ declensions_old["*"] = {
 	["ins_pl"] = "",
 	["pre_pl"] = "",
 }
+declensions_old["*"] = declensions_old["$"]
 
 --------------------------------------------------------------------------
 --                         Inflection functions                         --

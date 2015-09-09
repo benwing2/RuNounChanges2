@@ -40,20 +40,23 @@ TODO:
 
 1. FIXME: Change {{temp|ru-decl-noun-pl}} and {{temp|ru-decl-noun-unc}} to use
    'manual' instead of '*' as the decl class. Implement in master.
+   [IMPLEMENTED IN MASTER. NEED TO TEST, AND FIX THE TEMPLATES.]
 2. FIXME: Find places with '-' as the decl class and remove or change to #.
   [ALREADY FOUND AND FIXED A PLACE. USE TRACKING.]
 3. FIXME: Find places with '*' as the decl class and change to $. There is at
   least one. [USE TRACKING.]
 4. FIXME: Implement skipping entirely an empty first stress argument in master,
-  and fix cases that use it, in preparation for switching.
+  and fix cases that use it, in preparation for switching. [IMPLEMENTED IN
+  MASTER. NEEDS TESTING. NEED TO FIND AND CORRECT CASES USING EMPTY ARGUMENT.]
 5. FIXME: In master, require stem to be specified instead of defaulting to page,
-  and fix errors that result.
+  and fix errors that result. [IMPLEMENTED IN MASTER. NEED TO FIND AND
+  CORRECT SUCH CASES.]
 6. Consider changing '-' to mean invariable to '$' or '~' or similar.
    [IMPLEMENTED. CHANGED TO $. NEED TO TEST MANUAL SETTINGS SIMILAR TO HOW
    THINGS WORK WITH ADJECTIVES, ESP. WITH SOME MISSING FORMS TO MAKE SURE
    WE DON'T GET ERRORS.]
 7. FIXME: Add proper support for Zaliznyak b', f''.
-7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F
+7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
 7a. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
 8. Get error "Unable to unreduce" with strange noun ва́йя, what should
