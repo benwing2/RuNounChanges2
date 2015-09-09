@@ -42,15 +42,20 @@ TODO:
    'manual' instead of '*' as the decl class. Implement in master.
 2. FIXME: Find places with '-' as the decl class and remove or change to #.
   [ALREADY FOUND AND FIXED A PLACE. USE TRACKING.]
-3. FIXME: Find places with '*' as the decl class and change to -. There is at
+3. FIXME: Find places with '*' as the decl class and change to $. There is at
   least one. [USE TRACKING.]
 4. FIXME: Implement skipping entirely an empty first stress argument in master,
   and fix cases that use it, in preparation for switching.
 5. FIXME: In master, require stem to be specified instead of defaulting to page,
   and fix errors that result.
-6. FIXME: Consider changing '-' to mean invariable to '$' or '~' or similar.
+6. Consider changing '-' to mean invariable to '$' or '~' or similar.
+   [IMPLEMENTED. CHANGED TO $. NEED TO TEST MANUAL SETTINGS SIMILAR TO HOW
+   THINGS WORK WITH ADJECTIVES, ESP. WITH SOME MISSING FORMS TO MAKE SURE
+   WE DON'T GET ERRORS.]
 7. FIXME: Add proper support for Zaliznyak b', f''.
 7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F
+7a. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
+   ▵ (U+25B5) next to each irregular form.
 8. Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen? [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
@@ -122,6 +127,9 @@ TODO:
    in decl field to indicate it's an adjective. Adjective decl types should
    begin with a +. (Formerly a * but that is used for reducibles.)]
    [IMPLEMENTED. TESTED.]
+24a. Implement autodetection of plural adjective declensions given gender,
+   and conversion to singular declension, with n=pl set. [IMPLEMENTED.
+   NEED TO TEST.]
 25. Implement (1) as an alias for certain irregular plurals, for
     compatibility with Zaliznyak. [IMPLEMENTED. APPEARS TO WORK BUT SHOULD
     CHECK.]
@@ -677,7 +685,7 @@ local function do_show(frame, old)
 		local bare = stem_set[4]
 		local pl = stem_set[5]
 		if decl_class == "manual" then
-			decl_class = "-"
+			decl_class = "$"
 			args.manual = true
 			if #stem_sets > 1 then
 				error("Can't specify multiple stem sets when manual")
@@ -694,7 +702,7 @@ local function do_show(frame, old)
 		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
 		decl_class, args.reducible = rsubb(decl_class, "%*", "")
 		decl_class = rsub(decl_class, ";", "")
-		local stem = stem_set[2] or default_stem
+		local stem = stem_set[2] or default_stem or args.manual and "-"
 		if not stem then
 			error("Stem in first stem set must be specified")
 		end
@@ -2160,7 +2168,7 @@ declensions_old_cat["мя-1"] = { decl="3rd", hard="soft", g="n", cant_reduce=tr
 --------------------------------------------------------------------------
 
 -- Invariable declension; no endings.
-declensions_old["-"] = {
+declensions_old["$"] = {
 	["nom_sg"] = "",
 	["gen_sg"] = "",
 	["dat_sg"] = "",
@@ -2174,7 +2182,7 @@ declensions_old["-"] = {
 	["ins_pl"] = "",
 	["pre_pl"] = "",
 }
-declensions_old_cat["-"] = { decl="invariable", hard="none", g="none" }
+declensions_old_cat["$"] = { decl="invariable", hard="none", g="none" }
 
 --------------------------------------------------------------------------
 --                              Adjectival                              --
