@@ -112,6 +112,13 @@ local function rsub(term, foo, bar)
 	return retval
 end
 
+-- version of rsubn() that returns a 2nd argument boolean indicating whether
+-- a substitution was made.
+local function rsubb(term, foo, bar)
+	local retval, nsubs = rsubn(term, foo, bar)
+	return retval, nsubs > 0
+end
+
 local function insert_list_into_table(tab, list)
 	if type(list) ~= "table" then
 		list = {list}
@@ -222,6 +229,12 @@ local function generate_forms(args, old, manual)
 			detect_stem_and_accent_type(stem, decl_type)
 		if rfind(decl_type, "^[іи]й$") and rfind(stem, "[" .. com.velar .. com.sib .. "]$") then
 			decl_type = "ый"
+		end
+
+		local allow_unaccented
+		stem, allow_unaccented = rsubb(stem, "^%*", "")
+		if not allow_unaccented and decl_type ~= "ой" and com.needs_accents(stem) then
+			error("Stem must have an accent in it: " .. stem)
 		end
 
 		-- Set stem and unstressed version. Also construct end-accented version
@@ -703,11 +716,11 @@ function detect_stem_and_accent_type(stem, decl)
 			-- (or almost always?) short, while the latter can be either;
 			-- apparently mixed is the more "modern" type of declension,
 			-- and short is "older".
-			base, ending = rmatch(stem, "^(.*[еёо]́?в)ъ?$")
+			base = rmatch(stem, "^(.*[еёо]́?в)ъ?$")
 			if base then
 				return base, "short", short_accent, short_stem
 			end
-			base, ending = rmatch(stem, "([иы]́?н)ъ?$")
+			base = rmatch(stem, "(.*[иы]́?н)ъ?$")
 			if base then
 				return base, "mixed", short_accent, short_stem
 				-- error("With -ин/ын adjectives, must specify 'short' or 'mixed':" .. stem)
@@ -771,9 +784,12 @@ function construct_bare_and_short_stem(args, short_accent, short_stem, accented_
 	-- short masculine or 3rd argument if explicitly given, else from the
 	-- accented stem, possibly with the unreduction transformation applied
 	-- (if * occurs in the short accent spec).
-	local reducible = short_accent and rfind(short_accent, "%*")
-	local sc1 = short_accent and rfind(short_accent, "%(1%)")
-	local sc2 = short_accent and rfind(short_accent, "%(2%)")
+	local reducible, sc1, sc2
+	if short_accent then
+		short_accent, reducible = rsubb(short_accent, "%*", "")
+		short_accent, sc1 = rsubb(short_accent, "%(1%)", "")
+		short_accent, sc2 = rsubb(short_accent, "%(2%)", "")
+	end
 	if sc1 or sc2 then
 		-- Reducible isn't compatible with sc1 or sc2, but Zaliznyak's
 		-- dictionary always seems to notate sc1 and sc2 with reducible *,
@@ -782,10 +798,6 @@ function construct_bare_and_short_stem(args, short_accent, short_stem, accented_
 	end
 	if sc1 and sc2 then
 		error("Special cases 1 and 2, i.e. (1) and (2), not compatible")
-	end
-	if short_accent then
-		short_accent = rsub(short_accent, "%*", "")
-		short_accent = rsub(short_accent, "%([12]%)", "")
 	end
 
 	local explicit_short_stem = short_stem
@@ -1309,6 +1321,15 @@ function handle_forms_and_overrides(args, short_forms_allowed)
 	end
 	for case, argnum in pairs(short_cases) do
 		if short_forms_allowed then
+			if args.forms[case] then
+				local lastarg = #(args.forms[case])
+				if lastarg > 0 and args.shorttailall then
+					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.shorttailall
+				end
+				if lastarg > 1 and args.shorttail then
+					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.shorttail
+				end
+			end
 			args[case] = dosplit(args[case] or args[argnum]) or args.forms[case]
 		else
 			args[case] = nil
