@@ -1301,14 +1301,15 @@ local special_case_1_to_plural_variation = {
 -- 5. An actual declension, possibly including a plural variant (e.g. о-ы) or
 --    a slash declension (e.g. я/-ья, used for the noun дядя).
 --
--- Return four args: stem minus ending, canonicalized declension,
+-- Return five args: stem minus ending, canonicalized declension,
 -- whether the specified declension or detected stem ending was accented,
--- and whether the detected stem ending was pl. "Canonicalized" means
--- after autodetection, with accents removed, with any aliases mapped
--- to their canonical versions and with any requested plural variants applied.
--- The result is either a declension that will have a categorization entry
--- (in declensions_cat[] or declensions_old_cat[]) or a slash declension
--- where each part similarly has a categorization entry.
+-- whether the detected stem ending was pl, and whether the declension was
+-- autodetected (i.e. the stem was actually a full word with ending
+-- attached). "Canonicalized" means after autodetection, with accents removed,
+-- with any aliases mapped- to their canonical versions and with any requested
+-- plural variants applied. The result is either a declension that will have
+-- a categorization entry (in declensions_cat[] or declensions_old_cat[]) or
+-- a slash declension where each part similarly has a categorization entry.
 --
 -- Note that gender is never required when an explicit declension is given,
 -- and in connection with stem autodetection is required only when the stem
@@ -1413,45 +1414,76 @@ function determine_decl(stem, decl, args)
 	return stem, decl, was_accented, was_plural, was_autodetected
 end
 
-function detect_adj_type(stem, decl, old)
+-- Attempt to determine the actual adjective declension based on a
+-- combination of the declension the user specified and what can be detected
+-- from the stem. DECL is the value the user passed for the declension field,
+-- after extraneous annotations have been removed (although none are probably
+-- relevant here). What's left is one of the following, which always begins
+-- with +:
+--
+-- 1. +, meaning to autodetect the declension from the stem
+-- 2. +short or +mixed, with the declension partly specified but the
+--    particular gender/number-specific short/mixed variant to be
+--    autodetected
+-- 3. A gender (+m, +f or +n), used only for detecting the singular of
+--    plural-form lemmas (NOTE: It's probably not necessary information,
+--    since we will normally be declining the resulting nouns as
+--    pluralia tantum.)
+-- 4. A gender plus short/mixed (e.g. +f-mixed), again with the gender used
+--    only for detecting the singular of plural-form short/mixed lemmas
+-- 5. An actual declension, possibly including a slash declension
+--    (WARNING: Unclear if slash declensions will work, especially those
+--    that are adjective/noun combinations)
+--
+-- Returns the same five args as for determine_decl(). The returned
+-- declension will always begin with +.
+function detect_adj_type(lemma, decl, old)
 	local was_accented = com.is_stressed(decl)
 	local was_autodetected
 	local base, ending
-	local basedecl, gender = rmatch(decl, "^(%+)([mfn])$")
+	local basedecl, g = rmatch(decl, "^(%+)([mfn])$")
 	if not basedecl then
-		gender, basedecl = rmatch(decl, "^%+([mfn])%-([a-z]+)$")
+		g, basedecl = rmatch(decl, "^%+([mfn])%-([a-z]+)$")
 		if basedecl then
 			basedecl = "+" .. basedecl
 		end
 	end
 	decl = basedecl or decl
 	if decl == "+" then
-		base, ending = rmatch(stem, "^(.*)([ыиіьаяое]́?[йея])$")
+		base, ending = rmatch(lemma, "^(.*)([ыиіьаяое]́?[йея])$")
 		if base then
 			was_accented = com.is_stressed(ending)
 			ending = com.remove_accents(ending)
-			ending = "+" .. ending
+			decl = "+" .. ending
 		else
-			error("Cannot determine stem type of adjective: " .. stem)
+			-- FIXME! Not clear if this works with accented endings, check it
+			base, ending = rmatch(lemma, "^(.-)([оаыъ]?́?)$")
+			assert(base)
+			local shortmixed = rlfind(base, "[ёео]́?в$") and "short" or
+				rlfind(base, "[ыи]́н$") "mixed"
+			if not shortmixed then
+				error("Cannot determine stem type of adjective: " .. lemma)
+			end
+			was_accented = com.is_stressed(ending)
+			ending = com.remove_accents(ending)
+			decl = "+" .. ending .. "-" .. shortmixed
 		end
 		was_autodetected = true
 	elseif decl == "+short" or decl == "+mixed" then
 		-- FIXME! Not clear if this works with accented endings, check it
-		base, ending = rmatch(stem, "^(.-)([оеаыиъ]?́?)$")
+		base, ending = rmatch(lemma, "^(.-)([оаыъ]?́?)$")
 		assert(base)
 		was_accented = com.is_stressed(ending)
 		ending = com.remove_accents(ending)
-		if ending == "е" then
-			ending = "о"
-		end
-		ending = "+" .. ending .. "-" .. usub(decl, 2)
+		decl = "+" .. ending .. "-" .. usub(decl, 2)
+		was_autodetected = true
 	else
 		-- FIXME, might not work in the presence of slash declensions
 		was_accented = com.is_stressed(decl)
 		decl = com.remove_accents(decl)
-		base, ending = stem, decl
+		base = lemma
 	end
-	decl = canonicalize_decl(ending, old)
+
 	function convert_sib_velar_variant(decl)
 		local iend = rmatch(decl, "^%+[іи]([йея]?)$")
 		-- Convert ій/ий to ый after velar or sibilant. This is important for
@@ -1469,14 +1501,26 @@ function detect_adj_type(stem, decl, old)
 		return decl
 	end
 
-	decl = map_decl(decl, convert_sib_velar_variant)
-	local was_plural = rfind(decl, "^%+[ыіи][ея]?$")
-	if was_plural then
-		error("Autodetection of plural adjectival nouns not yet supported")
-		-- FIXME!!! Detect plural and convert to singular; requires that
-		-- gender be specified.
+	decl = map_decl(decl,convert_sib_velar_variant)
+	local singdecl
+	if decl == "+ые" then
+		singdecl = g == "m" and "+ый" or not old and g == "f" and "+ая" or not old and g == "n" and "+ое"
+	elseif decl == "+ие" and not old then
+		singdecl = g == "m" and "+ий" or g == "f" and "+яя" or g == "n" and "+ее"
+	elseif decl == "+іе" and old and g == "m" then
+		singdecl = "+ій"
+	elseif decl == "+ія" and old then
+		singdecl == g == "f" and "+яя" or g == "n" and "+ее"
+	elseif decl == "+ьи" then
+		singdecl = g == m and (old and "+ьій" or "ьий") or g == "f" and "ья" or g == "n" and "+ье"
+	elseif decl == "+ы-mixed" or decl == "+ы-short" then
+		local beg = g == "m" and (old and "ъ" or "") or g == "f" and "а" or g == "n" and "о"
+		singdecl = beg and beg .. usub(decl, 2)
 	end
-
+	if singdecl then
+		was_plural = true
+		decl = singdecl
+	end
 	return base, canonicalize_decl(decl, old), was_accented, was_plural, was_autodetected
 end
 
