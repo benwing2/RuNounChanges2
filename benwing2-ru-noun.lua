@@ -57,8 +57,17 @@ TODO:
    WE DON'T GET ERRORS.]
 7. FIXME: Add proper support for Zaliznyak b', f''.
 7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
-7a. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
+7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
+7c. FIXME: Mixed and proper-noun adjectives have built-in notes. We need to
+   handle those notes with an "internal_notes" section similar to what is used
+   in the adjective module.
+7d. FIXME: Adjective detection code here needs to work the same as for the
+   adjective module, in particular in the handling of short, stressed-short,
+   mixed, proper, stressed-proper. (Possibly we don't need quite this many
+   distinctions, e.g. proper, stressed-proper and stressed-short have the
+   same endings in masc and fem. We have a stress category so we can more
+   easily handle the stressed and unstressed short/proper variants.)
 8. Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen? [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
