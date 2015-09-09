@@ -134,6 +134,17 @@ local function tracking_code(stress_arg, stress, decl_class,
 	end
 end
 
+local function arg1_is_stress(arg1)
+	if not arg1 then return false end
+	for _, arg in ipairs(rsplit(arg1, ",")) do
+		if not (rfind(arg, "^[1-6]%*?$") or rfind(arg, "^[a-f]'?'?$")) then
+			return false
+		end
+	end
+	return true
+end
+
+
 local function do_show(frame, old)
 	PAGENAME = mw.title.getCurrentTitle().text
 	SUBPAGENAME = mw.title.getCurrentTitle().subpageText
@@ -170,6 +181,29 @@ local function do_show(frame, old)
 			stem_set = {}
 			offset = i
 		else
+			-- If the first argument isn't stress, that means all arguments
+			-- have been shifted to the left one. We want to shift them
+			-- back to the right one, so we change the offset so that we
+			-- get the same effect of skipping a slot in the stem set.
+			-- But temporarily recognize a blank stress argument to to avoid
+			-- causing errors. (NOTE: It is nearly impossible to support both
+			-- the old and new ways in the second and greater stem set
+			-- in the presence of an empty stem. For now we keep the old way,
+			-- but note where these things happen, so we can switch them
+			-- quickly.)
+			if i - offset == 1 then
+				if not args[i] then
+					track("blank-stress-arg")
+					if not args[i + 1] then
+						track("blank-stress-and-stem-arg")
+					end
+				elseif not arg1_is_stress(args[i]) then
+					offset = offset - 1
+				end
+			end
+			if i - offset > 5 then
+				error("Too many arguments for stem set: arg " .. i .. " = " .. (args[i] or "(blank)"))
+			end
 			stem_set[i - offset] = args[i]
 		end
 	end
@@ -190,7 +224,7 @@ local function do_show(frame, old)
 	local detectfuns = old and detect_decl_old or detect_decl
 
 	-- Default stem, defaults to previous stem.
-	local default_stem = SUBPAGENAME
+	local default_stem = nil
 
 	if #stem_sets > 1 then
 		track("multiple-stems")
@@ -200,6 +234,9 @@ local function do_show(frame, old)
 		local stress_arg = stem_set[1] or "1"
 		local decl_class = stem_set[3] or ""
 		args.stem = stem_set[2] or default_stem
+		if not args.stem then
+			error("Stem in first stem set must be specified")
+		end
 		if ut.contains({"", "m", "f", "n"}, decl_class) then
 			args.stem, decl_class = detect_stem_type(args.stem, decl_class)
 		end
