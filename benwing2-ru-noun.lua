@@ -38,74 +38,69 @@
 
 TODO:
 
-1. Change {{temp|ru-decl-noun-pl}} and {{temp|ru-decl-noun-unc}} to use
-   'manual' instead of '*' as the decl class.
-1a. Find places with '-' as the decl class and remove or change to #.
-   All should occur where there are multiple stems, maybe only in one place
-   (мальчонок?). USE TRACKING.
-1b. Find places with '*' as the decl class and change to -. There is at
-   least one. USE TRACKING.
-1c. Implement skipping entirely an empty first stress argument in master,
-   and fix cases that use it, in preparation for switching.
-1d. In master, require stem to be specified instead of defaulting to page,
-   and fix errors that result.
-1e. FIXME: Consider changing '-' to mean invariable to '^' or similar.
-1f. FIXME: Add proper support for Zaliznyak b', f''.
-1g. FIXME: With nouns specified by the plural and masc reducible, we need to
-    unreduce to get the masc singular stem.
-1h. FIXME: Plural-specified nouns with special-case (1) produce an error
-   "Special case (1) not compatible with declension -а".
-1i. FIXME: Business about adding -ь or -й to gen pl doesn't correctly work in
-    o-ья, ъ-ья, etc. in the alt gen pl. Maybe we shouldn't allow an alt gen pl
-    here, it surely doesn't occur in Zaliznyak as he doesn't have a specific
-    special case for -ья plurals; instead just require a gen pl override;
-    these cases will be vanishingly few anyway.
-1j. Ambiguous plural errors -- think about what to do here. Vitalik just
-   picks the more likely one. One error occurs with хло́пья|n*(2), does the
-   (2) have anything to do with it?
-1k. FIXME: Get error "Unable to unreduce" with strange noun ва́йя, what should
-   happen?
-1l. FIXME: Consider implementing ins_sg stem for 8* feminine words like люво́вь
-   with reducible stem любв- in gen/dat/pre sg and throughout the plural
-   (I think), but ins sg любо́вью.
-1m. FIXME: In деньги, the pltail * shows up in the lemma and nom pl even though
-   it should only be attached to the second set of forms. Maybe make pltail
-   only attach itself when there are multiple forms, or have some other way of
-   indicating that it should only attach when multiple forms.
-3. Bug in -я nouns with bare specified; gen pl should not have -ь ending. Old
-   templates did not add this ending when bare occurred. [SHOULD ALWAYS
-   HAVE BARE BE BARE, NEVER ADD A NON-SYLLABIC ENDING. IMPLEMENTED IN GITHUB.
-   TRACKING CODE PRESENT TO CHECK FOR CASES WHERE IT MIGHT BE WRONG.]
-4. Remove barepl, make pl= be 5th argument. [IMPLEMENTED IN GITHUB IN TWO
-   DIFFERENT BRANCHES]
-5. (Add accent pattern for ь-stem numbers. Wikitiki handled that through
+1. FIXME: Change {{temp|ru-decl-noun-pl}} and {{temp|ru-decl-noun-unc}} to use
+   'manual' instead of '*' as the decl class. Implement in master.
+2. FIXME: Find places with '-' as the decl class and remove or change to #.
+  [ALREADY FOUND AND FIXED A PLACE. USE TRACKING.]
+3. FIXME: Find places with '*' as the decl class and change to -. There is at
+  least one. [USE TRACKING.]
+4. FIXME: Implement skipping entirely an empty first stress argument in master,
+  and fix cases that use it, in preparation for switching.
+5. FIXME: In master, require stem to be specified instead of defaulting to page,
+  and fix errors that result.
+6. FIXME: Consider changing '-' to mean invariable to '$' or '~' or similar.
+7. FIXME: Add proper support for Zaliznyak b', f''.
+7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F
+8. Get error "Unable to unreduce" with strange noun ва́йя, what should
+  happen? [WILL NOT FIX; USE AN OVERRIDE]
+9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
+  stem любв- in gen/dat/pre sg and throughout the plural (I think),
+  but ins sg любо́вью. [IMPLEMENTED. NEED TO TEST, AND CHANGE NOUNS OF THIS
+  SORT TO USE THE NEW WAY. любо́вь, нелюбо́вь, вошь, це́рковь, ложь, рожь.
+  ADD це́рковь TO TEST NOUNS.]
+10. pltailall/sgtailall. [IMPLEMENTED; NEED TO TEST.]
+11. More sophisticated handling of user-requested plural variant vs. special
+  case (1) vs. plural-detected variant. [IMPLEMENTED; NEED TO TEST.]
+12. Unreducing masculine plural. [IMPLEMENTED; NEED TO TEST.]
+13. Solution to ambiguous plural involving gender spec "3f". [IMPLEMENTED;
+   NEED TO TEST.]
+14. N*d(2) in masc nouns will have different unreduced form in
+   nom sg vs. gen pl, e.g. nom sg рожо́к vs. gen pl ро́жек; essentially, need
+   to reduce then unreduce again, and store a separate nom_sg bare and
+   gen_pl bare. With saпожо́к, the pl stem is probably сапо́ж-; this implies
+   we need to restress an unstressed reduced stem according to the way we
+   do it for the normal stem with b/d(')/f(') stress patterns. The nouns
+   that appear to work this way are all 3*d(2): зубо́к, сапожо́к (3*d(2) // 3*b),
+   рожо́к, сяжо́к (3*b // 3*d(2)), глазо́к. [IMPLEMENTED; NEED TO TEST; NEED TO
+   ADD THESE NOUNS ESP. сапожо́к TO THE TEST CASES.]
+15. Bug in -я nouns with bare specified; gen pl should not have -ь ending. Old
+   templates did not add this ending when bare occurred. [IMPLEMENTED;
+   NEED TO TEST. GEN PL NEVER ADDS NON-SYLLABIC ь OR й. TRACKING CODE PRESENT
+   TO CHECK FOR CASES WHERE IT MIGHT BE WRONG.]
+16. Remove barepl, make pl= be 5th argument. [IMPLEMENTED IN WIKTIONARY.]
+17. [Add accent pattern for ь-stem numbers. Wikitiki handled that through
    overriding the ins_sg. I thought there would be complications with the
-   nom_sg in multi-syllabic words but no.)
-6. Eliminate complicated defaulting code for second and further stem sets.
+   nom_sg in multi-syllabic words but no.] [MIGHT NOT IMPLEMENT.]
+18. Eliminate complicated defaulting code for second and further stem sets.
    Should simply default to same values as the first stem set does, without
    the first stem set serving as defaults for the remainder, except that
    the stem itself can default to the previous stem set. [IMPLEMENTED IN
-   GITHUB. PREVIOUSLY DIDN'T ALLOW STEM TO BE DEFAULTED AND CHANGED SOME
-   NOUNS TO THAT EFFECT; UNDO THEM.]
-7. Fixes for stem-multi-syllabic words with ending stress in gen pl but
+   WIKTIONARY.]
+19. Fixes for stem-multi-syllabic words with ending stress in gen pl but
    non-syllabic gen pl, with stress transferring onto final syllable even if
    stem is otherwise stressed on an earlier syllable (e.g. голова́ in
    accent pattern 6, nom pl го́ловы, gen pl голо́в). Currently these are handled
    by overriding "bare" but I want to make bare predictable mostly, just
-   specifying that the noun is reducible should be enough. [IMPLEMENTED
-   IN GITHUB. TRACKING CODE PRESENT TO CHECK FOR CASES WHERE IT MIGHT BE
-   WRONG.]
-8. If decl omitted, it should default to 1 or 2 depending on whether accent
-   is on stem or ending, not always 1. [IMPLEMENTED IN GITHUB]
-9. [Should recognize plural in the auto-detection code when the gender is set.
-   This can be used e.g. in class 4 or 6 to avoid having to distort the accent
-   in the singular.] [RECOGNIZING PLURAL IMPLEMENTED BUT COMMENTED OUT, NOT
-   SURE IT'S A GOOD IDEA.] [NOTE: This is necessary for full compatibility
-   with ru-decl-noun-z; we should look how Vitalik's module does things]
-10. Issue an error unless allow_no_accent is given (using a * at the beginning
-   of the stem). [IMPLEMENTED IN GITHUB; AT LEAST ONE WIKTIONARY ENTRY WILL
+   specifying that the noun is reducible should be enough. [IMPLEMENTED.
+   TRACKING CODE PRESENT TO CHECK FOR CASES WHERE IT MIGHT BE WRONG.]
+20. If decl omitted, it should default to 1 or 2 depending on whether accent
+   is on stem or ending, not always 1. [IMPLEMENTED.]
+21. Should recognize plural in the auto-detection code when the gender is set.
+   [IMPLEMENTED.]
+22. Issue an error unless allow_no_accent is given (using a * at the beginning
+   of the stem). [IMPLEMENTED. AT LEAST ONE WIKTIONARY ENTRY WILL
    NEED TO HAVE THE * ADDED]
-11. Make it so that the plural-specifying decl classes -а, -ья, and new -ы, -и
+23. Make it so that the plural-specifying decl classes -а, -ья, and new -ы, -и
    still auto-detect the class and convert the resulting auto-detected class
    to one with the plural variant. It's useful then to have explicit names for
    the plural-variant classes -а, -ья. I propose #-а, #-ья, which are aliases;
@@ -122,22 +117,28 @@ TODO:
    о           о           о-ья         о-и        о-и
    е           *           *            *          *
    ь-f         *           *            *          ь-f
-  [IMPLEMENTED, NEED TO TEST]
-12. Add ability to specify manual translation. [IMPLEMENTED IN GITHUB FOR
-   NOUNS, NOT YET FOR ADJECTIVES, NOT TESTED, ALMOST CERTAINLY HAS ERRORS]
-13. Support adjective declensions. Autodetection should happen by putting +
+  [IMPLEMENTED. NEED TO TEST.]
+24. Support adjective declensions. Autodetection should happen by putting +
    in decl field to indicate it's an adjective. Adjective decl types should
-   begin with a +. (Formerly a * but currently that stands for "invariable".)
-   [IMPLEMENTED IN GITHUB, NOT TESTED]
-14. Support multiple words. [IMPLEMENTED IN GITHUB, NOT TESTED]
-15. [Eliminate - as an alias for blank signifying the consonant declension;
-    can use c if necessary.] -- Rethink using c for the consonant declension,
-	in case we want to allow c for accent class c/3 and have the code
-	auto-recognize stress pattern used in the declension field.
-16. Implement (1) as an alias for certain irregular plurals, for
-    compatibility with Zaliznyak.
-17. Eventually: Even with decl type explicitly given, the full stem with
-    ending should be included.
+   begin with a +. (Formerly a * but that is used for reducibles.)]
+   [IMPLEMENTED. TESTED.]
+25. Implement (1) as an alias for certain irregular plurals, for
+    compatibility with Zaliznyak. [IMPLEMENTED. APPEARS TO WORK BUT SHOULD
+    CHECK.]
+26. Add ability to specify manual translation. [IMPLEMENTED IN GITHUB
+   MANUAL-TRANSLIT BRANCH FOR NOUNS, NOT YET FOR ADJECTIVES, NOT TESTED,
+   ALMOST CERTAINLY HAS ERRORS]
+27. Support multiple words and new ru-decl-noun-multi. [IMPLEMENTED IN
+   MULTIPLE-WORDS BRANCH, NOT TESTED.]
+28. FIXME: In multiple-words branch, fix ru-decl-noun-multi so it recognizes
+   things like *, (1), (2) and ; without the need for a separator. Consider
+   using semicolon as a separator, since we already use it to separate ё
+   from a previous declension. Maybe use $ or ~ for an invariable word; don't
+   use semicolon.
+29. FIXME: In multiple-words branch, with normal ru-noun-table, allow -
+    as a joiner, now that something else ($ or ~?) is used for invariable.
+30. Eventually: Even with decl type explicitly given, the full stem with
+    ending should be included. [MAY NEVER IMPLEMENT]
 
 ]=]--
 
@@ -350,6 +351,12 @@ local function tracking_code(stress, decl_class, real_decl_class, args)
 	end
 	if args.sgtail then
 		track("sgtail")
+	end
+	if args.pltail then
+		track("pltailall")
+	end
+	if args.sgtail then
+		track("sgtailall")
 	end
 	if args.alt_gen_pl then
 		track("alt-gen-pl")
@@ -690,12 +697,27 @@ local function do_show(frame, old)
 		if not stem then
 			error("Stem in first stem set must be specified")
 		end
+		local orig_stem = stem
 		default_stem = stem
-		local was_accented
+		local was_accented, was_plural, was_autodetected
 		if rfind(decl_class, "^%+") then
-			stem, decl_class, was_accented = detect_adj_type(stem, decl_class, old)
+			stem, decl_class, was_accented, was_autodetected =
+				detect_adj_type(stem, decl_class, old)
 		else
-			stem, decl_class, was_accented = detect_stem_type(stem, decl_class, args)
+			stem, decl_class, was_accented, was_plural, was_autodetected =
+				determine_decl(stem, decl_class, args)
+		end
+		local allow_unaccented
+		stem, allow_unaccented = rsubb(stem, "^%*", "")
+		if not allow_unaccented and not stress_arg and was_autodetected and com.needs_accents(orig_stem) then
+			-- If user gave the full word and expects us to determine the
+			-- declension and stress, the word should have an accent on the
+			-- stem or ending. We have a separate check farther below for
+			-- an accent on a multisyllabic stem, after stripping off any
+			-- ending; but this way we get an error if the user e.g. writes
+			-- "гора" without an accent rather than assuming it's stem
+			-- stressed, as would otherwise happen.
+			error("Stem must have an accent in it: " .. orig_stem)
 		end
 		stress_arg = stress_arg or detect_stress_pattern(decl_class, was_accented)
 
@@ -722,14 +744,16 @@ local function do_show(frame, old)
 		else
 			sub_decl_classes = {{decl_class}}
 		end
+		-- further sanity checking
+		for _, decl_class_spec in ipairs(sub_decl_classes) do
+			assert(decl_class_spec[1], "Can't find declension category for " .. decl_class_spec[1] .. "; perhaps a detection function returned a non-canonical declension?")
+		end
+
 
 		if #stress_arg > 1 then
 			track("multiple-accent-patterns")
 			insert_cat("~ with multiple accent patterns")
 		end
-
-		local allow_unaccented = rfind(stem, "^%*")
-		stem = rsub(stem, "^%*", "")
 
 		local original_stem = stem
 		local original_bare = bare
@@ -755,26 +779,31 @@ local function do_show(frame, old)
 				stem_for_bare = stem
 			end
 
-			-- it's safe to accent monosyllabic stems
-			if com.is_monosyllabic(stem) then
-				stem = com.make_ending_stressed(stem)
-			-- For those patterns that are ending-stressed in the singular
-			-- nominative (and hence are likely to be expressed without an
-			-- accent on the stem) it's safe to put a particular accent on
-			-- the stem depending on the stress type. Otherwise, give an error
-			-- unless the user has indicated they purposely are leaving the
-			-- word unstressed (e.g. due to not knowing the stress) by putting
-			-- a * at the beginning of the main stem
-			elseif stem_was_unstressed then
-				if rfind(stress, "^6") then
-					stem = com.make_beginning_stressed(stem)
-				elseif (rfind(stress, "^[24]") or
-					args.n == "p" and ending_stressed_pl_patterns[stress]) then
+			local function restress_stem(stem, stress)
+				-- it's safe to accent monosyllabic stems
+				if com.is_monosyllabic(stem) then
 					stem = com.make_ending_stressed(stem)
-				elseif not allow_unaccented then
-					error("Stem " .. stem .. " requires an accent")
+				-- For those patterns that are ending-stressed in the singular
+				-- nominative (and hence are likely to be expressed without an
+				-- accent on the stem) it's safe to put a particular accent on
+				-- the stem depending on the stress type. Otherwise, give an
+				-- error unless the user has indicated they purposely are
+				-- leaving the word unstressed (e.g. due to not knowing the
+				-- stress) by putting a * at the beginning of the main stem
+				elseif stem_was_unstressed then
+					if rfind(stress, "^6") then
+						stem = com.make_beginning_stressed(stem)
+					elseif (rfind(stress, "^[24]") or
+						args.n == "p" and ending_stressed_pl_patterns[stress]) then
+						stem = com.make_ending_stressed(stem)
+					elseif not allow_unaccented then
+						error("Stem " .. stem .. " requires an accent")
+					end
 				end
+				return stem
 			end
+
+			stem = restress_stem(stem, stress)
 
 			if pl and com.is_monosyllabic(pl) then
 				pl = com.make_ending_stressed(pl)
@@ -792,6 +821,14 @@ local function do_show(frame, old)
 			local sgdc = decl_cats[sgdecl]
 			local resolved_bare = bare
 			-- Handle (un)reducibles
+			-- FIXME! We are unreducing based on the singular declension.
+			-- In a slash declension things can get weird and we don't
+			-- handle that. We are also computing the bare value from the
+			-- singular stem, and again things can get weird with a plural
+			-- stem. Note that we don't compute a bare value unless we have
+			-- to (either (un)reducible or stress pattern 6/6* combined with
+			-- ё special case); the remaining times we generate the bare
+			-- value directly from the plural stem.
 			if bare then
 				-- FIXME: Tracking code eventually to remove; track cases
 				-- where bare is explicitly specified to see how many could
@@ -839,8 +876,31 @@ local function do_show(frame, old)
 				-- the user to specify this, but ignore it if so for
 				-- compatibility.
 				if is_reducible(sgdc) then
-					resolved_bare = stem
-					stem = export.reduce_nom_sg_stem(stem, sgdecl, "error")
+					-- If we derived the stem from a nom pl form, then
+					-- it's already reduced, and we need to unreduce it to
+					-- get a bare form; otherwise the stem comes from the
+					-- nom sg and we need to reduce it to get the real stem.
+					if was_plural then
+						resolved_bare = export.unreduce_nom_sg_stem(stem, sgdc,
+							stress, old, "error")
+					else
+						resolved_bare = stem
+						stem = export.reduce_nom_sg_stem(stem, sgdecl, "error")
+						-- Stem will be unstressed if stress was on elided
+						-- vowel; restress stem the way we did above. (This is
+						-- needed in at least one word, сапожо́к 3*d(2), with
+						-- plural stem probably сапо́жк- and gen pl probably
+						-- сапо́жек.)
+						stem = restress_stem(stem, stress)
+						if stress ~= "1" and stress ~= "2" and args.alt_gen_pl then
+							-- Nouns like рожо́к, глазо́к of type 3*d(2) have
+							-- gen pl's ро́жек, гла́зок; to handle this,
+							-- unreduce the reduced stem and store in a
+							-- special place.
+							args.gen_pl_bare = export.unreduce_nom_sg_stem(stem,
+								sgdc, stress, old, "error")
+						end
+					end
 				elseif is_unreducible(sgdc) then
 					resolved_bare = export.unreduce_nom_sg_stem(stem, sgdc,
 						stress, old, "error")
@@ -848,11 +908,7 @@ local function do_show(frame, old)
 					error("Declension class " .. sgdecl .. " not (un)reducible")
 				end
 			elseif stem_for_bare and stem ~= stem_for_bare then
-				resolved_bare = stem_for_bare
-				if sgdc.hard == "soft" then
-					resolved_bare = resolved_bare .. (
-					rfind(resolved_bare, "[" .. com.vowel .. "]́?$") and "й" or "ь")
-				end
+				resolved_bare = add_bare_suffix(stem_for_bare, old, sgdc, false)
 			end
 
 			if resolved_bare and com.is_monosyllabic(resolved_bare) then
@@ -869,6 +925,9 @@ local function do_show(frame, old)
 			args.ustem = com.make_unstressed_once(stem)
 			args.pl = pl or stem
 			args.upl = com.make_unstressed_once(args.pl)
+			-- Special hack for любо́вь and other reducible 3rd-fem nouns,
+			-- which have the full stem in the ins sg
+			args.ins_sg_stem = sgdecl == "ь-f" and resolved_bare
 
 			-- Loop over declension classes (we may have two of them, one for
 			-- singular and one for plural, in the case of a mixed declension
@@ -1080,8 +1139,13 @@ end
 
 -- Attempt to detect the type of the stem (= including ending) based
 -- on its ending, separating off the base and the ending. GENDER
--- may be omitted except for -ь stems, where it must be "m" or "f".
-local function detect_basic_stem_type(stem, gender, anim)
+-- must be present with -ь and plural stems, and is otherwise ignored.
+-- Return up to three values: The base (stem minus ending), the singular
+-- stem ending, and if the stem was plural, the plural stem ending.
+-- If the stem was singular, the singular stem ending will contain any
+-- user-given accents; likewise, if the stem was plural, the plural ending
+-- will contain such accents.
+local function detect_stem_type(stem, gender, anim)
 	local base, ending = rmatch(stem, "^(.*)([еЕ]́)$") -- accented
 	if base then
 		return base, ulower(ending)
@@ -1116,21 +1180,32 @@ local function detect_basic_stem_type(stem, gender, anim)
 		if gender == "n" then
 			base, ending = rmatch(stem, "^(.*)([ьЬ][яЯ]́?)$")
 			if base then
-				error("Ambiguous plural stem " .. stem .. " in -ья, singular could be -о or -ье/-ьё; specify the singular")
+				-- Don't do this; о-ья is too rare
+				-- error("Ambiguous plural stem " .. stem .. " in -ья, singular could be -о or -ье/-ьё; specify the singular")
+				return base, "-ье", ending
 			end
 			base, ending = rmatch(stem, "^(.*)([аяАЯ]́?)$")
 			if base then
 				return base, rfind(ending, "[аА]") and "о" or "е", ending
 			end
+			base, ending = rmatch(stem, "^(.*)([ыиЫИ]́?)$")
+			if base then
+				if rfind(ending, "[ыЫ]") or rfind(base, "[" .. com.sib .. com.velar .. "]$") then
+					return base, "о-и", ending
+				else
+					-- FIXME, should we return a slash declension?
+					error("No neuter declension е-и available; use a slash declension")
+				end
+			end
 		end
 		if gender == "f" then
-			base, ending = rmatch(stem, "^(.*)(ь[иИ]́?)$")
+			base, ending = rmatch(stem, "^(.*)([ьЬ][иИ]́?)$")
 			if base then
 				return base, "ья", ending
 			end
 		end
 		if gender == "m" then
-			base, ending = rmatch(stem, "^(.*)(ь[яЯ]́?)$")
+			base, ending = rmatch(stem, "^(.*)([ьЬ][яЯ]́?)$")
 			if base then
 				return base, "-ья", ending
 			end
@@ -1147,13 +1222,19 @@ local function detect_basic_stem_type(stem, gender, anim)
 			if base then
 				return base, gender == "m" and "" or "а", ending
 			end
+			base, ending = rmatch(stem, "^(.*[" .. com.vowel .. "])([иИ]́?)$")
+			if base then
+				return base, gender == "m" and "й" or "я", ending
+			end
 			base, ending = rmatch(stem, "^(.*)([иИ]́?)$")
 			if base then
-				if gender == "m" then
-					return base, "ь-m", ending
-				else
-					error("Ambiguous plural stem " .. stem .. " in -и, singular could be -я or -ь; specify the singular")
-				end
+				return base, gender == "m" and "ь-m" or "я", ending
+			end
+		end
+		if gender == "3f" then
+			base, ending = rmatch(stem, "^(.*)([иИ]́?)$")
+			if base then
+				return base, "ь-f", ending
 			end
 		end
 	end
@@ -1169,6 +1250,8 @@ local function detect_basic_stem_type(stem, gender, anim)
 	if base then
 		if gender == "m" or gender == "f" then
 			return base, "ь-" .. gender
+		elseif gender == "3f" then
+			return base, "ь-f"
 		else
 			error("Need to specify gender m or f with stem in -ь: ".. stem)
 		end
@@ -1199,50 +1282,136 @@ local special_case_1_to_plural_variation = {
 	["о"] = "о-и",
 }
 
--- Attempt to detect the declension type (including plural variants)
--- based on the ending of the stem (or nom sg), separating off the base
--- and the ending. DECL is the value passed in and might be "", "m",
--- "f", "n", "-а", "-я", "-ья", "-ы", "-и", or "GENDER-PLURAL" using one of
--- the above genders and plurals. Gender is ignored except for -ь stems,
--- where "m" or "f" is required. The special case (1) of Zaliznyak can
--- also be given as an alternative to specifying the plural variant,
--- for certain types of plural variants.
-function detect_stem_type(stem, decl, args)
-	local gender = rmatch(decl, "^([mfn]?)$")
-	local plural
+-- Attempt to determine the actual declension (including plural variants)
+-- based on a combination of the declension the user specified, what can be
+-- detected from the stem, and special case (1), if given in the declension.
+-- DECL is the value the user passed for the declension field, after
+-- extraneous annotations (special cases (1) and (2), * for reducible,
+-- ё for ё/ё alternation and a ; that may precede ё) have been stripped off.
+-- What's left is one of the following:
+--
+-- 1. Blank, meaning to autodetect the declension from the stem
+-- 2. A hyphen followed by a requested plural variant (-а, -я, -ья, -ы, -и)
+-- 3. A gender (m, f, n, 3f)
+-- 4. A gender plural plural variant (e.g. m-а)
+-- 5. An actual declension, possibly including a plural variant (e.g. о-ы) or
+--    a slash declension (e.g. я/-ья, used for the noun дядя).
+--
+-- Return four args: stem minus ending, canonicalized declension,
+-- whether the specified declension or detected stem ending was accented,
+-- and whether the detected stem ending was pl. "Canonicalized" means
+-- after autodetection, with accents removed, with any aliases mapped
+-- to their canonical versions and with any requested plural variants applied.
+-- The result is either a declension that will have a categorization entry
+-- (in declensions_cat[] or declensions_old_cat[]) or a slash declension
+-- where each part similarly has a categorization entry.
+--
+-- Note that gender is never required when an explicit declension is given,
+-- and in connection with stem autodetection is required only when the stem
+-- either ends in -ь or is plural.
+function determine_decl(stem, decl, args)
+	-- Assume we're passed a value for DECL of types 1-4 above, and
+	-- fetch gender and requested plural variant
+	local gender = rmatch(decl, "^(3?[mfn]?)$")
+	local user_plural, orig_pl_ending
+	local was_autodetected
 	if not gender then
-		gender, plural = rmatch(decl, "^([mfn]?)(%-.+)$")
+		gender, user_plural = rmatch(decl, "^(3?[mfn]?)(%-.+)$")
 	end
+	-- If DECL is of type 1-4, detect the actual declension from the full stem
 	if gender then
-		stem, decl, orig_ending = detect_basic_stem_type(stem, gender, args.a)
+		stem, decl, orig_pl_ending = detect_stem_type(stem, gender, args.a)
+		was_autodetected = true
 	end
-	-- Non-syllabic stems should always be considered to have accented endings
-	local was_accented = com.is_stressed(decl) or orig_ending and com.is_stressed(orig_ending)
-		or com.is_nonsyllabic(stem)
+	-- The ending should be treated as accented if either the original singular
+	-- or plural ending was accented, or if the stem is non-syllabic.
+	local was_accented = com.is_stressed(decl) or
+		orig_pl_ending and com.is_stressed(orig_pl_ending) or
+		com.is_nonsyllabic(stem)
+	local was_plural = not not orig_pl_ending
 	decl = canonicalize_decl(decl, args.old)
-	if not plural then
-		if args.want_sc1 then
-			decl = special_case_1_to_plural_variation[decl] or
-				error("Special case (1) not compatible with declension " .. decl)
+
+	-- The rest of this code concerns plural variants. It's complicated because
+	-- there are potentially four sources of plural variants (not to mention
+	-- plural variants constructed using slash notation):
+	--
+	-- 1. A user-requested plural variant in declension types 2 or 4 above
+	-- 2. A explicit plural variant encoded in an explicit declension of
+	--    type 5 above
+	-- 3. An autodetected plural variant (which will happen in some cases
+	--    when autodetection is performed on a nominative plural)
+	-- 4. A plural variant derived using special case (1).
+	--
+	-- Up to three actual plural variants might exist (e.g. if the user
+	-- specifies a DECL value or 'm-а(1)' and a STEM ending in -а). We
+	-- can't have all four because if there's an explicit plural variant,
+	-- there won't be a user-requested or autodetected plural variant.
+	--
+	-- The goal below is to do two things: Check that all available plural
+	-- variants are the same, and generate the actual declension.
+	-- If we have a type-2 or type-3 variant, we already have the actual
+	-- declension; else we need to use a table to map the basic declension
+	-- to the one with the plural variant encoded in it.
+
+	-- 1: Handle explicit decl with slash variant
+	if rfind(decl, "/") then
+		if user_plural then
+			error("User-requested plural variation " .. user_plural .. " not compatible with slash declension " .. decl)
 		end
-		return stem, decl, was_accented
+		if args.want_sc1 then
+			error("Special case (1) not compatible with slash declension" .. decl)
+		end
+		return stem, decl, was_accented, was_plural, was_autodetected
 	end
+
+	-- 2: Retrieve explicitly specified or autodetected decl and pl. variant
+	local basic_decl, detected_or_explicit_plural = rmatch(decl, "^(.*)(%-.+)$")
+	basic_decl = basic_decl or decl
+
+	-- 3: Any user-requested plural variant must agree with explicit or
+	--    autodetected variant.
+	if user_plural and detected_or_explicit_plural and user_plural ~= detected_or_explicit_plural then
+		error("Plural variant " .. user_plural .. " requested but plural variant " .. detected_or_explicit_plural .. " detected from plural stem")
+	end
+
+	-- 4: Handle special case (1). Derive the full declension, make sure its
+	--    plural variant matches any other available plural variants, and
+	--    return the declension.
 	if args.want_sc1 then
-		error("Special case (1) not compatible with explicit plural")
+		local sc1_decl = special_case_1_to_plural_variation[basic_decl] or
+			error("Special case (1) not compatible with declension " .. basic_decl)
+		local sc1_plural = rsub(sc1_decl, "^.*%-", "")
+		local other_plural = user_plural or detected_or_explicit_plural
+		if (other_plural and sc1_plural ~= other_plural then
+			error("Plural variant " .. other_plural .. " specified or detected, but special case (1) calls for plural variant " .. sc1_plural)
+		end
+		return stem, sc1_decl, was_accented, was_plural, was_autodetected
 	end
-	local plural_variant
-	if plural_variation_detection_map[decl] then
-		plural_variant = plural_variation_detection_map[decl][plural]
+
+	-- 5: Handle user-requested plural variant without explicit or detected
+	--    one. (If an explicit or detected one exists, we've already checked
+	--    that it agrees with the user-requested one, and so we already have
+	--    our full declension.)
+	if user_plural and not detected_or_explicit_plural then
+		local variant_decl
+		if plural_variation_detection_map[decl] then
+			variant_decl = plural_variation_detection_map[decl][user_plural]
+		end
+		if variant_decl then
+			return stem, variant_decl, was_accented, was_plural, was_autodetected
+		else
+			return stem, decl .. "/" .. user_plural, was_accented, was_plural, was_autodetected
+		end
 	end
-	if plural_variant then
-		return stem, plural_variant, was_accented
-	else
-		return stem, decl .. "/" .. plural, was_accented
-	end
+
+	-- 6: Just return the full declension, which will include any available
+	--    plural variant in it.
+	return stem, decl, was_accented, was_plural, was_autodetected
 end
 
 function detect_adj_type(stem, decl, old)
 	local was_accented = com.is_stressed(decl)
+	local was_autodetected
 	local base, ending
 	if decl == "+" then
 		base, ending = rmatch(stem, "^(.*)([ыиіьаяое]́?[йея])$")
@@ -1262,6 +1431,7 @@ function detect_adj_type(stem, decl, old)
 		else
 			error("Cannot determine stem type of adjective: " .. stem)
 		end
+		was_autodetected = true
 	elseif decl == "+short" or decl == "+mixed" then
 		-- FIXME! Not clear if this works with accented endings, check it
 		base, ending = rmatch(stem, "^(.-)([оеаъ]?́?)$")
@@ -1275,7 +1445,7 @@ function detect_adj_type(stem, decl, old)
 	else
 		base, ending = stem, decl
 	end
-	return base, canonicalize_decl(ending, old), was_accented
+	return base, canonicalize_decl(ending, old), was_accented, was_autodetected
 end
 
 -- Detect stress pattern (1 or 2) based on whether ending is stressed or
@@ -1350,7 +1520,7 @@ end
 
 -- Reduce nom sg to stem by eliminating the "epenthetic" vowel. Applies to
 -- masculine 2nd-declension hard and soft, and 3rd-declension feminine in
--- -ь. STEM and DECL are after detect_stem_type(), before converting
+-- -ь. STEM and DECL are after determine_decl(), before converting
 -- outward-facing declensions to inward ones.
 function export.reduce_nom_sg_stem(stem, decl, can_err)
 	local full_stem = stem .. (decl == "й" and decl or "")
@@ -1371,9 +1541,43 @@ function is_unreducible(decl_cat)
 	end
 end
 
--- Unreduce stem to the form found in the gen pl by inserting an epenthetic
--- vowel. Applies to 1st declension and 2nd declension neuter. STEM and DECL
--- are after detect_stem_type(), before converting outward-facing declensions
+-- Add a possible suffix to the bare stem, according to the declension and
+-- value of OLD. This may be -ь, -ъ, -й or nothing. We need to do this here
+-- because we don't actually attach such a suffix in attach_unstressed() due
+-- to situations where we don't want the suffix added, e.g. unreducible nouns
+-- in -ня.
+local function add_bare_suffix(bare, old, sgdc, unreduced)
+	if old and sgdc.hard == "hard" then
+		return bare .. "ъ"
+	elseif sgdc.hard == "soft" or sgdc.hard == "palatal" then
+		-- This next clause corresponds to a special case in Vitalik's module.
+		-- It says that nouns in -ня (accent class 1) have gen pl without
+		-- trailing -ь. It appears to apply to most nouns in -ня (possibly
+		-- all in -льня), but ку́хня (gen pl ку́хонь) and дерéвня (gen pl
+		-- дереве́нь) is an exception. (Vitalik's module has an extra
+		-- condition here 'stress == "1"' that would exlucde дере́вня but I
+		-- don't think this condition is in Zaliznyak, as he indicates
+		-- дере́вня as having an exceptional genitive plural.)
+		if unreduced and rfind(bare, "[нН]$") and sgdc.decl == "1st" then
+			-- FIXME: What happens in this case old-style? I assume that
+			-- -ъ is added, but this is a guess.
+			return bare .. (old and "ъ" or "")
+		elseif rfind(bare, "[" .. com.vowel .. "]́?$") then
+			return bare .. "й"
+		else
+			return bare .. "ь"
+		end
+	else
+		return bare
+	end
+end
+
+-- Unreduce stem to the form found in the gen pl (and maybe nom sg) by
+-- inserting an epenthetic vowel. Applies to 1st declension and 2nd
+-- declension neuter, and to 2nd declension masculine when the stem was
+-- specified as a plural form (in which case we're deriving the nom sg,
+-- and also the gen pl in the alt-gen-pl scenario). STEM and DECL are
+-- after determine_decl(), before converting outward-facing declensions
 -- to inward ones. STRESS is the stess pattern.
 function export.unreduce_nom_sg_stem(stem, sgdc, stress, old, can_err)
 	local epenthetic_stress = ending_stressed_gen_pl_patterns[stress]
@@ -1385,27 +1589,7 @@ function export.unreduce_nom_sg_stem(stem, sgdc, stress, old, can_err)
 			return nil
 		end
 	end
-	if old and sgdc.hard == "hard" then
-		return ret .. "ъ"
-	elseif sgdc.hard == "soft" then
-		-- This next clause corresponds to a special case in Vitalik's module.
-		-- It says that nouns in -ня (accent class 1) have gen pl without
-		-- trailing -ь. It appears to apply to most nouns in -ня (possibly
-		-- all in -льня), but ку́хня (gen pl ку́хонь) is an exception.
-		-- дере́вня is an apparent exception but not really because it is
-		-- accent class 5.
-		if rfind(ret, "[нН]$") and stress == "1" then
-			-- FIXME: What happens in this case old-style? I assume that
-			-- -ъ is added, but this is a guess.
-			return ret .. (old and "ъ" or "")
-		elseif rfind(ret, "[" .. com.vowel .. "]́?$") then
-			return ret .. "й"
-		else
-			return ret .. "ь"
-		end
-	else
-		return ret
-	end
+	return add_bare_suffix(ret, old, sgdc, true)
 end
 
 --------------------------------------------------------------------------
@@ -1482,7 +1666,6 @@ declensions_old["ъ-ья"] = {
 	["gen_pl"] = function(stem, stress)
 		return sibilant_suffixes[ulower(usub(stem, -1))] and "е́й" or "ьёвъ"
 	end,
-	["alt_gen_pl"] = "ь",
 	["dat_pl"] = "ья́мъ",
 	["acc_pl"] = nil,
 	["ins_pl"] = "ья́ми",
@@ -1731,7 +1914,6 @@ declensions_old["о-ья"] = {
 	["gen_pl"] = function(stem, stress)
 		return sibilant_suffixes[ulower(usub(stem, -1))] and "е́й" or "ьёвъ"
 	end,
-	["alt_gen_pl"] = "ь",
 	["dat_pl"] = "ья́мъ",
 	["acc_pl"] = nil,
 	["ins_pl"] = "ья́ми",
@@ -2195,13 +2377,13 @@ local function attach_unstressed(args, case, suf, was_stressed)
 	elseif rfind(suf, CFLEX) then -- if suf has circumflex accent, it forces stressed
 		return attach_stressed(args, case, suf)
 	end
-	local is_pl = rfind(case, "_pl$")
 	local old = args.old
-	local stem = is_pl and args.pl or args.stem
+	local stem = rfind(case, "_pl$") and is_pl and args.pl or case == "ins_sg" and args.ins_sg_stem or args.stem
 	if old and old_consonantal_suffixes[suf] or not old and consonantal_suffixes[suf] then
-		local barestem = args.bare or stem
+		local barearg = case == "gen_pl" and args.gen_pl_bare or args.bare
+		local barestem = barearg or stem
 		if was_stressed and case == "gen_pl" then
-			if not args.bare then
+			if not barearg then
 				local gen_pl_stem = com.make_ending_stressed(stem)
 				-- FIXME: temporary tracking code to identify places where
 				-- the change to the algorithm here that end-stresses the
@@ -2221,7 +2403,7 @@ local function attach_unstressed(args, case, suf, was_stressed)
 			if suf == "ъ" then
 				-- OK
 			elseif suf == "й" or suf == "ь" then
-				if args.bare and case == "gen_pl" then
+				if barearg and case == "gen_pl" then
 					-- FIXME: temporary tracking code
 					track("explicit-bare-no-suffix")
 					if old then
@@ -2255,9 +2437,8 @@ function attach_stressed(args, case, suf)
 	if not rfind(suf, "[ё́]") then -- if suf has no "ё" or accent marks
 		return attach_unstressed(args, case, suf, "was stressed")
 	end
-	local is_pl = rfind(case, "_pl$")
 	local old = args.old
-	local stem = is_pl and args.upl or args.ustem
+	local stem = rifnd(case, "_pl$") and args.upl or args.ustem
 	local rules = stressed_rules[ulower(usub(stem, -1))]
 	return combine_stem_and_suffix(stem, suf, rules, old)
 end
@@ -2436,15 +2617,21 @@ end
 function handle_forms_and_overrides(args)
 	for case in pairs(cases) do
 		local ispl = rfind(case, "_pl$")
-		if args.sgtail and not ispl and args.forms[case] then
+		if not ispl and args.forms[case] then
 			local lastarg = #(args.forms[case])
-			if lastarg > 0 then
+			if lastarg > 0 and args.sgtailall then
+				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.sgtailall
+			end
+			if lastarg > 1 and args.sgtail then
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.sgtail
 			end
 		end
-		if args.pltail and ispl and args.forms[case] then
+		if ispl and args.forms[case] then
 			local lastarg = #(args.forms[case])
-			if lastarg > 0 then
+			if lastarg > 0 and args.pltailall then
+				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltailall
+			end
+			if lastarg > 1 and args.pltail then
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltail
 			end
 		end
