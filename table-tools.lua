@@ -2,6 +2,31 @@ local export = {}
 
 local m_links = require("Module:links")
 
+local u = mw.ustring.char
+local notes_ranges = {
+  -- First three represent symbols in ISO-8859-1
+  -- Including ÷ (U+00F7) × (U+00D7) § (U+00B7) ¤ (U+00A4)
+  {0xA1,0xBF},
+  {0xD7,0xD7}, -- ×
+  {0xF7,0xF7}, -- ÷
+  -- Next two are "General Punctuation" minus non-spacing chars
+  -- First one includes † (U+2020) ‡ (U+2021) • (U+2022)  ※ (U+203B) ⁕ (U+2055)
+  {0x2010,0x2027},
+  {0x2030,0x205E},
+  -- Next one is "Superscripts and Subscripts" and "Currency Symbols"
+  {0x2070,0x20CF},
+  -- Next one is a whole series of symbol ranges
+  {0x2100,0x2B5F},
+  -- Next one is "Supplemental Punctuation"
+  {0x2E00,0x2E3F}
+}
+
+local unicode_ranges = {}
+for _, range in ipairs(notes_ranges) do
+  table.insert(unicode_ranges, u(range[1]) .. "-" .. u(range[2]))
+end
+local unicode_range_str = table.concat(unicode_ranges, "")
+
 local function manipulate_entry(entries, f)
 	entries = mw.text.split(mw.ustring.gsub(entries, "^%s*(.-)%s*$", "%1"), "%s*,%s*")
 	
@@ -38,7 +63,7 @@ end
 
 function export.get_notes(entry)
 	local notes
-	entry, notes = mw.ustring.match(entry, "^(.-)([%*%~%@%#%$%%%^%&0-9_ ]*)$")
+	entry, notes = mw.ustring.match(entry, "^(.-)([%*%~%@%#%$%%%^%&%+0-9_ " .. unicode_range_str .. "]*)$")
 	
 	if notes ~= "" then
 		notes = "<sup>" .. mw.ustring.gsub(notes, "_", " ") .. "</sup>"
