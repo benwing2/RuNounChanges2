@@ -43,9 +43,9 @@
 			(blank)
 		DECLTYPE is the declension type, usually omitted; or one of
 			ый ий ой ьий short mixed (new-style)
-			ый ій ьій short mixed proper stressed-proper ъ-short ъ-mixed
-				ъ-proper ъ-stressed-proper (old-style, where ъ-* is a synonym
-				for just *, for any *)
+			ый ій ьій short stressed-short mixed proper stressed-proper
+				ъ-short ъ-stressed-short ъ-mixed ъ-proper ъ-stressed-proper
+				(old-style, where ъ-* is a synonym for *, for any *)
 		SHORTACCENT is one of a a' b b' c c' c'' to auto-generate the
 		    short forms with the specified accent pattern (following
 			Zaliznyak); if omitted, no short forms will be auto-generated.
@@ -318,7 +318,7 @@ local function generate_forms(args, old, manual)
 				short_stem)
 		end
 
-		decline(args, decls[decl_type], ut.contains({"ой", "stressed-proper", "ъ-stressed-proper"}, decl_type))
+		decline(args, decls[decl_type], ut.contains({"ой", "stressed-short", "stressed-proper"}, decl_type))
 		if short_forms_allowed and short_accent then
 			decline_short(args, short_decls[short_decl_type],
 				short_stress_patterns[short_accent])
@@ -510,18 +510,18 @@ function categorize(decl_type, args, orig_short_accent, short_accent,
 
 	-- FIXME: For compatibility with old {{temp|ru-adj7}}, {{temp|ru-adj8}},
 	-- {{temp|ru-adj9}}; maybe there's a better way.
-	if ut.contains({"ьій", "ьий", "short", "mixed", "proper", "stressed-proper",
-		"ъ-short", "ъ-mixed", "ъ-proper", "ъ-stressed-proper"}, decl_type) then
+	if ut.contains({"ьій", "ьий", "short", "stressed-short", "mixed",
+		"proper", "stressed-proper"}, decl_type) then
 		insert_cat("possessive ~")
 	end
 
 	if ut.contains({"ьій", "ьий"}, decl_type) then
 		insert_cat("long possessive ~")
-	elseif ut.contains({"short", "ъ-short"}) then
+	elseif ut.contains({"short", "stressed-short"}) then
 		insert_cat("short possessive ~")
-	elseif ut.contains({"mixed", "ъ-mixed"}) then
+	elseif ut.contains({"mixed"}) then
 		insert_cat("mixed possessive ~")
-	elseif ut.contains({"proper", "ъ-proper", "stressed-proper", "ъ-stressed-proper"}) then
+	elseif ut.contains({"proper", "stressed-proper"}) then
 		insert_cat("proper-name ~")
 	elseif decl_type == "-" then
 		insert_cat("invariable ~")
@@ -703,6 +703,10 @@ function detect_stem_and_accent_type(stem, decl)
 	end
 	decl, short_accent, short_stem = splitvals[1], splitvals[2], splitvals[3]
 	decl = ine(decl)
+	-- Resolve aliases
+	if decl then
+		decl = rsub(decl, "^ъ%-", "")
+	end
 	short_accent = ine(short_accent)
 	short_stem = ine(short_stem)
 	if short_stem and not short_accent then
@@ -740,14 +744,19 @@ function detect_stem_and_accent_type(stem, decl)
 			if base then
 				return base, "short", short_accent, short_stem
 			end
-			base = rmatch(stem, "(.*[иы]́?н)ъ?$")
+			base = rmatch(stem, "(.*[иы]́н)ъ?$") --accented
+			if base then
+				return base, "stressed-short", short_accent, short_stem
+			end
+			base = rmatch(stem, "(.*[иы]н)ъ?$") --unaccented
 			if base then
 				return base, "mixed", short_accent, short_stem
 				-- error("With -ин/ын adjectives, must specify 'short' or 'mixed':" .. stem)
 			end
 			error("Cannot determine stem type of adjective: " .. stem)
 		end
-	elseif ut.contains({"short", "mixed", "proper", "stressed-proper"}, decl) then
+	elseif ut.contains({"short", "stressed-short", "mixed", "proper",
+		"stressed-proper"}, decl) then
 		local base, ending = rmatch(stem, "^(.-)ъ?$")
 		assert(base)
 		return base, decl, short_accent, short_stem
@@ -968,24 +977,27 @@ declensions["ьий"] = {
 
 declensions["short"] = {
 	["nom_m"] = "",
-	["nom_n"] = "о",
-	["nom_f"] = "а",
-	["nom_p"] = "ы",
-	["gen_m"] = "а",
-	["gen_f"] = "ой",
-	["gen_p"] = "ых",
-	["dat_m"] = "у",
-	["dat_f"] = "ой",
-	["dat_p"] = "ым",
-	["acc_f"] = "у",
-	["acc_n"] = "о",
-	["ins_m"] = "ым",
-	["ins_f"] = {"ой", "ою"},
-	["ins_p"] = "ыми",
-	["pre_m"] = "ом",
-	["pre_f"] = "ой",
-	["pre_p"] = "ых",
+	["nom_n"] = "о́",
+	["nom_f"] = "а́",
+	["nom_p"] = "ы́",
+	["gen_m"] = "а́",
+	["gen_f"] = "о́й",
+	["gen_p"] = "ы́х",
+	["dat_m"] = "у́",
+	["dat_f"] = "о́й",
+	["dat_p"] = "ы́м",
+	["acc_f"] = "у́",
+	["acc_n"] = "о́",
+	["ins_m"] = "ы́м",
+	["ins_f"] = {"о́й", "о́ю"},
+	["ins_p"] = "ы́ми",
+	["pre_m"] = "о́м",
+	["pre_f"] = "о́й",
+	["pre_p"] = "ы́х",
 }
+
+declensions["stressed-short"] = mw.clone(declensions["short"])
+declensions["stressed-short"]["pre_m"] = "е́"
 
 declensions["mixed"] = {
 	["nom_m"] = "",
@@ -1161,7 +1173,8 @@ declensions_old["short"] = {
 	["pre_p"] = "ыхъ",
 }
 
-declensions_old["ъ-short"] = declensions_old["short"]
+declensions_old["stressed-short"] = mw.clone(declensions_old["short"])
+declensions_old["stressed-short"]["pre_m"] = "ѣ́"
 
 declensions_old["mixed"] = {
 	["nom_m"] = "ъ",
@@ -1183,8 +1196,6 @@ declensions_old["mixed"] = {
 	["pre_f"] = "ой",
 	["pre_p"] = "ыхъ",
 }
-
-declensions_old["ъ-mixed"] = declensions_old["mixed"]
 
 declensions_old["proper"] = {
 	["nom_m"] = "ъ",
@@ -1208,10 +1219,6 @@ declensions_old["proper"] = {
 }
 
 declensions_old["stressed-proper"] = declensions_old["proper"]
-
-declensions_old["ъ-proper"] = declensions_old["proper"]
-
-declensions_old["ъ-stressed-proper"] = declensions_old["proper"]
 
 declensions_old["-"] = declensions["-"]
 
