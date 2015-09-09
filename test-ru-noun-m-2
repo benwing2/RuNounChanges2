@@ -22,8 +22,8 @@
 {{User:Benwing2/ru-noun-table|цыплёночек|a=an}}
 ;Check the following one in particular
 {{User:Benwing2/ru-noun-table|a|мышо́ночек|a=an}}
-;Check the following one in particular
-{{User:Benwing2/ru-noun-table|b|щено́к|*|or|d|щено́к|*(1)(2)||щеня́т|a=an}}
+;Check the following one esp. in particular esp. in the gen pl
+{{User:Benwing2/ru-noun-table|b|щено́к|*|or|d||*(1)(2)||щеня́т|a=an}}
 
 ;Masculine special case (1)
 {{User:Benwing2/ru-noun-table|b|рука́в|(1)}}
@@ -37,7 +37,10 @@
 {{User:Benwing2/ru-noun-table|про́мысел|or|c||*(1)}}
 
 ;Masculine special case (2)
+;The following should give an error
 {{User:Benwing2/ru-noun-table|грузин|(2)|a=an}}
+;The following should not
+{{User:Benwing2/ru-noun-table|грузи́н|(2)|a=an}}
 {{User:Benwing2/ru-noun-table|c|раз|(2)}}
 ;Check the following one in particular, in the gen pl., probably wrong
 {{User:Benwing2/ru-noun-table|e|во́лос|(2)}}
@@ -53,11 +56,11 @@
 ;Check the following one in particular, esp. in the gen pl
 {{User:Benwing2/ru-noun-table|d|сапожо́к|*(2)|or|b||*)}}
 ;Check the following one in particular
-{{User:Benwing2/ru-noun-table|d|мадья́р|or||(2)|a=an}}
+{{User:Benwing2/ru-noun-table|мадья́р|or||(2)|a=an}}
 ;Check the following one in particular
-{{User:Benwing2/ru-noun-table|d|чувя́к|or||(2)}}
+{{User:Benwing2/ru-noun-table|чувя́к|or||(2)}}
 ;Check the following one in particular
-{{User:Benwing2/ru-noun-table|d|череви́чек|*|or||*(2)}}
+{{User:Benwing2/ru-noun-table|череви́чек|*|or||*(2)}}
 
 ;Masculine special case (1) and (2)
 {{User:Benwing2/ru-noun-table|c|глаз|(1)(2)}}
