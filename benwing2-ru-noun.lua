@@ -668,6 +668,7 @@ local function do_show(frame, old)
 		insert_cat("~ with multiple stems")
 	end
 
+	-- Default stem defaults to previous stem.
 	local default_stem = nil
 
 	for _, stem_set in ipairs(stem_sets) do
