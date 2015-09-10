@@ -4,14 +4,21 @@
 
 	Arguments:
 		1: accent pattern number, or multiple numbers separated by commas
-		2: stem, with ending; or leave out the ending and put it in the
-		   declension type field
-		3: declension type (usually just the ending); or blank or a gender
-		   (m/f/n) to infer it from the full stem; append ^ to get the
-		   alternate genitive plural ending (-ъ/none for masculine, -ей for
-		   feminine, -ов(ъ) or variants for neuter)
-		4: suffixless form (optional, default = stem); or * to infer it,
-		   in which case the stem should reflect the nom sg form
+		2: lemma form; or the stem, with the ending included in the declension
+		   field
+		3: declension field, usually omitted or a gender (m/f/n) and will be
+		   inferred from the lemma; if present, it is normally the ending, and
+		   the lemma field (2nd argument) should be replaced with the bare stem;
+		   append (1) to get the alternate nominative plural ending (e.g. -а
+		   for masculine, -и for neuter; append (2) to get the alternate
+		   genitive plural ending (e.g. -ъ/none for masculine, -ей for
+		   feminine, -ов(ъ) or variants for neuter); append * for reducibles
+		   (nom sg or gen pl has an extra vowel before the final consonant
+		   as compared with the stem found in other cases)
+		4: irregular nom sg or gen pl form (specifically, the form used for
+		   cases with no suffix or with a nonsyllabic suffix -ь/-й/-ъ); if
+		   present, argument #2 for masculine nouns should omit the extra vowel
+		   normally present in the nom sg
 		5: special plural stem (optional, default = stem)
 		a: animacy (a = animate, i = inanimate, b = both, otherwise inanimate)
 		n: number restriction (p = plural only, s = singular only, otherwise both)
@@ -1206,7 +1213,7 @@ local function detect_stem_type(stem, gender, anim)
 			if base then
 				-- Don't do this; о-ья is too rare
 				-- error("Ambiguous plural stem " .. stem .. " in -ья, singular could be -о or -ье/-ьё; specify the singular")
-				return base, "-ье", ending
+				return base, "ье", ending
 			end
 			base, ending = rmatch(stem, "^(.*)([аяАЯ]́?)$")
 			if base then
@@ -1236,6 +1243,10 @@ local function detect_stem_type(stem, gender, anim)
 			base, ending = rmatch(stem, "^(.*)([аА]́?)$")
 			if base then
 				return base, "-а", ending
+			end
+			base, ending = rmatch(stem, "^(.*)([яЯ]́?)$")
+			if base then
+				return base, "ь-я", ending
 			end
 		end
 		if gender == "m" or gender == "f" then
@@ -1390,7 +1401,10 @@ function determine_decl(stem, decl, args)
 	end
 
 	-- 2: Retrieve explicitly specified or autodetected decl and pl. variant
-	local basic_decl, detected_or_explicit_plural = rmatch(decl, "^(.*)(%-.+)$")
+	local basic_decl, detected_or_explicit_plural = rmatch(decl, "^(.*)(%-[^mf]+)$")
+	if basic_decl == "ь" then
+		basic_decl = "ь-m"
+	end
 	basic_decl = basic_decl or decl
 
 	-- 3: Any user-requested plural variant must agree with explicit or
@@ -1405,9 +1419,9 @@ function determine_decl(stem, decl, args)
 	if args.want_sc1 then
 		local sc1_decl = special_case_1_to_plural_variation[basic_decl] or
 			error("Special case (1) not compatible with declension " .. basic_decl)
-		local sc1_plural = rsub(sc1_decl, "^.*%-", "")
+		local sc1_plural = rsub(sc1_decl, "^.*%-", "-")
 		local other_plural = user_plural or detected_or_explicit_plural
-		if (other_plural and sc1_plural ~= other_plural then
+		if other_plural and sc1_plural ~= other_plural then
 			error("Plural variant " .. other_plural .. " specified or detected, but special case (1) calls for plural variant " .. sc1_plural)
 		end
 		return stem, sc1_decl, was_accented, was_plural, was_autodetected
@@ -1524,17 +1538,17 @@ function detect_adj_type(lemma, decl, old)
 	decl = map_decl(decl,convert_sib_velar_variant)
 	local singdecl
 	if decl == "+ые" then
-		singdecl = g == "m" and "+ый" or not old and g == "f" and "+ая" or not old and g == "n" and "+ое"
+		singdecl = (g == "m" or not g) and "+ый" or not old and g == "f" and "+ая" or not old and g == "n" and "+ое"
 	elseif decl == "+ие" and not old then
-		singdecl = g == "m" and "+ий" or g == "f" and "+яя" or g == "n" and "+ее"
-	elseif decl == "+іе" and old and g == "m" then
+		singdecl = (g == "m" or not g) and "+ий" or g == "f" and "+яя" or g == "n" and "+ее"
+	elseif decl == "+іе" and old and (g == "m" or not g) then
 		singdecl = "+ій"
 	elseif decl == "+ія" and old then
-		singdecl == g == "f" and "+яя" or g == "n" and "+ее"
+		singdecl = (g == "f" or not g) and "+яя" or g == "n" and "+ее"
 	elseif decl == "+ьи" then
-		singdecl = g == m and (old and "+ьій" or "+ьий") or g == "f" and "+ья" or g == "n" and "+ье"
+		singdecl = (g == "m" or not g) and (old and "+ьій" or "+ьий") or g == "f" and "+ья" or g == "n" and "+ье"
 	elseif decl == "+ы-mixed" or decl == "+ы-short" then
-		local beg = g == "m" and (old and "ъ" or "") or g == "f" and "а" or g == "n" and "о"
+		local beg = (g == "m" or not g) and (old and "ъ" or "") or g == "f" and "а" or g == "n" and "о"
 		singdecl = beg and "+" .. beg .. usub(decl, 2)
 	end
 	if singdecl then
@@ -1651,14 +1665,14 @@ end
 -- because we don't actually attach such a suffix in attach_unstressed() due
 -- to situations where we don't want the suffix added, e.g. unreducible nouns
 -- in -ня.
-local function add_bare_suffix(bare, old, sgdc, unreduced)
+function add_bare_suffix(bare, old, sgdc, unreduced)
 	if old and sgdc.hard == "hard" then
 		return bare .. "ъ"
 	elseif sgdc.hard == "soft" or sgdc.hard == "palatal" then
 		-- This next clause corresponds to a special case in Vitalik's module.
 		-- It says that nouns in -ня (accent class 1) have gen pl without
 		-- trailing -ь. It appears to apply to most nouns in -ня (possibly
-		-- all in -льня), but ку́хня (gen pl ку́хонь) and дерéвня (gen pl
+		-- all in -льня), but ку́хня (gen pl ку́хонь) and дерéвня (gen pl
 		-- дереве́нь) is an exception. (Vitalik's module has an extra
 		-- condition here 'stress == "1"' that would exlucde дере́вня but I
 		-- don't think this condition is in Zaliznyak, as he indicates
@@ -2519,7 +2533,7 @@ function attach_stressed(args, case, suf)
 		return attach_unstressed(args, case, suf, "was stressed")
 	end
 	local old = args.old
-	local stem = rifnd(case, "_pl$") and args.upl or args.ustem
+	local stem = rfind(case, "_pl$") and args.upl or args.ustem
 	local rules = stressed_rules[ulower(usub(stem, -1))]
 	return combine_stem_and_suffix(stem, suf, rules, old)
 end
@@ -2854,29 +2868,11 @@ function make_table(args)
 		end
 	end
 
-	if args.par then
-		args.par_clause = strutils.format(partitive, args)
-	else
-		args.par_clause = ""
-	end
-
-	if args.loc then
-		args.loc_clause = strutils.format(locative, args)
-	else
-		args.loc_clause = ""
-	end
-
-	if args.voc then
-		args.voc_clause = strutils.format(vocative, args)
-	else
-		args.voc_clause = ""
-	end
-
-	if args.notes then
-		args.notes_clause = strutils.format(notes_template, args)
-	else
-		args.notes_clause = ""
-	end
+	args.par_clause = args.par and strutils.format(partitive, args) or ""
+	args.loc_clause = args.loc and strutils.format(locative, args) or ""
+	args.voc_clause = args.voc and strutils.format(vocative, args) or ""
+	args.notes_clause = args.notes and strutils.format(notes_template, args) or ""
+	args.internal_notes_clause = args.internal_notes and strutils.format(internal_notes_template, args) or ""
 
 	return strutils.format(templates[temp], args)
 end
@@ -2906,13 +2902,26 @@ notes_template = [===[
 </div></div>
 ]===]
 
-templates["full"] = [===[
+internal_notes_template = rsub(notes_template, "notes", "internal_notes")
+
+function template_prelude(min_width)
+	min_width = min_width or "70"
+	return rsub([===[
 <div>
-<div class="NavFrame" style="display: inline-block; min-width: 45em">
-<div class="NavHead" style="background:#eff7ff">{title}{after_title}</div>
+<div class="NavFrame" style="display: inline-block; min-width: MINWIDTHem">
+<div class="NavHead" style="background:#eff7ff">{title}</div>
 <div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:45em" class="inflection-table"
+{\op}| style="background:#F9F9F9;text-align:center; min-width:MINWIDTHem" class="inflection-table"
 |-
+]===], "MINWIDTH", min_width)
+end
+
+function template_postlude()
+	return [===[|-{par_clause}{loc_clause}{voc_clause}
+|{\cl}{internal_notes_clause}{notes_clause}</div></div></div>]===]
+end
+
+templates["full"] = template_prelude("45") .. [===[
 ! style="width:10em;background:#d9ebff" | 
 ! style="background:#d9ebff" | singular
 ! style="background:#d9ebff" | plural
@@ -2940,16 +2949,9 @@ templates["full"] = [===[
 ! style="background:#eff7ff" | prepositional
 | {pre_sg}
 | {pre_pl}
-|-{par_clause}{loc_clause}{voc_clause}
-|{\cl}{notes_clause}</div></div></div>]===]
+]===] .. template_postlude()
 
-templates["full_a"] = [===[
-<div>
-<div class="NavFrame" style="display: inline-block; min-width: 50em">
-<div class="NavHead" style="background:#eff7ff">{title}{after_title}</div>
-<div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:50em" class="inflection-table"
-|-
+templates["full_a"] = template_prelude("50") .. [===[
 ! style="width:15em;background:#d9ebff" | 
 ! style="background:#d9ebff" | singular
 ! style="background:#d9ebff" | plural
@@ -2980,16 +2982,9 @@ templates["full_a"] = [===[
 ! style="background:#eff7ff" | prepositional
 | {pre_sg}
 | {pre_pl}
-|-{par_clause}{loc_clause}{voc_clause}
-|{\cl}{notes_clause}</div></div></div>]===]
+]===] .. template_postlude()
 
-templates["full_af"] = [===[
-<div>
-<div class="NavFrame" style="display: inline-block; min-width: 50em">
-<div class="NavHead" style="background:#eff7ff">{title}{after_title}</div>
-<div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:50em" class="inflection-table"
-|-
+templates["full_af"] = template_prelude("50") .. [===[
 ! style="width:15em;background:#d9ebff" | 
 ! style="background:#d9ebff" | singular
 ! style="background:#d9ebff" | plural
@@ -3019,16 +3014,9 @@ templates["full_af"] = [===[
 ! style="background:#eff7ff" | prepositional
 | {pre_sg}
 | {pre_pl}
-|-{par_clause}{loc_clause}{voc_clause}
-|{\cl}{notes_clause}</div></div></div>]===]
+]===] .. template_postlude()
 
-templates["half"] = [===[
-<div>
-<div class="NavFrame" style="display: inline-block; min-width: 30em">
-<div class="NavHead" style="background:#eff7ff">{title}{after_title}</div>
-<div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:30em" class="inflection-table"
-|-
+templates["half"] = template_prelude("30") .. [===[
 ! style="width:10em;background:#d9ebff" | 
 ! style="background:#d9ebff" | {number}
 |-
@@ -3049,16 +3037,9 @@ templates["half"] = [===[
 |-
 ! style="background:#eff7ff" | prepositional
 | {pre_x}
-|-{par_clause}{loc_clause}{voc_clause}
-|{\cl}{notes_clause}</div></div></div>]===]
+]===] .. template_postlude()
 
-templates["half_a"] = [===[
-<div>
-<div class="NavFrame" style="display: inline-block; min-width: 35em">
-<div class="NavHead" style="background:#eff7ff">{title}{after_title}</div>
-<div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:35em" class="inflection-table"
-|-
+templates["half_a"] = template_prelude("35") .. [===[
 ! style="width:15em;background:#d9ebff" | 
 ! style="background:#d9ebff" | {number}
 |-
@@ -3081,8 +3062,7 @@ templates["half_a"] = [===[
 |-
 ! style="background:#eff7ff" | prepositional
 | {pre_x}
-|-{par_clause}{loc_clause}{voc_clause}
-|{\cl}{notes_clause}</div></div></div>]===]
+]===] .. template_postlude()
 
 return export
 
