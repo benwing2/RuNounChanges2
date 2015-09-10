@@ -153,8 +153,12 @@ end
 local enable_categories = false
 local declensions = {}
 local declensions_old = {}
+local internal_notes_table = {}
+local internal_notes_table_old = {}
 local short_declensions = {}
 local short_declensions_old = {}
+local short_internal_notes_table = {}
+local short_internal_notes_table_old = {}
 local short_stress_patterns = {}
 
 local long_cases = {
@@ -324,13 +328,14 @@ local function generate_forms(args, old, manual)
 				short_stress_patterns[short_accent])
 		end
 
-		-- FIXME, can any of these ever co-occur? Seems unlikely.
-		if decl_type == "mixed" then
-			args.internal_notes = "<sup>1</sup> Dated."
-		elseif decl_type == "proper" or decl_type == "stressed-proper" or
-				or short_decl_type == "ой-rare" then
-			args.internal_notes = "<sup>1</sup> Rare."
-		end
+		local intable = old and internal_notes_table_old or internal_notes_table
+		local shortintab = old and short_internal_notes_table_old or
+			short_internal_notes_table
+		-- FIXME, what if there are multiple internal notes? They will all
+		-- end up numbered the same with only the last one displaying.
+		-- Fix this shit!
+		args.internal_notes = intable[decl_type] or
+			shortintab[short_decl_type]
 	end
 
 	handle_forms_and_overrides(args, overall_short_forms_allowed)
@@ -1020,6 +1025,9 @@ declensions["mixed"] = {
 	["pre_p"] = "ых",
 }
 
+internal_notes_table["mixed"] = "<sup>1</sup> Dated."
+internal_notes_table_old["mixed"] = "<sup>1</sup> Dated."
+
 declensions["proper"] = {
 	["nom_m"] = "",
 	["nom_n"] = nil,
@@ -1042,6 +1050,11 @@ declensions["proper"] = {
 }
 
 declensions["stressed-proper"] = declensions["proper"]
+
+internal_notes_table["proper"] = "<sup>1</sup> Rare."
+internal_notes_table_old["proper"] = "<sup>1</sup> Rare."
+internal_notes_table["stressed-proper"] = "<sup>1</sup> Rare."
+internal_notes_table_old["stressed-proper"] = "<sup>1</sup> Rare."
 
 declensions["-"] = {
 	["nom_m"] = "-",
@@ -1130,6 +1143,9 @@ declensions_old["ой"] = {
 	["pre_f"] = "о́й",
 	["pre_p"] = "ы́хъ",
 }
+
+short_internal_notes_table["ой-rare"] = "<sup>1</sup> Rare."
+short_internal_notes_table_old["ой-rare"] = "<sup>1</sup> Rare."
 
 declensions_old["ьій"] = {
 	["nom_m"] = "ій",
@@ -1592,22 +1608,24 @@ notes_template = [===[
 -- Used for both new-style and old-style templates
 internal_notes_template = rsub(notes_template, "notes", "internal_notes")
 
-function template_preamble(min_width)
+function template_prelude(min_width)
 	min_width = min_width or "70"
-	return [===[
+	return rsub([===[
 <div>
-<div class="NavFrame" style="display: inline-block; min-width: ]===] .. min_width .. [===[em">
+<div class="NavFrame" style="display: inline-block; min-width: MINWIDTHem">
 <div class="NavHead" style="background:#eff7ff">{title}</div>
 <div class="NavContent">
-{\op}| style="background:#F9F9F9;text-align:center; min-width:]===] .. min_width .. [===[em" class="inflection-table"
-|-]===]
+{\op}| style="background:#F9F9F9;text-align:center; min-width:MINWIDTHem" class="inflection-table"
+|-]===], "MINWIDTH", min_width)
+end
 
 function template_postlude()
 	return [===[|-{short_clause}
 |{\cl}{internal_notes_clause}{notes_clause}</div></div></div>]===]
+end
 
 -- Used for both new-style and old-style templates
-template = template_preamble() .. [===[
+template = template_prelude() .. [===[
 ! style="width:20%;background:#d9ebff" colspan="2" |
 ! style="background:#d9ebff" | masculine
 ! style="background:#d9ebff" | neuter
@@ -1653,7 +1671,7 @@ template = template_preamble() .. [===[
 ]===] .. template_postlude()
 
 -- Used for both new-style and old-style templates
-proper_name_template = template_preamble("55") .. [===[
+proper_name_template = template_prelude("55") .. [===[
 ! style="width:20%;background:#d9ebff" colspan="2" |
 ! style="background:#d9ebff" | masculine
 ! style="background:#d9ebff" | feminine
@@ -1691,7 +1709,7 @@ proper_name_template = template_preamble("55") .. [===[
 ]===] .. template_postlude()
 
 -- Used for old-style templates
-template_mp = template_preable() .. [===[
+template_mp = template_prelude() .. [===[
 ! style="width:20%;background:#d9ebff" colspan="2" |
 ! style="background:#d9ebff" | masculine
 ! style="background:#d9ebff" | neuter
