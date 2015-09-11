@@ -1327,7 +1327,7 @@ function make_table(args)
 					-- messes up linking
 					entry = rsub(entry, "^%s*<br%s*/>%s*", "")
 					if old then
-						ut.insert_if_not(ru_vals, m_links.full_link(com.make_unstressed(entry), entry, lang, nil, nil, nil, {tr = "-"}, false) .. notes)
+						ut.insert_if_not(ru_vals, m_links.full_link(com.remove_jo(entry), entry, lang, nil, nil, nil, {tr = "-"}, false) .. notes)
 					else
 						ut.insert_if_not(ru_vals, m_links.full_link(entry, nil, lang, nil, nil, nil, {tr = "-"}, false) .. notes)
 					end
