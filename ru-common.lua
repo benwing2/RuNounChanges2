@@ -132,6 +132,10 @@ function export.make_unstressed(word)
     return rsub(word, "[̀́̈ёЁѐЀѝЍ]", destresser)
 end
 
+function export.remove_jo(word)
+    return rsub(word, "[ёЁ]", destresser)
+end
+
 function export.make_unstressed_once(word)
     return rsub(word, "([̀́̈ёЁѐЀѝЍ])([^́̀̈ёЁѐЀѝЍ]*)$", function(x, rest) return destresser[x] .. rest; end, 1)
 end
