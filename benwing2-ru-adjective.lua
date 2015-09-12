@@ -1042,7 +1042,7 @@ declensions["proper"] = {
 	["acc_f"] = "у́",
 	["acc_n"] = nil,
 	["ins_m"] = "ы́м",
-	["ins_f"] = "о́й",
+	["ins_f"] = {"о́й", "о́ю1"},
 	["ins_p"] = "ы́ми",
 	["pre_m"] = "е́",
 	["pre_f"] = "о́й",
@@ -1616,7 +1616,8 @@ function template_prelude(min_width)
 <div class="NavHead" style="background:#eff7ff">{title}</div>
 <div class="NavContent">
 {\op}| style="background:#F9F9F9;text-align:center; min-width:MINWIDTHem" class="inflection-table"
-|-]===], "MINWIDTH", min_width)
+|-
+]===], "MINWIDTH", min_width)
 end
 
 function template_postlude()
