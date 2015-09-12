@@ -1772,6 +1772,7 @@ declensions_old["ъ-ья"] = {
 	["pre_sg"] = "ѣ́",
 	["nom_pl"] = "ья́",
 	["gen_pl"] = "ьёвъ",
+	["alt_gen_pl"] = "е́й",
 	["dat_pl"] = "ья́мъ",
 	["acc_pl"] = nil,
 	["ins_pl"] = "ья́ми",
