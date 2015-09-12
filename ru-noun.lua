@@ -1056,7 +1056,7 @@ local function combine_stem_and_suffix(args, rules, stem, suf)
 	return stem .. suf
 end
 
-local function attach_unstressed(args, case, suf)
+local function attach_unstressed(args, case, suf, was_stressed)
 	if suf == nil then
 		return nil
 	elseif rfind(suf, "̂") then -- if suf has circumflex accent, it forces stressed
@@ -1074,6 +1074,21 @@ local function attach_unstressed(args, case, suf)
 			barearg = args.bare
 		end
 		local barestem = barearg or stem
+		if was_stressed and case == "gen_pl" then
+			if not barearg then
+				local gen_pl_stem = com.make_ending_stressed(stem)
+				-- FIXME: temporary tracking code to identify places where
+				-- the change to the algorithm here that end-stresses the
+				-- genitive plural in stress patterns with gen pl end stress
+				-- (cf. words like голова́, with nom pl. го́ловы but gen pl.
+				-- голо́в) would cause changes.
+				if com.is_stressed(stem) and stem ~= gen_pl_stem then
+					track("gen-pl-moved-stress")
+				end
+				barestem = gen_pl_stem
+			end
+		end
+
 		if rfind(barestem, old and "[йьъ]$" or "[йь]$") then
 			suf = ""
 		else
@@ -1110,7 +1125,7 @@ function attach_stressed(args, case, suf)
  	-- circumflex forces stress even when the accent pattern calls for no stress
 	suf = rsub(suf, "̂", "́")
 	if not rfind(suf, "[ё́]") then -- if suf has no "ё" or accent marks
-		return attach_unstressed(args, case, suf)
+		return attach_unstressed(args, case, suf, "was stressed")
 	end
 	local is_pl = rfind(case, "_pl$")
 	local old = args.old
