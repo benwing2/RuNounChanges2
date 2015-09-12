@@ -114,10 +114,10 @@ local function tracking_code(stress_arg, stress, decl_class,
 		track("reducible-stem")
 		dotrack("reducible-stem/")
 	end
-	if rfind(args.stem, "и́?н$") and (decl_class == "" or decl_class == "-") then
+	if rfind(args.stem, "и́?н$") and (decl_class == "" or decl_class == "#") then
 		track("irregular-in")
 	end
-	if rfind(args.stem, "[еёо]́?нок$") and (decl_class == "" or decl_class == "-") then
+	if rfind(args.stem, "[еёо]́?нок$") and (decl_class == "" or decl_class == "#") then
 		track("irregular-onok")
 	end
 	if args.pltail then
@@ -247,6 +247,7 @@ local function do_show(frame, old)
 		if not args.stem then
 			error("Stem in first stem set must be specified")
 		end
+		default_stem = args.stem
 		if ut.contains({"", "m", "f", "n"}, decl_class) then
 			args.stem, decl_class = detect_stem_type(args.stem, decl_class)
 		end
@@ -254,7 +255,6 @@ local function do_show(frame, old)
 		-- falling back to the stem.
 		args.bare = stem_set[4] or args.stem
 		args.pl = stem_set[5] or args.stem
-		default_stem = args.stem
 		args.ustem = com.make_unstressed_once(args.stem)
 		-- unused: args.ubare = com.make_unstressed_once(args.bare)
 		args.upl = com.make_unstressed_once(args.pl)
@@ -292,11 +292,8 @@ local function do_show(frame, old)
 				local number = decl_class_spec[2]
 				local real_decl_class = orig_decl_class
 				-- Repeatedly resolve a decl class into a more specific one
-				-- until nothing changes. We do this so that, e.g., the blank
-				-- class can resolve to class "-" (for masculine stems ending
-				-- in a consonant), which can resolve in turn to class "-sib"
-				-- (for masculine stems ending in a sibilant) or "-normal"
-				-- (for non-sibilant stems).
+				-- until nothing changes. NOTE: Not necessary and removed in
+				-- my new module version.
 				while true do
 					local resolved_decl_class = detectfuns[real_decl_class] and
 						detectfuns[real_decl_class](args.stem, stress) or real_decl_class
@@ -394,7 +391,7 @@ function detect_stem_type(stem, decl)
 		error("Don't know how to decline stem ending in this type of vowel: " .. stem)
 	end
 	-- FIXME: What about -ин?
-	return stem, "-"
+	return stem, ""
 end
 
 --------------------------------------------------------------------------
@@ -425,7 +422,7 @@ declensions_old["ъ-normal"] = {
 declensions_old["ъ-sib"] = mw.clone(declensions_old["ъ-normal"])
 declensions_old["ъ-sib"]["gen_pl"] = "е́й"
 
--- User-facing declension type "-" (old-style "ъ");
+-- User-facing declension type "" (old-style "ъ");
 -- mapped to "-normal" (old-style "ъ-normal") or "-sib" (old-style "ъ-sib")
 detect_decl_old["ъ"] = function(stem, stress)
 	if sibilant_suffixes[ulower(usub(stem, -1))] then
@@ -435,15 +432,9 @@ detect_decl_old["ъ"] = function(stem, stress)
 	end
 end
 
--- Normal mapping of old ъ would be "" (blank), but we call it "-" so we
--- have a way of referring to it without defaulting if need be (e.g. in the
--- second stem of a word where the first stem has a different decl class),
--- and eventually want to make "" (blank) auto-detect the class.
-detect_decl["-"] = old_detect_decl_to_new(detect_decl_old["ъ"])
--- User-facing declension type ""; currently same as "-" (old-style "ъ").
--- FIXME: Should allow the nom. sg. to be given and auto-detect the decl
--- as much as possible.
-detect_decl_old[""] = detect_decl_old["ъ"]
+-- Normal mapping of old ъ is "" (blank), but we also call it "#" so we
+-- have a way of referring to it without defaulting if need be.
+detect_decl["#"] = old_detect_decl_to_new(detect_decl_old["ъ"])
 
 ----------------- Masculine hard, irregular plural -------------------
 
