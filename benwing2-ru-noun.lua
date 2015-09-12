@@ -299,13 +299,6 @@ local declensions_old_aliases = {}
 -- Table listing aliases of new-style declension classes; computed
 -- automatically from the old-style ones.
 local declensions_aliases = {}
--- Auto-detection functions, old-style, for a given input declension.
--- It is passed two params, (stressed) STEM and STRESS_PATTERN, and should
--- return the ouput declension.
-local detect_decl_old = {}
--- Auto-detection functions, new style; computed automatically from the
--- old-style ones.
-local detect_decl = {}
 local sibilant_suffixes = {}
 local stress_patterns = {}
 -- Set of patterns with ending-stressed genitive plural.
@@ -379,10 +372,10 @@ local function tracking_code(stress, decl_class, real_decl_class, args)
 	if args.sgtail then
 		track("sgtail")
 	end
-	if args.pltail then
+	if args.pltailall then
 		track("pltailall")
 	end
-	if args.sgtail then
+	if args.sgtailall then
 		track("sgtailall")
 	end
 	if args.alt_gen_pl then
@@ -688,7 +681,6 @@ local function do_show(frame, old)
 
 	local decls = old and declensions_old or declensions
 	local decl_cats = old and declensions_old_cat or declensions_cat
-	local detectfuns = old and detect_decl_old or detect_decl
 
 	if #stem_sets > 1 then
 		track("multiple-stems")
@@ -750,7 +742,7 @@ local function do_show(frame, old)
 			-- stressed, as would otherwise happen.
 			error("Stem must have an accent in it: " .. orig_stem)
 		end
-		stress_arg = stress_arg or detect_stress_pattern(decl_class, was_accented)
+		stress_arg = detect_stress_pattern(decl_class, stress_arg, was_accented)
 
 		-- validate/canonicalize stress arg and convert to list
 		stress_arg = rsplit(stress_arg, ",")
@@ -775,11 +767,6 @@ local function do_show(frame, old)
 		else
 			sub_decl_classes = {{decl_class}}
 		end
-		-- further sanity checking
-		for _, decl_class_spec in ipairs(sub_decl_classes) do
-			assert(decl_class_spec[1], "Can't find declension category for " .. decl_class_spec[1] .. "; perhaps a detection function returned a non-canonical declension?")
-		end
-
 
 		if #stress_arg > 1 then
 			track("multiple-accent-patterns")
@@ -810,7 +797,7 @@ local function do_show(frame, old)
 				stem_for_bare = stem
 			end
 
-			local function restress_stem(stem, stress)
+			local function restress_stem(stem, stress, stem_needs_stress)
 				-- it's safe to accent monosyllabic stems
 				if com.is_monosyllabic(stem) then
 					stem = com.make_ending_stressed(stem)
@@ -821,7 +808,7 @@ local function do_show(frame, old)
 				-- error unless the user has indicated they purposely are
 				-- leaving the word unstressed (e.g. due to not knowing the
 				-- stress) by putting a * at the beginning of the main stem
-				elseif stem_was_unstressed then
+				elseif stem_needs_stress then
 					if rfind(stress, "^6") then
 						stem = com.make_beginning_stressed(stem)
 					elseif (rfind(stress, "^[24]") or
@@ -834,7 +821,7 @@ local function do_show(frame, old)
 				return stem
 			end
 
-			stem = restress_stem(stem, stress)
+			stem = restress_stem(stem, stress, stem_was_unstressed)
 
 			if pl and com.is_monosyllabic(pl) then
 				pl = com.make_ending_stressed(pl)
@@ -922,8 +909,8 @@ local function do_show(frame, old)
 						-- needed in at least one word, сапожо́к 3*d(2), with
 						-- plural stem probably сапо́жк- and gen pl probably
 						-- сапо́жек.)
-						stem = restress_stem(stem, stress)
-						if stress ~= "1" and stress ~= "2" and args.alt_gen_pl then
+						stem = restress_stem(stem, stress, com.is_unstressed(stem))
+						if stress ~= "1" and stress ~= "2" and args.alt_gen_pl and not pl then
 							-- Nouns like рожо́к, глазо́к of type 3*d(2) have
 							-- gen pl's ро́жек, гла́зок; to handle this,
 							-- unreduce the reduced stem and store in a
@@ -970,8 +957,10 @@ local function do_show(frame, old)
 				local orig_decl_class = decl_class_spec[1]
 				local number = decl_class_spec[2]
 				local real_decl_class = orig_decl_class
-				real_decl_class = detectfuns[real_decl_class] and
-					detectfuns[real_decl_class](stem, stress) or real_decl_class
+				real_decl_class = determine_stress_variant(real_decl_class, stress)
+				-- sanity checking; errors should have been caught in
+				-- canonicalize_decl()
+				assert(decl_cats[real_decl_class])
 				assert(decls[real_decl_class])
 				tracking_code(stress, orig_decl_class, real_decl_class, args)
 				do_stress_pattern(stress, args, decls[real_decl_class], number)
@@ -1257,7 +1246,7 @@ local function detect_stem_type(stem, gender, anim)
 			if base then
 				return base, gender == "m" and "" or "а", ending
 			end
-			base, ending = rmatch(stem, "^(.*[" .. com.vowel .. "])([иИ]́?)$")
+			base, ending = rmatch(stem, "^(.*[" .. com.vowel .. "]́?)([иИ]́?)$")
 			if base then
 				return base, gender == "m" and "й" or "я", ending
 			end
@@ -1472,7 +1461,6 @@ end
 -- Returns the same five args as for determine_decl(). The returned
 -- declension will always begin with +.
 function detect_adj_type(lemma, decl, old)
-	local was_accented = com.is_stressed(decl)
 	local was_autodetected
 	local base, ending
 	local basedecl, g = rmatch(decl, "^(%+)([mfn])$")
@@ -1486,8 +1474,6 @@ function detect_adj_type(lemma, decl, old)
 	if decl == "+" then
 		base, ending = rmatch(lemma, "^(.*)([ыиіьаяое]́?[йея])$")
 		if base then
-			was_accented = com.is_stressed(ending)
-			ending = com.remove_accents(ending)
 			decl = "+" .. ending
 		else
 			-- FIXME! Not clear if this works with accented endings, check it
@@ -1498,8 +1484,6 @@ function detect_adj_type(lemma, decl, old)
 			if not shortmixed then
 				error("Cannot determine stem type of adjective: " .. lemma)
 			end
-			was_accented = com.is_stressed(ending)
-			ending = com.remove_accents(ending)
 			decl = "+" .. ending .. "-" .. shortmixed
 		end
 		was_autodetected = true
@@ -1507,17 +1491,21 @@ function detect_adj_type(lemma, decl, old)
 		-- FIXME! Not clear if this works with accented endings, check it
 		base, ending = rmatch(lemma, "^(.-)([оаыъ]?́?)$")
 		assert(base)
-		was_accented = com.is_stressed(ending)
-		ending = com.remove_accents(ending)
 		decl = "+" .. ending .. "-" .. usub(decl, 2)
 		was_autodetected = true
 	else
-		-- FIXME, might not work in the presence of slash declensions
-		was_accented = com.is_stressed(decl)
-		decl = com.remove_accents(decl)
 		base = lemma
 	end
 
+	-- Remove any accents from the declension, but not their presence.
+	-- We will convert was_accented into stress pattern 2, and convert that
+	-- back to an accented version in determine_stress_variant(). This way
+	-- we end up with the stressed version whether the user placed an accent
+	-- in the ending or decl or specified stress pattern 2.
+	-- FIXME, might not work in the presence of slash declensions
+	local was_accented = com.is_stressed(decl)
+	decl = com.remove_accents(decl)
+	
 	function convert_sib_velar_variant(decl)
 		local iend = rmatch(decl, "^%+[іи]([йея]?)$")
 		-- Convert ій/ий to ый after velar or sibilant. This is important for
@@ -1538,7 +1526,7 @@ function detect_adj_type(lemma, decl, old)
 	decl = map_decl(decl,convert_sib_velar_variant)
 	local singdecl
 	if decl == "+ые" then
-		singdecl = (g == "m" or not g) and "+ый" or not old and g == "f" and "+ая" or not old and g == "n" and "+ое"
+		singdecl = (g == "m" or not g) and (was_accented and "+ой" or "+ый") or not old and g == "f" and "+ая" or not old and g == "n" and "+ое"
 	elseif decl == "+ие" and not old then
 		singdecl = (g == "m" or not g) and "+ий" or g == "f" and "+яя" or g == "n" and "+ее"
 	elseif decl == "+іе" and old and (g == "m" or not g) then
@@ -1558,14 +1546,16 @@ function detect_adj_type(lemma, decl, old)
 	return base, canonicalize_decl(decl, old), was_accented, was_plural, was_autodetected
 end
 
--- Detect stress pattern (1 or 2) based on whether ending is stressed or
--- decl class is inherently ending-stressed. NOTE: This function is run
--- after alias resolution and accent removal.
-function detect_stress_pattern(decl, was_accented)
+-- Detect stress pattern based on whether ending is stressed, the decl class
+-- is inherently ending-stressed or an explicit stress was given. NOTE: This
+-- function is run after alias resolution and accent removal.
+function detect_stress_pattern(decl, stress_arg, was_accented)
 	-- ёнок and ёночек always bear stress
 	-- not anchored to ^ or $ in case of a slash declension and old-style decls
 	if rfind(decl, "ёнок") or rfind(decl, "ёночек") then
 		return "2"
+	elseif stress_arg then
+		return stress_arg
 	-- stressed suffix и́н; missing in plural and true endings don't bear stress
 	-- (except for exceptional господи́н)
 	elseif rfind(decl, "ин") and was_accented then
@@ -1579,6 +1569,17 @@ function detect_stress_pattern(decl, was_accented)
 	else
 		return "1"
 	end
+end
+
+function determine_stress_variant(decl, stress)
+	if stress == "2" then
+		if decl == "+ая" then
+			return "+а́я"
+		elseif decl == "+ое" then
+			return "+о́е"
+		end
+	end
+	return decl
 end
 
 function map_decl(decl, fun)
@@ -1601,8 +1602,8 @@ end
 function canonicalize_decl(decl_class, old)
 	local function do_canon(decl)
 		-- remove accents, but not from е́ (for adj decls, accent matters
-		-- as well but we handle that by noticing the accent and converting
-		-- to the accented version in a detection function)
+		-- as well but we handle that by mapping the accent to a stress pattern
+		-- and then to the accented version in determine_stress_variant())
 		if decl ~= "е́" then
 			decl = com.remove_accents(decl)
 		end
@@ -1610,18 +1611,11 @@ function canonicalize_decl(decl_class, old)
 		local decl_aliases = old and declensions_old_aliases or declensions_aliases
 		local decl_cats = old and declensions_old_cat or declensions_cat
 		if decl_aliases[decl] then
-			-- If we find an alias, map it, and sanity-check that there's
-			-- a category entry for the result.
+			-- If we find an alias, map it.
 			decl = decl_aliases[decl]
-			assert(decl_cats[decl])
 		elseif not decl_cats[decl] then
 			error("Unrecognized declension class " .. decl)
 		end
-		-- We can't yet sanity-check that there is an actual declension,
-		-- because there's still the detect_decl step, which conceivably
-		-- could convert the user-visible declension class (which always
-		-- has a category object) to an internal declension variant.
-		-- We don't much do this any more, but it's still possible.
 		return decl
 	end
 	return map_decl(decl_class, do_canon)
@@ -1782,9 +1776,7 @@ declensions_old["ъ-ья"] = {
 	["ins_sg"] = "о́мъ",
 	["pre_sg"] = "ѣ́",
 	["nom_pl"] = "ья́",
-	["gen_pl"] = function(stem, stress)
-		return sibilant_suffixes[ulower(usub(stem, -1))] and "е́й" or "ьёвъ"
-	end,
+	["gen_pl"] = "ьёвъ",
 	["dat_pl"] = "ья́мъ",
 	["acc_pl"] = nil,
 	["ins_pl"] = "ья́ми",
@@ -1892,7 +1884,7 @@ declensions_old["й"] = {
 	["acc_sg"] = nil,
 	["ins_sg"] = "ёмъ",
 	["pre_sg"] = function(stem, stress)
-		return rlfind(stem, "[іи]́?$") and "и́" or "ѣ́"
+		return rlfind(stem, "[іи]́?$") and not ending_stressed_pre_sg_patterns[stress] and "и" or "ѣ́"
 	end,
 	["nom_pl"] = "и́",
 	["gen_pl"] = "ёвъ",
@@ -1952,7 +1944,9 @@ declensions_old["я"] = {
 		return rlfind(stem, "[іи]́?$") and not ending_stressed_pre_sg_patterns[stress] and "и" or "ѣ́"
 	end,
 	["nom_pl"] = "и́",
-	["gen_pl"] = "й",
+	["gen_pl"] = function(stem, stress)
+		return ending_stressed_gen_pl_patterns[stress] and not rlfind(stem, "[" .. com.vowel .. "]́?$") and "е́й" or "й"
+	end,
 	["alt_gen_pl"] = "е́й",
 	["dat_pl"] = "я́мъ",
 	["acc_pl"] = nil,
@@ -2004,7 +1998,9 @@ declensions_old["о"] = {
 	["ins_sg"] = "о́мъ",
 	["pre_sg"] = "ѣ́",
 	["nom_pl"] = "а́",
-	["gen_pl"] = "ъ",
+	["gen_pl"] = function(stem, stress)
+		return sibilant_suffixes[ulower(usub(stem, -1))] and ending_stressed_gen_pl_patterns[stress] and "е́й" or "ъ"
+	end,
 	["alt_gen_pl"] = "о́въ",
 	["dat_pl"] = "а́мъ",
 	["acc_pl"] = nil,
@@ -2030,9 +2026,7 @@ declensions_old["о-ья"] = {
 	["ins_sg"] = "о́мъ",
 	["pre_sg"] = "ѣ́",
 	["nom_pl"] = "ья́",
-	["gen_pl"] = function(stem, stress)
-		return sibilant_suffixes[ulower(usub(stem, -1))] and "е́й" or "ьёвъ"
-	end,
+	["gen_pl"] = "ьёвъ",
 	["dat_pl"] = "ья́мъ",
 	["acc_pl"] = nil,
 	["ins_pl"] = "ья́ми",
@@ -2055,9 +2049,9 @@ declensions_old["е"] = {
 	end,
 	["nom_pl"] = "я́",
 	["gen_pl"] = function(stem, stress)
-		return rlfind(stem, "[іи]́?$") and "й" or "е́й"
+		return ending_stressed_gen_pl_patterns[stress] and not rlfind(stem, "[" .. com.vowel .. "]́?$") and "е́й" or "й"
 	end,
-	["alt_gen_pl"] = "е́въ",
+	["alt_gen_pl"] = "ёвъ",
 	["dat_pl"] = "я́мъ",
 	["acc_pl"] = nil,
 	["ins_pl"] = "я́ми",
@@ -2093,7 +2087,7 @@ declensions_old["е́"] = {
 	end,
 	["nom_pl"] = "я́",
 	["gen_pl"] = function(stem, stress)
-		return rlfind(stem, "[іи]́?$") and "й" or "е́й"
+		return rlfind(stem, "[" .. com.vowel .. "]́?$") and "й" or "е́й"
 	end,
 	["alt_gen_pl"] = "ёвъ",
 	["dat_pl"] = "я́мъ",
@@ -2217,7 +2211,7 @@ declensions_old_cat["$"] = { decl="invariable", hard="none", g="none" }
 local adj_decl_map = {
 	{"ый", "ый", "ое", "ая", "hard", "long", false},
 	{"ій", "ій", "ее", "яя", "soft", "long", false},
-	{"ой", "о́й", "о́е", "а́я", "hard", "long", false},
+	{"ой", "ой", "о́е", "а́я", "hard", "long", false},
 	{"ьій", "ьій", "ье", "ья", "palatal", "long", true},
 	{"short", "ъ-short", "о-short", "а-short", "hard", "short", true},
 	{"mixed", "ъ-mixed", "о-mixed", "а-mixed", "hard", "mixed", true},
@@ -2260,29 +2254,8 @@ end
 
 -- Set up some aliases. е-short and е-mixed exist because е instead of о
 -- appears after sibilants and ц.
-declensions_old_aliases["+ой"] = "+о́й"
 declensions_old_aliases["+е-short"] = "+о-short"
 declensions_old_aliases["+е-mixed"] = "+о-mixed"
-
--- For stressed and unstressed ое and ая, convert to the right stress
--- variant according to the stress pattern (1 or 2).
-detect_decl_old["+ое"] = function(stem, stress)
-	if stress == "2" then
-		return "+о́е"
-	else
-		return "+ое"
-	end
-end
-detect_decl_old["+о́е"] = detect_decl_old["+ое"]
-
-detect_decl_old["+ая"] = function(stem, stress)
-	if stress == "2" then
-		return "+а́я"
-	else
-		return "+ая"
-	end
-end
-detect_decl_old["+а́я"] = detect_decl_old["+ая"]
 
 --------------------------------------------------------------------------
 --                         Populate new from old                        --
@@ -2345,13 +2318,6 @@ local function old_decl_cat_to_new(odeclcat)
 	return ndeclcat
 end
 
--- Function to convert an old detect_decl function to new one.
-local function old_detect_decl_to_new(ofunc)
-	return function(stem, stress)
-		return old_to_new(ofunc(stem, stress))
-	end
-end
-
 -- populate declensions[] from declensions_old[]
 for odecltype, odecl in pairs(declensions_old) do
 	local ndecltype = old_to_new(odecltype)
@@ -2373,14 +2339,6 @@ for ofrom, oto in pairs(declensions_old_aliases) do
 	local from = old_to_new(ofrom)
 	if not declensions_aliases[from] then
 		declensions_aliases[from] = old_to_new(oto)
-	end
-end
-
--- populate detect_decl[] from detect_decl_old[]
-for odeclfrom, ofunc in pairs(detect_decl_old) do
-	local declfrom = old_to_new(odeclfrom)
-	if not detect_decl[declfrom] then
-		detect_decl[declfrom] = old_detect_decl_to_new(ofunc)
 	end
 end
 
@@ -2473,9 +2431,16 @@ local function attach_unstressed(args, case, suf, was_stressed)
 		return attach_stressed(args, case, suf)
 	end
 	local old = args.old
-	local stem = rfind(case, "_pl$") and is_pl and args.pl or case == "ins_sg" and args.ins_sg_stem or args.stem
+	local stem = rfind(case, "_pl") and args.pl or case == "ins_sg" and args.ins_sg_stem or args.stem
 	if old and old_consonantal_suffixes[suf] or not old and consonantal_suffixes[suf] then
-		local barearg = case == "gen_pl" and args.gen_pl_bare or args.bare
+		-- If gen_pl, use special args.gen_pl_bare if given, else regular args.bare if there
+		-- isn't a plural stem. If nom_sg, always use regular args.bare.
+		local barearg
+		if case == "gen_pl" then
+			barearg = args.gen_pl_bare or (args.pl == args.stem) and args.bare
+		else
+			barearg = args.bare
+		end
 		local barestem = barearg or stem
 		if was_stressed and case == "gen_pl" then
 			if not barearg then
@@ -2533,7 +2498,7 @@ function attach_stressed(args, case, suf)
 		return attach_unstressed(args, case, suf, "was stressed")
 	end
 	local old = args.old
-	local stem = rfind(case, "_pl$") and args.upl or args.ustem
+	local stem = rfind(case, "_pl") and args.upl or args.ustem
 	local rules = stressed_rules[ulower(usub(stem, -1))]
 	return combine_stem_and_suffix(stem, suf, rules, old)
 end
@@ -2578,7 +2543,7 @@ local function gen_form(args, decl, case, stress, fun)
 	end
 	local suf = decl[case]
 	if type(suf) == "function" then
-		suf = suf(args.stem, stress)
+		suf = suf(rfind(case, "_pl") and args.pl or args.stem, stress)
 	end
 	if case == "gen_pl" and args.alt_gen_pl then
 		suf = decl.alt_gen_pl
@@ -2602,8 +2567,8 @@ local attachers = {
 
 function do_stress_pattern(stress, args, decl, number)
 	for case in pairs(decl_cases) do
-		if not number or (number == "sg" and rfind(case, "_sg$")) or
-			(number == "pl" and rfind(case, "_pl$")) then
+		if not number or (number == "sg" and rfind(case, "_sg")) or
+			(number == "pl" and rfind(case, "_pl")) then
 			gen_form(args, decl, case, stress,
 				attachers[stress_patterns[stress][case]])
 		end
@@ -2711,7 +2676,13 @@ end
 
 function handle_forms_and_overrides(args)
 	for case in pairs(cases) do
-		local ispl = rfind(case, "_pl$")
+		local ispl = rfind(case, "_pl")
+		if args[case .. "_tail"] and args.forms[case] then
+			local lastarg = #(args.forms[case])
+			if lastarg > 0 then
+				args.forms[case][lastarg] = args.forms[case][lastarg] .. args[case .. "_tail"]
+			end
+		end			
 		if not ispl and args.forms[case] then
 			local lastarg = #(args.forms[case])
 			if lastarg > 0 and args.sgtailall then
@@ -2814,7 +2785,7 @@ function make_table(args)
 					x = rsub(x, "<adj>", "")
 					local entry, notes = m_table_tools.get_notes(x)
 					if old then
-						ut.insert_if_not(ru_vals, m_links.full_link(com.make_unstressed(entry), entry, lang, nil, nil, nil, {tr = "-"}, false) .. notes)
+						ut.insert_if_not(ru_vals, m_links.full_link(com.remove_jo(entry), entry, lang, nil, nil, nil, {tr = "-"}, false) .. notes)
 					else
 						ut.insert_if_not(ru_vals, m_links.full_link(entry, nil, lang, nil, nil, nil, {tr = "-"}, false) .. notes)
 					end
@@ -2909,7 +2880,7 @@ function template_prelude(min_width)
 	return rsub([===[
 <div>
 <div class="NavFrame" style="display: inline-block; min-width: MINWIDTHem">
-<div class="NavHead" style="background:#eff7ff">{title}</div>
+<div class="NavHead" style="background:#eff7ff">{title}{after_title}</div>
 <div class="NavContent">
 {\op}| style="background:#F9F9F9;text-align:center; min-width:MINWIDTHem" class="inflection-table"
 |-
