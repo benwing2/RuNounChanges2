@@ -110,7 +110,7 @@ local function tracking_code(stress_arg, stress, decl_class,
 		end
 	end
 	dotrack("")
-	if args.bare ~= args.stem then
+	if args.bare and args.bare ~= args.stem then
 		track("reducible-stem")
 		dotrack("reducible-stem/")
 	end
@@ -251,12 +251,9 @@ local function do_show(frame, old)
 		if ut.contains({"", "m", "f", "n"}, decl_class) then
 			args.stem, decl_class = detect_stem_type(args.stem, decl_class)
 		end
-		-- For bare and pl, we default to other specified arguments,
-		-- falling back to the stem.
-		args.bare = stem_set[4] or args.stem
+		args.bare = stem_set[4]
 		args.pl = stem_set[5] or args.stem
 		args.ustem = com.make_unstressed_once(args.stem)
-		-- unused: args.ubare = com.make_unstressed_once(args.bare)
 		args.upl = com.make_unstressed_once(args.pl)
 		args.hint = ulower(usub(args.stem, -1))
 
@@ -1065,23 +1062,41 @@ local function attach_unstressed(args, case, suf)
 	elseif rfind(suf, "̂") then -- if suf has circumflex accent, it forces stressed
 		return attach_stressed(args, case, suf)
 	end
-	local is_pl = rfind(case, "_pl$")
 	local old = args.old
-	local stem = is_pl and args.pl or args.stem
-	local barestem = args.bare
+	local stem = rfind(case, "_pl") and args.pl or args.stem
 	if old and old_consonantal_suffixes[suf] or not old and consonantal_suffixes[suf] then
-		if rfind(barestem, old and "[йьъ]$" or "[йь]$") then
-			return barestem
+		-- If gen_pl, use args.bare only if there isn't a plural stem.
+		-- If nom_sg, always use regular args.bare.
+		local barearg
+		if case == "gen_pl" then
+			barearg = (args.pl == args.stem) and args.bare
 		else
-			if suf == "й" or suf == "ь" then
-				if rfind(barestem, "[аеёиіоуэюяѣ́]$") then
+			barearg = args.bare
+		end
+		local barestem = barearg or stem
+		if rfind(barestem, old and "[йьъ]$" or "[йь]$") then
+			suf = ""
+		else
+			if suf == "ъ" then
+				-- OK
+			elseif suf == "й" or suf == "ь" then
+				if barearg and case == "gen_pl" then
+					-- FIXME: temporary tracking code
+					track("explicit-bare-no-suffix")
+					if old then
+						track("explicit-bare-old-no-suffix")
+					end
+					-- explicit bare, don't add -ь
+					suf = ""
+				elseif rfind(barestem, "[" .. com.vowel .. "]́?$") then
+					-- no explicit bare, do add -ь and correct to -й if necessary
 					suf = "й"
 				else
 					suf = "ь"
 				end
 			end
-			return barestem .. suf
 		end
+		return barestem .. suf
 	end
 	suf = com.make_unstressed(suf)
 	local rules = unstressed_rules[args.hint]
