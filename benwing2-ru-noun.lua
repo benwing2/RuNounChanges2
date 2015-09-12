@@ -622,11 +622,6 @@ local function do_show(frame, old)
 	old = old or args.old
 	args.old = old
 
-	-- FIXME! Delete this when we've converted all uses of pl= args
-	if args["pl"] or args["pl2"] or args["pl3"] or args["pl4"] or args["pl5"] then
-		track("pl")
-	end
-	
 	-- Gather arguments into an array of STEM_SET objects, containing
 	-- (potentially) elements 1, 2, 3, 4, 5, corresponding to accent pattern,
 	-- stem, declension type, bare stem, pl stem and coming from consecutive
