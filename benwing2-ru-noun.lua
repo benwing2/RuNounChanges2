@@ -458,7 +458,7 @@ local function categorize(stress, decl_class, args)
 	end
 
 	assert(decl_class)
-	local decl_cats = old and declensions_old_cat or declensions_cat
+	local decl_cats = args.old and declensions_old_cat or declensions_cat
 
 	local sgdecl, pldecl
 	if rfind(decl_class, "/") then
@@ -700,9 +700,15 @@ local function do_show(frame, old)
 				error("Can't specify optional stem parameters when manual")
 			end
 		end
-		decl_class, args.jo_special = rsubb(decl_class, "^ё", "")
+		decl_class, args.jo_special = rsubb(decl_class, "^ё$", "")
 		if not args.jo_special then
-			decl_class, args.jo_special = rsubb(decl_class, "(%A)ё", "%1")
+			decl_class, args.jo_special = rsubb(decl_class, "(%A)ё$", "%1")
+		end
+		if not args.jo_special then
+			decl_class, args.jo_special = rsubb(decl_class, "^ё(%A)", "%1")
+		end
+		if not args.jo_special then
+			decl_class, args.jo_special = rsubb(decl_class, "(%A)ё(%A)", "%1%2")
 		end
 		decl_class, args.want_sc1 = rsubb(decl_class, "%(1%)", "")
 		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
