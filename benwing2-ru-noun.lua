@@ -612,11 +612,7 @@ local function arg1_is_stress(arg1)
 	return true
 end
 
-local function do_show(frame, old)
-	PAGENAME = mw.title.getCurrentTitle().text
-	SUBPAGENAME = mw.title.getCurrentTitle().subpageText
-	NAMESPACE = mw.title.getCurrentTitle().nsText
-
+function export.do_generate_forms(args, old)
 	local args = clone_args(frame)
 
 	old = old or args.old
@@ -973,7 +969,14 @@ local function do_show(frame, old)
 
 	handle_forms_and_overrides(args)
 
-	return make_table(args) .. m_utilities.format_categories(args["categories"], lang)
+	return args
+end
+
+-- Implementation of main entry point
+local function do_show(frame, old)
+	local args = clone_args(frame)
+	local args = export.do_generate_forms(args, old)
+	return make_table(args) .. m_utilities.format_categories(args.categories, lang)
 end
 
 -- The main entry point for modern declension tables.
@@ -984,6 +987,46 @@ end
 -- The main entry point for old declension tables.
 function export.show_old(frame)
 	return do_show(frame, true)
+end
+
+local function get_form(forms)
+	local canon_forms = {}
+	for _, form in forms do
+		local entry, notes = m_table_tools.get_notes(form)
+		ut.insert_if_not(canon_forms, m_links.remove_links(entry))
+	end
+	return table.concat(canon_forms, ",")
+end
+
+-- The entry point for 'ru-noun-forms' to generate all noun forms.
+function export.generate_forms(frame)
+	local args = clone_args(frame)
+	local args = export.do_generate_forms(args, false)
+	local ins_text = {}
+	for _, case in ipairs(cases) do
+		if args.forms[case] then
+			table.insert(ins_text, case .. "=" .. get_form(args.forms[case]))
+		end
+	end
+	return table.concat(ins_text, "|")
+end
+
+-- The entry point for 'ru-noun-form' to generate a particular noun form.
+function export.generate_form(frame)
+	local args = clone_args(frame)
+	if not args.form then
+		error("Must specify desired form using form=")
+	end
+	local form = args.form
+	if not ut.contains(old_cases, form) then
+		error("Unrecognized form " .. form)
+	end
+	local args = export.do_generate_forms(args, false)
+	if not args.forms[form] then
+		return ""
+	else
+		return get_form(args.forms[form])
+	end
 end
 
 local stem_expl = {
