@@ -1,8 +1,8 @@
 '''NOTE: CONTINUED FROM [[User:Benwing2/test-ru-noun-f]]'''
 
-;Feminine special case (2)
+==Feminine special case (2)==
 {{User:Benwing2/ru-noun-table|ро́хля|(2)|a=an}}
-{{User:Benwing2/ru-noun-table|ко́рца|(2)}}
+{{User:Benwing2/ru-noun-table|ко́рча|(2)}}
 {{User:Benwing2/ru-noun-table|схо́дня|*(2)}}
 ;Check the following one in particular, esp. in the gen pl.
 {{User:Benwing2/ru-noun-table|расте́ря|or||(2)|a=an}}
@@ -13,7 +13,7 @@
 ;Check the following one in particular, esp. in the gen pl.
 {{User:Benwing2/ru-noun-table|лю́тня|*|or||*(2)}}
 
-;Feminine with ё
+==Feminine with ё==
 ;Check all of the following in particular
 {{User:Benwing2/ru-noun-table|b|пелена́|ё}}
 {{User:Benwing2/ru-noun-table|d|звезда́|ё}}
@@ -28,10 +28,10 @@
 
 ;Irregular; check the following one in particular
 {{User:Benwing2/ru-noun-table|дя́дя|(2)|or|c||-ья|a=an}}
-;Irregular; check the following one in particular, ins_sg/gen_pl might be wrong and require overrides, should have ins_sg суеие́й, gen pl су́дий
-{{User:Benwing2/ru-noun-table|судия́|a=an}}
+;Irregular; check the following one in particular, in the singular and gen pl
+{{User:Benwing2/ru-noun-table|судия́|a=an|dat_sg=судии́|pre_sg=судии́|ins_sg=судие́й|gen_pl=су́дий}}
 
-;Feminine plural
+==Feminine plural==
 {{User:Benwing2/ru-noun-table|ви́лы|f}}
 {{User:Benwing2/ru-noun-table|бразды́|f}}
 {{User:Benwing2/ru-noun-table|e|по́хороны|f}}
@@ -46,7 +46,7 @@
 ;Check the following one in particular in the gen pl
 {{User:Benwing2/ru-noun-table|a,e|бу́бны|f*}}
 {{User:Benwing2/ru-noun-table|ка́пли|f*}}
-;Check the following one in particular in the gen pl
+;Check the following one in particular in the gen pl; also, Z. has полдне́й for dat pl, surely that is wrong, should that be an alternate gen pl?
 {{User:Benwing2/ru-noun-table|e|по́лдни|f*|полдён}}
 {{User:Benwing2/ru-noun-table|са́нки|f*}}
 {{User:Benwing2/ru-noun-table|штани́шки|f*}}

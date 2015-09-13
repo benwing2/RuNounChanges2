@@ -70,48 +70,40 @@ In the sense of “uncle” also:
 {{ru-noun-table|1|гро́зд|ь-f/-ья|or|5||ь-f}}
 {{User:Benwing2/ru-noun-table|1|гро́зд|ь-f/-ья|or|5||ь-f}}
 {{User:Benwing2/ru-noun-table|гроздь|f-ья|or|e||f}}
-'''FIX THE FOLLOWING'''
 {{ru-noun-table|1|полумину́т|а|or|1|полмину́т|а|nom_sg=полмину́ты|n=sg}}
 {{User:Benwing2/ru-noun-table|1|полумину́т|а|or|1|полмину́т|а|nom_sg=полмину́ты|n=sg}}
 {{User:Benwing2/ru-noun-table|полумину́та|or|полмину́та|nom_sg=полмину́ты|n=sg}}
 {{ru-noun-table|1|шни́цел|ь-m|or|3||ь-я}}
 {{User:Benwing2/ru-noun-table|1|шни́цел|ь-m|or|3||ь-я}}
-{{User:Benwing2/ru-noun-table|шни́цель|m|or|c||(1)}}
+{{User:Benwing2/ru-noun-table|шни́цель|m|or|c||m(1)}}
 {{ru-noun-table|4|ко́шм|а|ко́шем|or|6||а}}
 {{User:Benwing2/ru-noun-table|4|ко́шм|а|ко́шем|or|6||а}}
 {{User:Benwing2/ru-noun-table|d|кошма́|*|or|f}}
 
 ==Masculine irregular in -ья==
-'''CHANGE THE FOLLOWING AND DELETE CODE SUPPORTING BLANK STRESS PATTERN'''
 {{ru-noun-table|5|зу́б|or||-ья|pltail=*|notes=* Technical.}}
 {{User:Benwing2/ru-noun-table|5|зу́б|or||-ья|pltail=*|notes=* Technical.}}
 {{User:Benwing2/ru-noun-table|e|зуб|or||-ья|pltail=*|notes=* Technical.}}
-'''CHANGE THE FOLLOWING AND DELETE CODE SUPPORTING BLANK STRESS PATTERN'''
 {{ru-noun-table|4|ко́л|-ья|or|2|loc=на +}}
 {{User:Benwing2/ru-noun-table|4|ко́л|-ья|or|2|loc=на +}}
 {{User:Benwing2/ru-noun-table|d|кол|-ья|or|b|loc=на +}}
 {{ru-noun-table|1|сту́л|-ья}}
 {{User:Benwing2/ru-noun-table|1|сту́л|-ья}}
 {{User:Benwing2/ru-noun-table|стул|-ья}}
-'''CREATE'''
 {{ru-noun-table|4|копы́л|-ья|or|2}}
 {{User:Benwing2/ru-noun-table|4|копы́л|-ья|or|2}}
 {{User:Benwing2/ru-noun-table|d|копы́л|-ья|or|b}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|ко́м|-ья|pltail=*|notes=* The plural noun forms are non-standard.}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|бра́т|-ья|a=an|pltail=*|notes=* The soft ending of the plural was originally used for feminine [[collective noun]]s, and the meaning of '''братья''' then was [[brotherhood]].}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|4|кло́к|-ья||кло́ч|or|2|pltail=*|notes=* Meaning ''tuft'', ''flock'' only.}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|бру́с|-ья}}
-'''CHANGE THE FOLLOWING'''
-{{ru-noun-table|о́бод|-ья||обо́д}}
-'''CREATE THE FOLLOWING'''
-{{ru-noun-table|по́бод|-ья||побо́д}}
-'''CREATE THE FOLLOWING'''
+{{User:Benwing2/ru-noun-table|бру́с|-ья}}
+{{ru-noun-table|о́бод|-ья||обо́д|or}}
+{{User:Benwing2/ru-noun-table|о́бод|-ья||обо́д|or}}
+{{ru-noun-table|по́вод|-ья||пово́д|loc=+}}
+{{User:Benwing2/ru-noun-table|по́вод|-ья||пово́д|loc=+}}
 {{ru-noun-table|по́лоз|-ья||поло́з}}
-'''CHANGE THE FOLLOWING'''
+{{User:Benwing2/ru-noun-table|по́лоз|-ья||поло́з}}
 {{ru-noun-table|1,2|у́гл|ь-m|у́голь}} (meaning "coal")
 {{User:Benwing2/ru-noun-table|1,2|у́гл|ь-m|у́голь}} (meaning "coal")
 {{User:Benwing2/ru-noun-table|a,b|у́голь|*m}} (meaning "coal")
@@ -130,33 +122,27 @@ In the sense of “uncle” also:
 {{ru-noun-table|3|зя́т|ь-m/-ья|a=an}}
 {{User:Benwing2/ru-noun-table|3|зя́т|ь-m/-ья|a=an}}
 {{User:Benwing2/ru-noun-table|c|зять|m-ья|a=an}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|3|кня́з|ь-m/-ья|or|5||ь-m|voc=кня́же|a=an}}
 {{User:Benwing2/ru-noun-table|3|кня́з|ь-m/-ья|or|5||ь-m|voc=кня́же|a=an}}
 {{User:Benwing2/ru-noun-table|c|князь|m-ья|or|e||m|voc=кня́же|a=an}}
 {{ru-noun-table|3|дру́г|-ья||друз|gen_pl=друзе́й|voc=дру́же|a=an}}
 {{User:Benwing2/ru-noun-table|3|дру́г|-ья||друз|gen_pl=друзе́й|voc=дру́же|a=an}}
 {{User:Benwing2/ru-noun-table|c|друг|-ья(2)||друз|voc=дру́же|a=an}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|3|сы́н|-ья||сынов|or|3|gen_pl=сынове́й,сыно́в*|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
 {{User:Benwing2/ru-noun-table|3|сы́н|-ья||сынов|or|3|gen_pl=сынове́й,сыно́в*|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
 {{User:Benwing2/ru-noun-table|c|сын|-ья(2)||сынов|or|c|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
 {{ru-noun-table|3|ку́м|-ья||кумов|a=an}}
 {{User:Benwing2/ru-noun-table|3|ку́м|-ья||кумов|a=an}}
 {{User:Benwing2/ru-noun-table|c|кум|-ья||кумов|a=an}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|3|шу́рин|-ья||шур|or|a=an}}
 {{User:Benwing2/ru-noun-table|3|шу́рин|-ья||шур|or|a=an}}
 {{User:Benwing2/ru-noun-table|c|шу́рин|-ья||шур|or|a=an}}
-'''CHANGE THE FOLLOWING AND VERIFY'''
-{{ru-noun-table|сосе́д|/ь-m}}
-{{User:Benwing2/ru-noun-table|сосе́д|/ь-m}}
-{{User:Benwing2/ru-noun-table|сосе́д|/ь-m}}
-'''CHANGE THE FOLLOWING AND VERIFY'''
-{{ru-noun-table|2|щенк||щено́к|or|4||-а|щено́к|щеня́т|gen_pl=щенко́в,щеня́т}}
-{{ru-noun-table|b|щено́к|*|or|d||*(1)(2)||щеня́т}}
-'''CHANGE THE FOLLOWING AND VERIFY'''
-{{ru-noun-table|6|реб|ёнок/ь-m||де́т|or|2|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
-{{User:Benwing2/ru-noun-table|6|реб|ёнок/ь-m||де́т|or|2|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
-{{User:Benwing2/ru-noun-table|f|реб|ёнок/ь-m||де́т|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
-
+{{ru-noun-table|сосе́д|/ь-m|a=an}}
+{{User:Benwing2/ru-noun-table|сосе́д|/ь-m|a=an}}
+{{User:Benwing2/ru-noun-table|сосе́д|/ь-m|a=an}}
+{{ru-noun-table|2|щенк||щено́к|or|4||-а|щено́к|щеня́т|gen_pl=щенко́в,щеня́т|a=an}}
+{{User:Benwing2/ru-noun-table|2|щенк||щено́к|or|4||-а|щено́к|щеня́т|gen_pl=щенко́в,щеня́т|a=an}}
+{{User:Benwing2/ru-noun-table|b|щено́к|*|or|d||*(1)(2)||щеня́т|a=an}}
+{{ru-noun-table|6|реб|ёнок/ь-m||де́т|or|2|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
+{{User:Benwing2/ru-noun-table|6|реб|ёнок/ь-m||де́т|or|2|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
+{{User:Benwing2/ru-noun-table|f|реб|ёнок/ь-m||де́т|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
