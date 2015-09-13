@@ -56,6 +56,17 @@ function track(page)
 	return true
 end
 
+-- Clone parent's args while also assigning nil to empty strings.
+local function clone_args(frame)
+	local args = {}
+	for pname, param in pairs(frame:getParent().args) do
+		if param == "" then args[pname] = nil
+		else args[pname] = param
+		end
+	end
+	return args
+end
+
 -- Old-style declensions.
 local declensions_old = {}
 -- New-style declensions; computed automatically from the old-style ones.
@@ -79,6 +90,9 @@ local decl_cases
 local cases
 -- Type of trailing letter, for tracking purposes
 local trailing_letter_type
+
+-- FIXME: Remove this
+local test_new_ru_noun_module = true
 
 local function tracking_code(stress_arg, stress, decl_class,
 		real_decl_class, args)
@@ -144,19 +158,8 @@ local function arg1_is_stress(arg1)
 	return true
 end
 
-
 local function do_show(frame, old)
-	PAGENAME = mw.title.getCurrentTitle().text
-	SUBPAGENAME = mw.title.getCurrentTitle().subpageText
-	NAMESPACE = mw.title.getCurrentTitle().nsText
-
-	local args = {}
-	--Clone parent's args while also assigning nil to empty strings.
-	for pname, param in pairs(frame:getParent().args) do
-		if param == "" then args[pname] = nil
-		else args[pname] = param
-		end
-	end
+	local args = clone_args(frame)
 
 	-- Gather arguments into an array of STEM_SET objects, containing
 	-- (potentially) elements 1, 2, 3, 4, 5 corresponding to stress pattern,
@@ -235,6 +238,9 @@ local function do_show(frame, old)
 			error("Stem in first stem set must be specified")
 		end
 		default_stem = args.stem
+		-- for compatibility with new ru-noun, where leading * means
+		-- "allow unaccented"
+		args.stem = rsub(args.stem, "^%*", "")
 		if ut.contains({"", "m", "f", "n"}, decl_class) then
 			args.stem, decl_class = detect_stem_type(args.stem, decl_class)
 		end
@@ -301,6 +307,18 @@ local function do_show(frame, old)
 	end
 
 	handle_forms_and_overrides(args)
+
+	if test_new_ru_noun_module then
+		local m_new_ru_noun = require("Module:User:Benwing2/ru-noun")
+		local newargs = clone_args(frame)
+		newargs = m_new_ru_noun.do_generate_forms(newargs, old)
+		for _, case in ipairs(cases) do
+			if args[case] ~= newargs[case] then
+				track("different-decl")
+				break
+			end
+		end
+	end
 
 	return make_table(args)
 end
