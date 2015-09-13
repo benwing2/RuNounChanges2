@@ -2,31 +2,54 @@
 	This module contains functions for creating inflection tables for Russian
 	nouns.
 
+	Form of arguments: One of the following:
+		1. LEMMA|DECL|BARE|PLSTEM (all arguments optional)
+		2. ACCENT|LEMMA|DECL|BARE|PLSTEM (all arguments optional)
+		3. multiple sets of arguments separated by the literal word "or"
+
 	Arguments:
-		1: accent pattern number, or multiple numbers separated by commas
-		2: lemma form; or the stem, with the ending included in the declension
-		   field
-		3: declension field, usually omitted or a gender (m/f/n) and will be
-		   inferred from the lemma; if present, it is normally the ending, and
-		   the lemma field (2nd argument) should be replaced with the bare stem;
-		   append (1) to get the alternate nominative plural ending (e.g. -а
-		   for masculine, -и for neuter; append (2) to get the alternate
-		   genitive plural ending (e.g. -ъ/none for masculine, -ей for
-		   feminine, -ов(ъ) or variants for neuter); append * for reducibles
-		   (nom sg or gen pl has an extra vowel before the final consonant
-		   as compared with the stem found in other cases)
-		4: irregular nom sg or gen pl form (specifically, the form used for
-		   cases with no suffix or with a nonsyllabic suffix -ь/-й/-ъ); if
-		   present, argument #2 for masculine nouns should omit the extra vowel
-		   normally present in the nom sg
-		5: special plural stem (optional, default = stem)
+		ACCENT: Accent pattern (a b c d e f b' d' f' f'' or a number, where
+		   1 through 6 are equivalent to a through f, 4* and 6* are equivalent
+		   to d' and f'). Specifying b' and f'' is actually equivalent to
+		   specifying b and f', respectively; in either case, the b' and f''
+		   variants will be chosen with 3rd-declension feminine nouns, and
+		   the b and f' variants otherwise. Multiple values can be specified,
+		   separated by commas. If omitted, defaults to a or b depending on
+		   the position of stress on the lemma or explicitly-specified
+		   declension.
+		LEMMA: Lemma form (i.e. nom sg or nom pl), with appropriately-placed
+		   stress; or the stem, if an explicit declension is specified
+		   (in this case, the declension usually looks like an ending, and
+		   the stem is the portion of the lemma minus the ending). Required in
+		   the first stem set (i.e. first set of arguments separated by "or"),
+		   can be omitted in later stem sets to default to lemma of previous
+		   stem set.
+		DECL: Declension field, one or more values separated by commas.
+		   Normally omitted to autodetect based on the lemma form; see below.
+		BARE: Present for compatibility; don't use this in new template calls.
+		   Irregular nom sg or gen pl form (specifically, the form used for
+		   cases with no suffix or with a nonsyllabic suffix -ь/-й/-ъ). If
+		   present, LEMMA for masculine nouns should omit the extra vowel
+		   normally present in the nom sg. In new template calls, use the *
+		   or (2) special cases in the declension field (see below), or failing
+		   that, use an explicit override nom_sg= or gen_pl=.
+		PLSTEM: special plural stem (defaults to stem of lemma)
+
+	Additional named arguments:
 		a: animacy (a = animate, i = inanimate, b = both, otherwise inanimate)
-		n: number restriction (p = plural only, s = singular only, otherwise both)
+		n: number restriction (p = plural only, s = singular only, b = both;
+		   defaults to both unless the lemma is plural, in which case it
+		   defaults to plural only)
 		CASE_NUM or par/loc/voc: override (or multiple values separated by
-		    commas) for particular form; forms auto-linked; can have raw links
-			in it, can have an ending "note" (*, +, 1, 2, 3, etc.)
-		arg with value "or": specify multiple stem sets; further stem sets
-		    follow the "or"
+		   commas) for particular form; forms auto-linked; can have raw links
+		pltail: Specify something (usually a * or similar) to attach to
+		   the end of plural forms when there's more than one. Used in
+		   conjunction with notes= to indicate that alternative plural forms
+		   are obsolete, poetic, etc.
+		pltailall: Same as pltail= but added to added to all forms even if
+		   there's only one.
+		sgtail, sgtailall: Same as pltail=, pltailall= but for the singular.
+		CASE_NUM_tail: Similar to pltail but restricted to a single form.
 
 	Case abbreviations:
 		nom: nominative
@@ -42,6 +65,58 @@
 	Number abbreviations:
 		sg: singular
 		pl: plural
+
+	Declension field:
+		Form is DECLSPEC or DECLSPEC,DECLSPEC,... where DECLSPEC is
+		one of the following for regular nouns:
+			(blank)
+			GENDER
+			-PLVARIANT
+			GENDER-PLVARIANT
+			DECLTYPE
+			DECLTYPE/DECLTYPE
+			(also, can append various special-case markers to any of the above)
+		Or one of the following for adjectival nouns:
+			+
+			+short
+			+mixed
+			+GENDER
+			+DECLTYPE
+		GENDER if present is m, f, or n; for regular nouns, required if the
+			lemma ends in -ь or is plural, ignored otherwise. Largely
+			ignored for adjectival nouns.
+		PLVARIANT is one way of specifying declensions with irregular plurals;
+			possible values are -а, -я, -ы, -и, -ья. See also special case (1).
+		DECLTYPE is an explicit declension type, usually the same as the
+			ending; if present, the lemma field should be just the stem,
+			without the ending; possibilities for regular nouns are (blank)
+			or # for hard-consonant declension, а, я, о, е or ё, е́, й, ья,
+			ье or ьё, ь-m, ь-f, ин, ёнок or онок or енок, ёночек or оночек or
+			еночек, мя, мя-1, -а or #-а, ь-я, й-я, о-и or о-ы, -ья or #-ья,
+			о-ья, $ (invariable). Old-style (pre-reform) declensions use ъ
+			instead of (blank), ъ-а instead of -а, ъ-ья instead of -ья, and
+			инъ, ёнокъ/онокъ/енокъ, ёночекъ/оночекъ/еночекъ instead of the
+			same without terminating ъ. The declensions can also be written
+			with an accent on them; this chooses the same declension (except
+			for е vs. е́), but causes ACCENT to default to pattern 2/b instead
+			of 1/a.
+			For adjectival nouns, possibilities are +ый, +ое, +ая, +ій, +ее,
+			+яя, +ой, +о́е, +а́я, +ьій, +ье, +ья, +-short (masc), +о-short,
+			+а-short, +-mixed (masc), +о-mixed, +а-mixed. You can also
+			specify just +short or +mixed and it will autodetect the
+			gender-specific variant.
+		DECLTYPE/DECLTYPE is used for nouns with one declension in the
+			singular and a different one in the plural, for cases that
+			PLVARIANT doesn't cover.
+		Special-case markers:
+			(1) for Zaliznyak-style alternate nominative plural ending:
+				-а for masculine, -и for neuter
+			(2) for Zaliznyak-style alternate genitive plural ending:
+				-ъ/none for masculine, -ей for feminine, -ов(ъ) for neuter,
+				-ей for plural variant -ья
+			* for reducibles (nom sg or gen pl has an extra vowel before the
+				final consonant as compared with the stem found in other cases)
+			;ё for Zaliznyak-style alternation between last е in stem and ё
 
 TODO:
 
@@ -657,7 +732,7 @@ function export.do_generate_forms(args, old)
 
 	-- Initialize non-stem-specific arguments.
 	args.a = args.a and string.sub(args.a, 1, 1) or "i"
-	args.n = args.n and string.sub(args.n, 1, 1) or nil
+	args.n = args.n and string.sub(args.n, 1, 1)
 	args.forms = {}
 	args.categories = {}
 	local function insert_cat(cat)
@@ -696,15 +771,9 @@ function export.do_generate_forms(args, old)
 				error("Can't specify optional stem parameters when manual")
 			end
 		end
-		decl_class, args.jo_special = rsubb(decl_class, "^ё$", "")
+		decl_class, args.jo_special = rsubb(decl_class, "([^/%a])ё$", "%1")
 		if not args.jo_special then
-			decl_class, args.jo_special = rsubb(decl_class, "(%A)ё$", "%1")
-		end
-		if not args.jo_special then
-			decl_class, args.jo_special = rsubb(decl_class, "^ё(%A)", "%1")
-		end
-		if not args.jo_special then
-			decl_class, args.jo_special = rsubb(decl_class, "(%A)ё(%A)", "%1%2")
+			decl_class, args.jo_special = rsubb(decl_class, "([^/%a])ё([^/%a])", "%1%2")
 		end
 		decl_class, args.want_sc1 = rsubb(decl_class, "%(1%)", "")
 		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
@@ -725,7 +794,7 @@ function export.do_generate_forms(args, old)
 				determine_decl(stem, decl_class, args)
 		end
 		if was_plural then
-			args.n = "p"
+			args.n = args.n or "p"
 		end
 		local allow_unaccented
 		stem, allow_unaccented = rsubb(stem, "^%*", "")
@@ -1339,7 +1408,7 @@ local plural_variation_detection_map = {
 	["я"] = {["-и"]="я"},
 	["о"] = {["-а"]="о", ["-ья"]="о-ья", ["-ы"]="о-и", ["-о"]="о-и"},
 	["е"] = {},
-	["ъ-f"] = {["-и"]="ъ-f"},
+	["ь-f"] = {["-и"]="ь-f"},
 }
 
 local special_case_1_to_plural_variation = {
