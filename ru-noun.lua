@@ -185,21 +185,8 @@ local function do_show(frame, old)
 			-- have been shifted to the left one. We want to shift them
 			-- back to the right one, so we change the offset so that we
 			-- get the same effect of skipping a slot in the stem set.
-			-- But temporarily recognize a blank stress argument to to avoid
-			-- causing errors. (NOTE: It is nearly impossible to support both
-			-- the old and new ways in the second and greater stem set
-			-- in the presence of an empty stem. For now we keep the old way,
-			-- but note where these things happen, so we can switch them
-			-- quickly.)
-			if i - offset == 1 then
-				if not args[i] then
-					track("blank-stress-arg")
-					if not args[i + 1] then
-						track("blank-stress-and-stem-arg")
-					end
-				elseif not arg1_is_stress(args[i]) then
-					offset = offset - 1
-				end
+			if i - offset == 1 and not arg1_is_stress(args[i]) then
+				offset = offset - 1
 			end
 			if i - offset > 5 then
 				error("Too many arguments for stem set: arg " .. i .. " = " .. (args[i] or "(blank)"))
