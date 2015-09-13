@@ -112,14 +112,15 @@ In the sense of “uncle” also:
 '''CREATE THE FOLLOWING'''
 {{ru-noun-table|по́лоз|-ья||поло́з}}
 '''CHANGE THE FOLLOWING'''
-{{ru-noun-table|бру́с|-ья}}
-'''CHANGE THE FOLLOWING'''
 {{ru-noun-table|1,2|у́гл|ь-m|у́голь}} (meaning "coal")
-{{ru-noun-table|1,5|у́гл|ь-m|у́голь|or|1|у́гол|ь-m/-ья|nom_sg=у́голь,у́гль*|notes=* Old poetic.}} (meaning "charcoal")
 {{User:Benwing2/ru-noun-table|1,2|у́гл|ь-m|у́голь}} (meaning "coal")
-{{User:Benwing2/ru-noun-table|1,5|у́гл|ь-m|у́голь|or|1|у́гол|ь-m/-ья|nom_sg=у́голь,у́гль*|notes=* Old poetic.}} (meaning "charcoal")
 {{User:Benwing2/ru-noun-table|a,b|у́голь|*m}} (meaning "coal")
-{{User:Benwing2/ru-noun-table|a,e|у́голь|*m|or|a||m-ья|nom_sg=у́голь,у́гль*|notes=* Old poetic.}} (meaning "charcoal")
+{{ru-noun-old|1,2|у́гл|ь-m|у́голь}}
+{{ru-noun-table|1,5|у́гл|ь-m|у́голь|or|1|у́гл|ь-m/-ья|у́голь|у́гол|nom_sg=у́голь,у́гль*|notes=* Old poetic.}}  (meaning "charcoal")
+{{User:Benwing2/ru-noun-table|1,5|у́гл|ь-m|у́голь|or|1|у́гл|ь-m/-ья|у́голь|у́гол|nom_sg=у́голь,у́гль*|notes=* Old poetic.}}  (meaning "charcoal")
+{{User:Benwing2/ru-noun-table|a,e|у́голь|*m|or|a||*m-ья||у́гол|nom_sg=у́голь,у́гль*|notes=* Old poetic.}} (meaning "charcoal")
+{{ru-noun-old|1,5|у́гл|ь-m|у́голь|or|1|у́гл|ь-m/ъ-ья|у́голь|у́гол|nom_sg=у́голь,у́гль*|notes=* Old poetic.}}  (meaning "charcoal")
+{{User:Benwing2/ru-noun-old|1,5|у́гл|ь-m|у́голь|or|1|у́гл|ь-m/ъ-ья|у́голь|у́гол|nom_sg=у́голь,у́гль*|notes=* Old poetic.}}  (meaning "charcoal")
 {{ru-noun-table|3|де́вер|ь-m/-ья|gen_pl=девере́й|a=an}}
 {{User:Benwing2/ru-noun-table|3|де́вер|ь-m/-ья|gen_pl=девере́й|a=an}}
 {{User:Benwing2/ru-noun-table|c|де́верь|m-ья(2)|a=an}}
@@ -137,8 +138,8 @@ In the sense of “uncle” also:
 {{User:Benwing2/ru-noun-table|3|дру́г|-ья||друз|gen_pl=друзе́й|voc=дру́же|a=an}}
 {{User:Benwing2/ru-noun-table|c|друг|-ья(2)||друз|voc=дру́же|a=an}}
 '''CHANGE THE FOLLOWING'''
-{{ru-noun-table|3|сы́н|-ья|or|3|gen_pl=сыновье́й,сыно́в*|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
-{{User:Benwing2/ru-noun-table|3|сы́н|-ья||сынов|or|3|gen_pl=сыновье́й,сыно́в*|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
+{{ru-noun-table|3|сы́н|-ья||сынов|or|3|gen_pl=сынове́й,сыно́в*|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
+{{User:Benwing2/ru-noun-table|3|сы́н|-ья||сынов|or|3|gen_pl=сынове́й,сыно́в*|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
 {{User:Benwing2/ru-noun-table|c|сын|-ья(2)||сынов|or|c|voc=сы́не|pltail=*|notes=* Epic verse.|a=an}}
 {{ru-noun-table|3|ку́м|-ья||кумов|a=an}}
 {{User:Benwing2/ru-noun-table|3|ку́м|-ья||кумов|a=an}}
