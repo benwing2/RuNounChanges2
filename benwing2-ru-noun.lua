@@ -485,6 +485,22 @@ local test_new_ru_noun_module = false
 --                     Tracking and categorization                      --
 --------------------------------------------------------------------------
 
+-- Best guess as to whether a bare value is actually a reducible/dereducible
+-- or just a reaccented stem or whatever. FIXME: Maybe we should actually
+-- check the number of vowels and see if it is one more or one less.
+local function bare_is_reducible(stem, bare)
+	if not bare or bare == stem then
+		return false
+	else
+		local ustem = com.make_unstressed(stem)
+		local ubare = com.make_unstressed(bare)
+		if ustem == ubare or ustem .. "ь" == ubare or ustem .. "ъ" == ubare or ustem .. "й" == ubare then
+			return false
+		end
+	end
+	return true
+end
+
 -- FIXME! Move below the main code
 
 -- FIXME!! Consider deleting most of this tracking code once we've enabled
@@ -520,7 +536,7 @@ local function tracking_code(stress, decl_class, real_decl_class, args)
 		end
 	end
 	dotrack("")
-	if args.bare and args.bare ~= args.stem then
+	if bare_is_reducible(args.stem, args.bare) then
 		track("reducible-stem")
 		dotrack("reducible-stem/")
 	end
@@ -721,7 +737,7 @@ local function categorize(stress, decl_class, args)
 	if args.pl ~= args.stem then
 		insert_cat("~ with irregular plural")
 	end
-	if args.bare and args.bare ~= args.stem then
+	if bare_is_reducible(args.stem, args.bare) then
 		insert_cat("~ with reducible stem")
 	end
 	if args.alt_gen_pl then
@@ -2691,8 +2707,9 @@ local function attach_unstressed(args, case, suf, was_stressed)
 	local old = args.old
 	local stem = rfind(case, "_pl") and args.pl or case == "ins_sg" and args.ins_sg_stem or args.stem
 	if nonsyllabic_suffixes[suf] then
-		-- If gen_pl, use special args.gen_pl_bare if given, else regular args.bare if there
-		-- isn't a plural stem. If nom_sg, always use regular args.bare.
+		-- If gen_pl, use special args.gen_pl_bare if given, else regular
+		-- args.bare if there isn't a plural stem. If nom_sg, always use
+		-- regular args.bare.
 		local barearg
 		if case == "gen_pl" then
 			barearg = args.gen_pl_bare or (args.pl == args.stem) and args.bare
