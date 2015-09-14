@@ -442,11 +442,12 @@ local test_new_ru_noun_module = false
 
 -- FIXME! Move below the main code
 
--- FIXME!! Delete most of this tracking code once we've enabled all the
--- categories. Note that some of the tracking categories aren't redundant;
--- in particular, we have more specific categories that combine
--- decl and stress classes, such as "а/a" or "о-ья/d'"; we also have
--- the same prefixed by "reducible-stem/" for reducible stems.
+-- FIXME!! Consider deleting most of this tracking code once we've enabled
+-- all the categories. Note that some of the tracking categories aren't
+-- completely redundant; e.g. we have tracking pages that combine decl and
+-- stress classes, such as "а/a" or "о-ья/d'", which are more or less
+-- equivalent to stem/gender/stress categories, but we also have the same
+-- prefixed by "reducible-stem/" for reducible stems.
 local function tracking_code(stress, decl_class, real_decl_class, args)
 	assert(decl_class)
 	assert(real_decl_class)
@@ -630,7 +631,8 @@ local function categorize(stress, decl_class, args)
 			-- declension templates, each of which was essentially categorized
 			-- by the same three variables, but some of which dealt with
 			-- ancillary issues like irregular plurals; this amounts to 67
-			-- actual stem/gender/accent categories.
+			-- actual stem/gender/accent categories, although there are more
+			-- of them in Zaliznyak (FIXME, how many? See generate_cats.py).
 			insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. "-type accent-" .. stress .. " ~")
 		end
 		insert_cat("~ with accent pattern " .. stress)
