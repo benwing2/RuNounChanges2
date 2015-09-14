@@ -666,9 +666,9 @@ local function categorize(stress, decl_class, args)
 			-- like a feminine noun), so there are 23.
 			insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. "-type ~")
 			-- NOTE: Here we are creating categories for the combination of
-			-- stem, gender and accent. There are 8 accent patterns and 23
+			-- stem, gender and accent. There are 10 accent patterns and 23
 			-- combinations of stem and gender, which potentially makes for
-			-- 8*23 = 184 such categories, which is a lot. Not all such
+			-- 10*23 = 230 such categories, which is a lot. Not all such
 			-- categories should actually exist; there were maybe 75 former
 			-- declension templates, each of which was essentially categorized
 			-- by the same three variables, but some of which dealt with
@@ -1326,7 +1326,7 @@ function export.catboiler(frame)
 	if args[1] == "stemgenderstress" then
 		local stem, gender, stress = rmatch(SUBPAGENAME, "^Russian (.-) (.-)%-type accent-(.-) ")
 		if not stem then
-			error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type accent-1 nominals\"")
+			error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type accent-a nominals\"")
 		end
 		local stem_gender_text = get_stem_gender_text(stem, gender)
 		local accent_text = " This nominal is stressed according to accent pattern " .. stress .. "."
@@ -1349,7 +1349,7 @@ function export.catboiler(frame)
 			stem, gender = rmatch(SUBPAGENAME, "^Russian (.*) (.-) adjectival")
 		end
 		if not stem then
-			error("Invalid category name, should be e.g. \"Russian velar-stem masculine accent-1 adjectival nominals\"")
+			error("Invalid category name, should be e.g. \"Russian velar-stem masculine accent-a adjectival nominals\"")
 		end
 		local stemtext
 		if rfind(stem, "possessive") then
@@ -1941,7 +1941,7 @@ function add_bare_suffix(bare, old, sgdc, dereduced)
 		return bare .. "ъ"
 	elseif sgdc.hard == "soft" or sgdc.hard == "palatal" then
 		-- This next clause corresponds to a special case in Vitalik's module.
-		-- It says that nouns in -ня (accent class 1) have gen pl without
+		-- It says that nouns in -ня (accent class a) have gen pl without
 		-- trailing -ь. It appears to apply to most nouns in -ня (possibly
 		-- all in -льня), but ку́хня (gen pl ку́хонь) and дерéвня (gen pl
 		-- дереве́нь) is an exception. (Vitalik's module has an extra
