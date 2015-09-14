@@ -98,7 +98,7 @@
 			Possibilities for regular nouns are (blank) or # for hard-consonant
 			declension, а, я, о, е or ё, е́, й, ья, ье or ьё, ь-m, ь-f, ин,
 			ёнок or онок or енок, ёночек or оночек or еночек, мя, мя-1,
-			-а or #-а, ь-я, й-я, о-и or о-ы, -ья or #-ья, о-ья, $ (invariable).
+			-а or #-а, ь-я, й-я, о-и or о-ы, -ья or #-ья, $ (invariable).
 			Old-style (pre-reform) declensions use ъ instead of (blank), ъ-а
 			instead of -а, ъ-ья instead of -ья, and инъ, ёнокъ/онокъ/енокъ,
 			ёночекъ/оночекъ/еночекъ instead of the same without terminating ъ.
@@ -201,8 +201,9 @@ TODO:
    NEED TO TEST.]
 7p. FIXME: Eliminate мя-1; it's only one noun, and can use slash declension +
    plural stem.
-7q. FIXME: Consider eliminating о-ья and replacing it with slash declension
-   о/-ья like we do for feminine, masculine soft, etc. nouns.
+7q. Consider eliminating о-ья and replacing it with slash declension
+   о/-ья like we do for feminine, masculine soft, etc. nouns. [IMPLEMENTED.
+   NEED TO TEST.]
 7r. FIXME: Implement check for bare argument specified when neither nominative
    singular nor genitive plural makes use of bare.
 7s. ADJECTIVE MODULE: Add categories for short-adjective accent
@@ -285,7 +286,7 @@ TODO:
    ь-m         *           *            *          ь-m
    а           *           *            а          а
    я           *           *            *          я
-   о           о           о-ья         о-и        о-и
+   о           о           *            о-и        о-и
    е           *           *            *          *
    ь-f         *           *            *          ь-f
   [IMPLEMENTED. NEED TO TEST MORE.]
@@ -483,7 +484,7 @@ local test_new_ru_noun_module = false
 -- FIXME!! Consider deleting most of this tracking code once we've enabled
 -- all the categories. Note that some of the tracking categories aren't
 -- completely redundant; e.g. we have tracking pages that combine decl and
--- stress classes, such as "а/a" or "о-ья/d'", which are more or less
+-- stress classes, such as "а/a" or "о-и/d'", which are more or less
 -- equivalent to stem/gender/stress categories, but we also have the same
 -- prefixed by "reducible-stem/" for reducible stems.
 local function tracking_code(stress, decl_class, real_decl_class, args)
@@ -1430,7 +1431,7 @@ local function detect_lemma_type(lemma, gender, anim)
 		if gender == "n" then
 			base, ending = rmatch(lemma, "^(.*)([ьЬ][яЯ]́?)$")
 			if base then
-				-- Don't do this; о-ья is too rare
+				-- Don't do this; о/-ья is too rare
 				-- error("Ambiguous plural lemma " .. lemma .. " in -ья, singular could be -о or -ье/-ьё; specify the singular")
 				return base, "ье", ending
 			end
@@ -1523,7 +1524,7 @@ local plural_variation_detection_map = {
 	["ь-m"] = {["-и"]="ь-m", ["-я"]="ь-я"},
 	["а"] = {["-ы"]="а", ["-и"]="а"},
 	["я"] = {["-и"]="я"},
-	["о"] = {["-а"]="о", ["-ья"]="о-ья", ["-ы"]="о-и", ["-о"]="о-и"},
+	["о"] = {["-а"]="о", ["-ы"]="о-и", ["-о"]="о-и"},
 	["е"] = {},
 	["ь-f"] = {["-и"]="ь-f"},
 }
@@ -1862,6 +1863,10 @@ end
 -- (e.g. е́, not the same as е, whose accented version is ё; and various
 -- adjective declensions).
 function canonicalize_decl(decl_class, old)
+	-- FIXME: For compatibility; remove it after changing uses of о-ья
+	if com.remove_accents(decl) == "о-ья" then
+		decl = "о/-ья"
+	end
 	local function do_canon(decl)
 		-- remove accents, but not from е́ (for adj decls, accent matters
 		-- as well but we handle that by mapping the accent to a stress pattern
@@ -2278,25 +2283,6 @@ declensions_old["о-и"]["nom_pl"] = "ы́"
 declensions_old_cat["о-и"] = { decl="2nd", hard="hard", g="n", irregpl=true }
 
 declensions_old_aliases["о-ы"] = "о-и"
-
--- Hard-neuter declension in -о with irreg soft pl -ья;
--- differs throughout the plural from normal -о.
-declensions_old["о-ья"] = {
-	["nom_sg"] = "о́",
-	["gen_sg"] = "а́",
-	["dat_sg"] = "у́",
-	["acc_sg"] = "о́",
-	["ins_sg"] = "о́мъ",
-	["pre_sg"] = "ѣ́",
-	["nom_pl"] = "ья́",
-	["gen_pl"] = "ьёвъ",
-	["dat_pl"] = "ья́мъ",
-	["acc_pl"] = nil,
-	["ins_pl"] = "ья́ми",
-	["pre_pl"] = "ья́хъ",
-}
-
-declensions_old_cat["о-ья"] = { decl="2nd", hard="hard", g="n", irregpl=true }
 
 ----------------- Neuter soft -------------------
 
