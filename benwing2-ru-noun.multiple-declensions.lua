@@ -115,7 +115,7 @@ TODO:
    distinctions, e.g. proper, stressed-proper and stressed-short have the
    same endings in masc and fem. We have a stress category so we can more
    easily handle the stressed and unstressed short/proper variants.)
-8. Get error "Unable to unreduce" with strange noun ва́йя, what should
+8. Get error "Unable to dereduce" with strange noun ва́йя, what should
   happen? [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
   stem любв- in gen/dat/pre sg and throughout the plural (I think),
@@ -128,9 +128,9 @@ TODO:
 12. Unreducing masculine plural. [IMPLEMENTED; NEED TO TEST.]
 13. Solution to ambiguous plural involving gender spec "3f". [IMPLEMENTED;
    NEED TO TEST.]
-14. N*d(2) in masc nouns will have different unreduced form in
+14. N*d(2) in masc nouns will have different dereduced form in
    nom sg vs. gen pl, e.g. nom sg рожо́к vs. gen pl ро́жек; essentially, need
-   to reduce then unreduce again, and store a separate nom_sg bare and
+   to reduce then dereduce again, and store a separate nom_sg bare and
    gen_pl bare. With saпожо́к, the pl stem is probably сапо́ж-; this implies
    we need to restress an unstressed reduced stem according to the way we
    do it for the normal stem with b/d(')/f(') stress patterns. The nouns
@@ -891,7 +891,7 @@ function export.do_generate_forms(args, old)
 							track("unpredictable-reducible")
 						end
 					elseif is_unreducible(sgdc) then
-						local autobare = export.unreduce_nom_sg_stem(stem, sgdc, stress, old)
+						local autobare = export.dereduce_nom_sg_stem(stem, sgdc, stress, old)
 						if not autobare then
 							track("error-unreducible")
 						elseif autobare == bare then
@@ -912,11 +912,11 @@ function export.do_generate_forms(args, old)
 				-- compatibility.
 				if is_reducible(sgdc) then
 					-- If we derived the stem from a nom pl form, then
-					-- it's already reduced, and we need to unreduce it to
+					-- it's already reduced, and we need to dereduce it to
 					-- get a bare form; otherwise the stem comes from the
 					-- nom sg and we need to reduce it to get the real stem.
 					if was_plural then
-						resolved_bare = export.unreduce_nom_sg_stem(stem, sgdc,
+						resolved_bare = export.dereduce_nom_sg_stem(stem, sgdc,
 							stress, old, "error")
 					else
 						resolved_bare = stem
@@ -930,14 +930,14 @@ function export.do_generate_forms(args, old)
 						if stress ~= "1" and stress ~= "2" and args.alt_gen_pl and not pl then
 							-- Nouns like рожо́к, глазо́к of type 3*d(2) have
 							-- gen pl's ро́жек, гла́зок; to handle this,
-							-- unreduce the reduced stem and store in a
+							-- dereduce the reduced stem and store in a
 							-- special place.
-							args.gen_pl_bare = export.unreduce_nom_sg_stem(stem,
+							args.gen_pl_bare = export.dereduce_nom_sg_stem(stem,
 								sgdc, stress, old, "error")
 						end
 					end
 				elseif is_unreducible(sgdc) then
-					resolved_bare = export.unreduce_nom_sg_stem(stem, sgdc,
+					resolved_bare = export.dereduce_nom_sg_stem(stem, sgdc,
 						stress, old, "error")
 				else
 					error("Declension class " .. sgdecl .. " not (un)reducible")
@@ -1753,7 +1753,7 @@ end
 -- because we don't actually attach such a suffix in attach_unstressed() due
 -- to situations where we don't want the suffix added, e.g. unreducible nouns
 -- in -ня.
-function add_bare_suffix(bare, old, sgdc, unreduced)
+function add_bare_suffix(bare, old, sgdc, dereduced)
 	if old and sgdc.hard == "hard" then
 		return bare .. "ъ"
 	elseif sgdc.hard == "soft" or sgdc.hard == "palatal" then
@@ -1765,7 +1765,7 @@ function add_bare_suffix(bare, old, sgdc, unreduced)
 		-- condition here 'stress == "1"' that would exlucde дере́вня but I
 		-- don't think this condition is in Zaliznyak, as he indicates
 		-- дере́вня as having an exceptional genitive plural.)
-		if unreduced and rfind(bare, "[нН]$") and sgdc.decl == "1st" then
+		if dereduced and rfind(bare, "[нН]$") and sgdc.decl == "1st" then
 			-- FIXME: What happens in this case old-style? I assume that
 			-- -ъ is added, but this is a guess.
 			return bare .. (old and "ъ" or "")
@@ -1779,19 +1779,19 @@ function add_bare_suffix(bare, old, sgdc, unreduced)
 	end
 end
 
--- Unreduce stem to the form found in the gen pl (and maybe nom sg) by
+-- Dereduce stem to the form found in the gen pl (and maybe nom sg) by
 -- inserting an epenthetic vowel. Applies to 1st declension and 2nd
 -- declension neuter, and to 2nd declension masculine when the stem was
 -- specified as a plural form (in which case we're deriving the nom sg,
 -- and also the gen pl in the alt-gen-pl scenario). STEM and DECL are
 -- after determine_decl(), before converting outward-facing declensions
 -- to inward ones. STRESS is the stess pattern.
-function export.unreduce_nom_sg_stem(stem, sgdc, stress, old, can_err)
+function export.dereduce_nom_sg_stem(stem, sgdc, stress, old, can_err)
 	local epenthetic_stress = ending_stressed_gen_pl_patterns[stress]
-	local ret = com.unreduce_stem(stem, epenthetic_stress)
+	local ret = com.dereduce_stem(stem, epenthetic_stress)
 	if not ret then
 		if can_err then
-			error("Unable to unreduce stem " .. stem)
+			error("Unable to dereduce stem " .. stem)
 		else
 			return nil
 		end
@@ -2075,7 +2075,7 @@ declensions_old["ья"] = {
 declensions_old_cat["ья"] = {
 	decl="1st", hard="soft", g="f",
 	stem_suffix="ь", gensg=true,
-	ignore_reduce=true -- already has unreduced gen pl
+	ignore_reduce=true -- already has dereduced gen pl
 }
 
 --------------------------------------------------------------------------
@@ -2218,7 +2218,7 @@ declensions_old["ье"] = {
 declensions_old_cat["ье"] = {
 	decl="2nd", hard="soft", g="n",
 	stem_suffix="ь", gensg=true,
-	ignore_reduce=true -- already has unreduced gen pl
+	ignore_reduce=true -- already has dereduced gen pl
 }
 
 declensions_old_aliases["ьё"] = "ье"

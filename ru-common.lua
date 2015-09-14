@@ -251,11 +251,11 @@ function export.reduce_stem(stem)
 	return pre .. post
 end
 
--- Generate the unreduced stem given STEM and EPENTHETIC_STRESS (which
+-- Generate the dereduced stem given STEM and EPENTHETIC_STRESS (which
 -- indicates whether the epenthetic vowel should be stressed); this is
 -- without any terminating non-syllabic ending, which is added if needed by
--- the calling function. Returns nil if unable to unreduce.
-function export.unreduce_stem(stem, epenthetic_stress)
+-- the calling function. Returns nil if unable to dereduce.
+function export.dereduce_stem(stem, epenthetic_stress)
 	if epenthetic_stress then
 		stem = export.make_unstressed_once(stem)
 	end

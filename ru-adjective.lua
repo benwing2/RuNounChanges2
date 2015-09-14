@@ -285,7 +285,7 @@ local function generate_forms(args, old, manual)
 		if not short_forms_allowed then
 			-- FIXME: We might want to allow this in case we have a reducible
 			-- short, mixed or proper possessive adjective. But in that case
-			-- we need to reduce rather than unreduce to get the stem.
+			-- we need to reduce rather than dereduce to get the stem.
 			if short_accent or short_stem then
 				error("Cannot specify short accent or short stem with declension type " .. decl_type .. ", as short forms aren't allowed")
 			end
@@ -774,14 +774,14 @@ end
 -- value of OLD. This may be -ь, -ъ, -й or nothing. We need to do this here
 -- because we don't actually attach such a suffix in attach_unstressed() due
 -- to situations where we don't want the suffix added, e.g. бескра́йний with
--- unreduced nom sg бескра́ен without expected -ь.
-local function add_bare_suffix(bare, old, decl, unreduced)
+-- dereduced nom sg бескра́ен without expected -ь.
+local function add_bare_suffix(bare, old, decl, dereduced)
 	if old and decl ~= "ій" then
 		return bare .. "ъ"
 	elseif decl == "ий" or decl == "ій" then
 		-- This next special case is mentioned in Zaliznyak's 1980 grammatical
 		-- dictionary for adjectives (footnote, p. 60).
-		if unreduced and rfind(bare, "[нН]$") then
+		if dereduced and rfind(bare, "[нН]$") then
 			-- FIXME: What happens in this case old-style? I assume that
 			-- -ъ is added, but this is a guess.
 			return bare .. (old and "ъ" or "")
@@ -798,8 +798,8 @@ local function add_bare_suffix(bare, old, decl, unreduced)
 end
 
 -- Construct bare form. Return nil if unable.
-local function unreduce_stem(accented_stem, short_accent, old, decl)
-	local ret = com.unreduce_stem(accented_stem, rfind(short_accent, "^b"))
+local function dereduce_stem(accented_stem, short_accent, old, decl)
+	local ret = com.dereduce_stem(accented_stem, rfind(short_accent, "^b"))
 	if not ret then
 		return nil
 	end
@@ -861,9 +861,9 @@ function construct_bare_and_short_stem(args, short_accent, short_stem,
 	local bare = args.short_m or args[3]
 	if not bare then
 		if reducible then
-			bare = unreduce_stem(short_stem, short_accent, old, decl)
+			bare = dereduce_stem(short_stem, short_accent, old, decl)
 			if not bare then
-				error("Unable to unreduce stem: " .. short_stem)
+				error("Unable to dereduce stem: " .. short_stem)
 			end
 		-- Special case when there isn't a short masculine singular and
 		-- the other forms are rare.
