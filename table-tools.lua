@@ -26,6 +26,7 @@ for _, range in ipairs(notes_ranges) do
   table.insert(unicode_ranges, u(range[1]) .. "-" .. u(range[2]))
 end
 local unicode_range_str = table.concat(unicode_ranges, "")
+local notes_re = "[%*%~%@%#%$%%%^%&%+0-9_ " .. unicode_range_str .. "]*"
 
 local function manipulate_entry(entries, f)
 	entries = mw.text.split(mw.ustring.gsub(entries, "^%s*(.-)%s*$", "%1"), "%s*,%s*")
@@ -63,13 +64,24 @@ end
 
 function export.get_notes(entry)
 	local notes
-	entry, notes = mw.ustring.match(entry, "^(.-)([%*%~%@%#%$%%%^%&%+0-9_ " .. unicode_range_str .. "]*)$")
+	entry, notes = mw.ustring.match(entry, "^(.-)(" .. notes_re .. ")$")
 	
 	if notes ~= "" then
 		notes = "<sup>" .. mw.ustring.gsub(notes, "_", " ") .. "</sup>"
 	end
 	
 	return entry, notes
+end
+
+function export.get_initial_notes(entry)
+	local notes
+	notes, entry = mw.ustring.match(entry, "^(" .. notes_re .. ")(.*)$")
+
+	if notes ~= "" then
+		notes = "<sup>" .. mw.ustring.gsub(notes, "_", " ") .. "</sup>"
+	end
+
+	return notes, entry
 end
 
 function export.linkify_entry(lang, entries, allow_self_link)

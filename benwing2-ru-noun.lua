@@ -196,8 +196,9 @@ TODO:
 7m. FIXME: Integrate stress categories with those in Vitalik's module.
 7n. FIXME: Remove boolean recognize_plurals; this should always be true.
    Do in conjunction with merging multiple-words/manual-translit branches.
-7o. FIXME: Automatically superscript *, numbers and similar things at the
-   beginning of a note. Also do this in adjective module.
+7o. Automatically superscript *, numbers and similar things at the
+   beginning of a note. Also do this in adjective module. [IMPLEMENTED.
+   NEED TO TEST.]
 7p. FIXME: Eliminate мя-1; it's only one noun, and can use slash declension +
    plural stem.
 7q. FIXME: Consider eliminating о-ья and replacing it with slash declension
@@ -813,11 +814,11 @@ function export.do_generate_forms(args, old)
 	local function insert_cat(cat)
 		insert_category(args.categories, cat)
 	end
-	-- HACK: Escape * at beginning of line so it doesn't show up
-	-- as a list entry. Many existing templates use * for footnotes.
-	-- FIXME: We should maybe do this in {{ru-decl-noun}} instead.
+	-- Superscript footnote marker at beginning of note, similarly to what's
+	-- done at end of forms.
 	if args.notes then
-		args.notes = rsub(args.notes, "^%*", "&#42;")
+		local notes, entry = m_table_tools.get_initial_notes(args.notes)
+		args.notes = notes .. entry
 	end
 
 	local decls = old and declensions_old or declensions

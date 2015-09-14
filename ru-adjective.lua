@@ -211,11 +211,11 @@ local function generate_forms(args, old)
 	args.old = old
 	args.suffix = args.suffix or ""
 	args.internal_notes = nil
-	-- HACK: Escape * at beginning of line so it doesn't show up
-	-- as a list entry. Many existing templates use * for footnotes.
-	-- FIXME: We should maybe do this in {{ru-adj-table}} instead.
+	-- Superscript footnote marker at beginning of note, similarly to what's
+	-- done at end of forms.
 	if args.notes then
-		args.notes = rsub(args.notes, "^%*", "&#42;")
+		local notes, entry = m_table_tools.get_initial_notes(args.notes)
+		args.notes = notes .. entry
 	end
 
 	local overall_short_forms_allowed
