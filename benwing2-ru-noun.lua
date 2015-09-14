@@ -188,7 +188,7 @@ TODO:
    declensions and special plural stems and rewrite them internally to
    separate stems with 'sg' and 'pl' declension flags; but there are still
    the two coding issues mentioned above.]
-7j. FIXME: Consider simplifying plural-variant code to only allow -ья as a
+7j. Consider simplifying plural-variant code to only allow -ья as a
    plural variant [and maybe even change that to be something like (1')].
    [IMPLEMENTED REDUCTION OF PLURAL VARIANTS TO -ья; PLURAL-VARIANT CODE
    STILL COMPLEX, THOUGH. NEED TO TEST.]
