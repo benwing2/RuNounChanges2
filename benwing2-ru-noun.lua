@@ -152,11 +152,35 @@ TODO:
    easily handle the stressed and unstressed short/proper variants.)
 7e. FIXME: Change calls to ru-adj11 to use the new proper name support in
    ru-adjective.
-7f. FIXME: Add words ребёночек, щеночек, сапожок.
+7f. FIXME: Add words ребёночек, щеночек, сапожок, зубок. Fix decls of
+   сяжок (3*b // 3*d(2)), глазок, рожок.
 7g. FIXME: Change this module to use Zaliznyak-style accent patterns
    internally instead of numbered ones.
-8. Get error "Unable to unreduce" with strange noun ва́йя, what should
-  happen? [WILL NOT FIX; USE AN OVERRIDE]
+7h. FIXME: Change stress pattern categories to use Zaliznyak-style accent
+   patterns. Do this when supporting b' and f'' and changing module
+   internally to use Zaliznyak-style accent patterns.
+7i. [FIXME: Consider removing slash patterns and instead handling them by
+   allowing additional declension flags 'sg' and 'pl'. This simplifies the
+   various special cases caused by slash declensions. It would also be
+   possible to remove the special plural stem, which would get rid of more
+   special cases. On the other hand, it makes it more complicated to support
+   plural variant -ья with all singular types, and the category code that
+   displays things like "Russian nominals with singular -X and plural -Y"
+   also gets more complicated, and there's something convenient and intuitive
+   about plural stems, and slash declensions are also convenient and at least
+   somewhat intuitive. One possibility is to externally allow slash
+   declensions and special plural stems and rewrite them internally to
+   separate stems with 'sg' and 'pl' declension flags; but there are still
+   the two coding issues mentioned above.]
+7j. [FIXME: Consider simplifying plural-variant code to only allow -ья as a
+   plural variant, and maybe even change that to be something like (1').]
+7k. FIXME: Remove code that recognizes gender for adjectival nouns; not
+   needed.
+7l. FIXME: Create categories for use with the category code (but first change
+   the stress categories to Zaliznyak-style).
+7m. FIXME: Integrate stress categories with those in Vitalik's module.
+8. [Get error "Unable to unreduce" with strange noun ва́йя, what should
+  happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
   stem любв- in gen/dat/pre sg and throughout the plural (I think),
   but ins sg любо́вью. [IMPLEMENTED. TESTED. CHANGE NOUNS OF THIS
@@ -240,8 +264,8 @@ TODO:
    use semicolon.
 29. FIXME: In multiple-words branch, with normal ru-noun-table, allow -
     as a joiner, now that something else ($ or ~?) is used for invariable.
-30. Eventually: Even with decl type explicitly given, the full stem with
-    ending should be included. [MAY NEVER IMPLEMENT]
+30. [Eventually: Even with decl type explicitly given, the full stem with
+    ending should be included.] [MAY NEVER IMPLEMENT]
 
 ]=]--
 
