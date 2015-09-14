@@ -167,7 +167,7 @@ TODO:
 7e. FIXME: Change calls to ru-adj11 to use the new proper name support in
    ru-adjective.
 7f. FIXME: Add words ребёночек, щеночек, сапожок, зубок. Fix decls of
-   сяжок (3*b // 3*d(2)), глазок, рожок.
+   сяжок (3*b // 3*d(2)), глазок, рожок, знамя.
 7g. Change this module to use Zaliznyak-style accent patterns internally
    instead of numbered ones. [IMPLEMENTED. NEED TO TEST.]
 7h. Change stress pattern categories to use Zaliznyak-style accent
@@ -205,8 +205,9 @@ TODO:
 7q. Consider eliminating о-ья and replacing it with slash declension
    о/-ья like we do for feminine, masculine soft, etc. nouns. [IMPLEMENTED.
    NEED TO TEST.]
-7r. FIXME: Implement check for bare argument specified when neither nominative
-   singular nor genitive plural makes use of bare.
+7r. Implement check for bare argument specified when neither nominative
+   singular nor genitive plural makes use of bare. [IMPLEMENTED. TRACKING
+   UNDER "pointless-bare". NEED TO TEST.]
 7s. ADJECTIVE MODULE: Add categories for short-adjective accent
    patterns. [IMPLEMENTED.]
 7t. FIXME: Rename "stem set" to "arg set" and "unreduce" to "dereduce".
@@ -452,6 +453,7 @@ local declensions_old_aliases = {}
 -- Table listing aliases of new-style declension classes; computed
 -- automatically from the old-style ones.
 local declensions_aliases = {}
+local nonsyllabic_suffixes = {}
 local sibilant_suffixes = {}
 local stress_patterns = {}
 -- Set of patterns with ending-stressed genitive plural.
@@ -1113,22 +1115,31 @@ function export.do_generate_forms(args, old)
 			-- singular and one for plural, in the case of a mixed declension
 			-- class of the form SGDECL/PLDECL).
 			for _,decl_class_spec in ipairs(sub_decl_classes) do
-				-- We may resolve the user-specified declension class into a
-				-- more specific variant depending on the properties of the stem
-				-- and/or accent pattern. We use detection functions to do this.
 				local orig_decl_class = decl_class_spec[1]
 				local number = decl_class_spec[2]
-				local real_decl_class = orig_decl_class
-				real_decl_class = determine_stress_variant(real_decl_class, stress)
+				local real_decl_class =
+					determine_stress_variant(orig_decl_class, stress)
 				-- sanity checking; errors should have been caught in
 				-- canonicalize_decl()
 				assert(decl_cats[real_decl_class])
 				assert(decls[real_decl_class])
 				tracking_code(stress, orig_decl_class, real_decl_class, args)
 				do_stress_pattern(stress, args, decls[real_decl_class], number)
+
+				-- handle internal notes
 				local internal_note = intable[real_decl_class]
 				if internal_note then
 					ut.insert_if_not(args.internal_notes, internal_note)
+				end
+			end
+
+			-- check for pointless bare (4th argument)
+			local function is_nonsyllabic(suff)
+				return suff and #suff == 1 and nonsyllabic_suffixes[suff[1]]
+			end
+			if bare and not is_nonsyllabic(args.suffixes.nom_sg) and not is_nonsyllabic(args.suffixes.gen_pl) then
+					track("pointless-bare")
+					track("pointless-bare/" .. decl_class)
 				end
 			end
 
@@ -2647,9 +2658,7 @@ local unstressed_rules = {
 	["х"] = velar_rules,
 }
 
-local old_consonantal_suffixes = ut.list_to_set({"ъ", "ь", "й"})
-
-local consonantal_suffixes = ut.list_to_set({"", "ь", "й"})
+nonsyllabic_suffixes = ut.list_to_set({"", "ъ", "ь", "й"})
 
 sibilant_suffixes = ut.list_to_set({"ш", "щ", "ч", "ж"})
 
@@ -2681,7 +2690,7 @@ local function attach_unstressed(args, case, suf, was_stressed)
 	end
 	local old = args.old
 	local stem = rfind(case, "_pl") and args.pl or case == "ins_sg" and args.ins_sg_stem or args.stem
-	if old and old_consonantal_suffixes[suf] or not old and consonantal_suffixes[suf] then
+	if nonsyllabic_suffixes[suf] then
 		-- If gen_pl, use special args.gen_pl_bare if given, else regular args.bare if there
 		-- isn't a plural stem. If nom_sg, always use regular args.bare.
 		local barearg
@@ -2706,7 +2715,7 @@ local function attach_unstressed(args, case, suf, was_stressed)
 			end
 		end
 
-		if rlfind(barestem, old and "[йьъ]$" or "[йь]$") then
+		if rlfind(barestem, "[йьъ]$") then
 			suf = ""
 		else
 			if suf == "ъ" then
