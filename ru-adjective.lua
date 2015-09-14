@@ -3,18 +3,24 @@
 	adjectives.
 
 	Arguments:
-		1: stem; include full nom sg, or leave off the ending and include it
-		   in arg 2
-		2: declension type (usually just the ending); can be omitted to
-		   autodetect; also can specify short accent type and irregular
-		   short stem; see below.
-		3 or short_m: masculine singular short form (if exists)
+		1: lemma; nom sg, or just the stem if an explicit declension type is
+		   given in arg 2
+		2: declension type (usually omitted to autodetect based on the lemma),
+		   along with any short accent type and optional irregular short stem;
+		   see below.
+		3 or short_m: masculine singular short form (if exists); normally,
+		   don't use this or args 4/5/6, but instead specify a short accent
+		   type in arg 2, and use this only for irregular forms
 		4 or short_n: neuter singular short form (if exists)
 		5 or short_f: feminine singular short form (if exists)
 		6 or short_p: plural short form (if exists)
 		suffix: any suffix to attach unchanged to the end of each form
 		notes: Notes to add to the end of the table
 		title: Override the title
+		shorttail: Footnote (e.g. *, 1, 2, etc.) to add to short forms if
+		   there's more than one; automatically superscripted
+		shorttailall: Same as shorttail= but applies to all short forms even
+		   if there's only one
 		CASE_NUMGEN: Override a given form; see abbreviations below
 
 	Case abbreviations:
@@ -41,7 +47,12 @@
 			DECLTYPE
 			SHORTACCENT:SHORTSTEM
 			(blank)
-		DECLTYPE is the declension type, usually omitted; or one of
+		DECLTYPE should normally be omitted, and the declension autodetected
+			from the ending; or it should be ь, to indicate that an adjective
+			in -ий is of the possessive variety with an extra -ь- in most of
+			the endings. Alternatively, it can be an explicit declension type,
+			in which case the lemma field needs to be replaced with the bare
+			stem; the following are the possibilities:
 			ый ий ой ьий short mixed (new-style)
 			ый ій ьій short stressed-short mixed proper stressed-proper
 				ъ-short ъ-stressed-short ъ-mixed ъ-proper ъ-stressed-proper
@@ -63,20 +74,14 @@
 
 TODO:
 
-1. Look into the triangle special case (we would indicate this with some
-   character, e.g. ^ or @). This appears to refer to irregularities either in
-   the comparative (which we don't care about here) or in the accentation of
-   the reducible short masculine singular. This might not be doable as it
-   might refer simply to any misc. irregularity; and even if it is, it might
-   not be worth it, and better simply to have this done using the various
-   override mechanisms.
-2. Figure out what the symbol X-inside-square (⊠) means, which seems to go with
+1. Figure out what the symbol X-inside-square (⊠) means, which seems to go with
    all adjectives in -о́й with multi-syllabic stems. It may mean that the
    masculine singular short form is missing. If this indeed a regular thing,
    we need to implement it (and if it's regular but means something else,
    we need to implement that, too). Also figure out what the other signs
    on pages 68-76 etc. mean: -, X, ~, П₂, Р₂, diamond (♢), triangle (△; might
    simply mean a misc. irregularity; explained on p. 61).
+2. Mark irregular overridden forms with △ (esp. appropriate for short forms).
 3. Should non-reducible adjectives in -нный and -нний default to special case
    (1)?
 4. In the case of a non-dereducible short masc sing of stress type b, we don't
@@ -216,20 +221,20 @@ local function generate_forms(args, old, manual)
 	local overall_short_forms_allowed
 	local decl_types = manual and "-" or args[2] or ""
 	for _, decl_type in ipairs(rsplit(decl_types, ",")) do
-		local stem
+		local lemma
 		if manual then
-			stem = ""
+			lemma = ""
 		elseif not args[1] then
-			error("Stem (first argument) must be specified")
+			error("Lemma (first argument) must be specified")
 		else
-			stem = args[1]
+			lemma = args[1]
 		end
 
 		-- Auto-detect actual decl type, and get short accent and overriding
 		-- short stem, if specified.
-		local short_accent, short_stem
+		local stem, short_accent, short_stem
 		stem, decl_type, short_accent, short_stem =
-			detect_stem_and_accent_type(stem, decl_type)
+			detect_stem_and_accent_type(lemma, decl_type)
 		if rfind(decl_type, "^[іи]й$") and rfind(stem, "[" .. com.velar .. com.sib .. "]$") then
 			decl_type = "ый"
 		end
@@ -691,14 +696,14 @@ end
 --                   Autodetection and stem munging                     --
 --------------------------------------------------------------------------
 
--- Attempt to detect the type of the stem (= including ending) based
--- on its ending, separating off the base and the ending; also extract
--- the accent type for short adjectives and optional short stem. DECL
--- is the value passed in, and might already specify the ending. Return
--- four values: BASE, DECL, SHORT_ACCENT (accent class of short adjective,
--- or nil for no short adjectives other than specified through overrides),
--- SHORT_STEM (special stem of short adjective, nil if same as long stem).
-function detect_stem_and_accent_type(stem, decl)
+-- Attempt to detect the type of the lemma based on its ending, separating
+-- off the base and the ending; also extract the accent type for short
+-- adjectives and optional short stem. DECL is the value passed in, and
+-- might already specify the ending. Return four values: STEM, DECL,
+-- SHORT_ACCENT (accent class of short adjective, or nil for no short
+-- adjectives other than specified through overrides), SHORT_STEM (special
+-- stem of short adjective, nil if same as long stem).
+function detect_stem_and_accent_type(lemma, decl)
 	if rfind(decl, "^[abc*(]") then
 		decl = ":" .. decl
 	end
@@ -717,9 +722,14 @@ function detect_stem_and_accent_type(stem, decl)
 	if short_stem and not short_accent then
 		error("With explicit short stem " .. short_stem .. ", must specify short accent")
 	end
-	if not decl then
-		local base, ending = rmatch(stem, "^(.*)([ыиіо]́?й)$")
+	if not decl or decl == "ь" then
+		local base, ending = rmatch(lemma, "^(.*)([ыиіо]́?й)$")
 		if base then
+			if ending == "ий" and decl == "ь" then
+				ending = "ьий"
+			elseif ending == "ій" and decl == "ь" then
+				ending = "ьій"
+			end
 			-- -ий/-ій will be converted to -ый after velars and sibilants
 			-- by the caller
 			return base, com.make_unstressed(ending), short_accent, short_stem
@@ -733,40 +743,40 @@ function detect_stem_and_accent_type(stem, decl)
 			-- capitalized.
 			--
 			-- NOTE: Following regexp is accented
-			base = rmatch(stem, "^([" .. com.uppercase .. "].*[иы]́н)ъ?$")
+			base = rmatch(lemma, "^([" .. com.uppercase .. "].*[иы]́н)ъ?$")
 			if base then
 				return base, "stressed-proper", short_accent, short_stem
 			end
-			base = rmatch(stem, "^([" .. com.uppercase .. "].*[еёо]́?в)ъ?$")
+			base = rmatch(lemma, "^([" .. com.uppercase .. "].*[еёо]́?в)ъ?$")
 			if not base then
 				-- Following regexp is not stressed
-				base = rmatch(stem, "^([" .. com.uppercase .. "].*[иы]н)ъ?$")
+				base = rmatch(lemma, "^([" .. com.uppercase .. "].*[иы]н)ъ?$")
 			end
 			if base then
 				return base, "proper", short_accent, short_stem
 			end
-			base = rmatch(stem, "^(.*[еёо]́?в)ъ?$")
+			base = rmatch(lemma, "^(.*[еёо]́?в)ъ?$")
 			if base then
 				return base, "short", short_accent, short_stem
 			end
-			base = rmatch(stem, "(.*[иы]́н)ъ?$") --accented
+			base = rmatch(lemma, "(.*[иы]́н)ъ?$") --accented
 			if base then
 				return base, "stressed-short", short_accent, short_stem
 			end
-			base = rmatch(stem, "(.*[иы]н)ъ?$") --unaccented
+			base = rmatch(lemma, "(.*[иы]н)ъ?$") --unaccented
 			if base then
 				return base, "mixed", short_accent, short_stem
-				-- error("With -ин/ын adjectives, must specify 'short' or 'mixed':" .. stem)
+				-- error("With -ин/ын adjectives, must specify 'short' or 'mixed':" .. lemma)
 			end
-			error("Cannot determine stem type of adjective: " .. stem)
+			error("Cannot determine stem type of adjective: " .. lemma)
 		end
 	elseif ut.contains({"short", "stressed-short", "mixed", "proper",
 		"stressed-proper"}, decl) then
-		local base, ending = rmatch(stem, "^(.-)ъ?$")
+		local base, ending = rmatch(lemma, "^(.-)ъ?$")
 		assert(base)
 		return base, decl, short_accent, short_stem
 	else
-		return stem, decl, short_accent, short_stem
+		return lemma, decl, short_accent, short_stem
 	end
 end
 

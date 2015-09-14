@@ -22,9 +22,10 @@
 		   the stem is the portion of the lemma minus the ending). Required in
 		   the first stem set (i.e. first set of arguments separated by "or"),
 		   can be omitted in later stem sets to default to lemma of previous
-		   stem set.
-		DECL: Declension field, one or more values separated by commas.
-		   Normally omitted to autodetect based on the lemma form; see below.
+		   stem set. A plural form can be given, and causes argument n=
+		   to default to n=p (plurale tantum).
+		DECL: Declension field. Normally omitted to autodetect based on the
+		   lemma form; see below.
 		BARE: Present for compatibility; don't use this in new template calls.
 		   Irregular nom sg or gen pl form (specifically, the form used for
 		   cases with no suffix or with a nonsyllabic suffix -ь/-й/-ъ). If
@@ -66,8 +67,7 @@
 		pl: plural
 
 	Declension field:
-		Form is DECLSPEC or DECLSPEC,DECLSPEC,... where DECLSPEC is
-		one of the following for regular nouns:
+		One of the following for regular nouns:
 			(blank)
 			GENDER
 			-PLVARIANT
@@ -77,33 +77,50 @@
 			(also, can append various special-case markers to any of the above)
 		Or one of the following for adjectival nouns:
 			+
-			+short
-			+mixed
-			+GENDER
+			+ь
+			+short, +mixed or +proper
 			+DECLTYPE
-		GENDER if present is m, f, or n; for regular nouns, required if the
-			lemma ends in -ь or is plural, ignored otherwise. Largely
-			ignored for adjectival nouns.
+		GENDER if present is m, f, n or 3f; for regular nouns, required if the
+			lemma ends in -ь or is plural, ignored otherwise. 3f is the same
+			as f but in the case of a plural lemma in -и, detects a
+			third-declension feminine with singular in -ь rather than a
+			first-declension feminine with singular in -а or -я.
 		PLVARIANT is one way of specifying declensions with irregular plurals;
-			possible values are -а, -я, -ы, -и, -ья. See also special case (1).
-		DECLTYPE is an explicit declension type, usually the same as the
-			ending; if present, the lemma field should be just the stem,
-			without the ending; possibilities for regular nouns are (blank)
-			or # for hard-consonant declension, а, я, о, е or ё, е́, й, ья,
-			ье or ьё, ь-m, ь-f, ин, ёнок or онок or енок, ёночек or оночек or
-			еночек, мя, мя-1, -а or #-а, ь-я, й-я, о-и or о-ы, -ья or #-ья,
-			о-ья, $ (invariable). Old-style (pre-reform) declensions use ъ
-			instead of (blank), ъ-а instead of -а, ъ-ья instead of -ья, and
-			инъ, ёнокъ/онокъ/енокъ, ёночекъ/оночекъ/еночекъ instead of the
-			same without terminating ъ. The declensions can also be written
-			with an accent on them; this chooses the same declension (except
-			for е vs. е́), but causes ACCENT to default to pattern 2/b instead
-			of 1/a.
-			For adjectival nouns, possibilities are +ый, +ое, +ая, +ій, +ее,
-			+яя, +ой, +о́е, +а́я, +ьій, +ье, +ья, +-short (masc), +о-short,
-			+а-short, +-mixed (masc), +о-mixed, +а-mixed. You can also
-			specify just +short or +mixed and it will autodetect the
-			gender-specific variant.
+			most commonly used to specify special plural variant -ья. Other
+			possible values are -а, -я, -ы, -и. See also special case (1).
+		DECLTYPE is an explicit declension type. Normally you shouldn't use
+			this, and should instead let the declension type be autodetected
+			based on the ending, supplying the appropriate hint if needed
+			(gender for regular nouns, +ь for adjectives). If provided, the
+			declension type is usually the same as the ending, and if present,
+			the lemma field should be just the stem, without the ending.
+
+			Possibilities for regular nouns are (blank) or # for hard-consonant
+			declension, а, я, о, е or ё, е́, й, ья, ье or ьё, ь-m, ь-f, ин,
+			ёнок or онок or енок, ёночек or оночек or еночек, мя, мя-1,
+			-а or #-а, ь-я, й-я, о-и or о-ы, -ья or #-ья, о-ья, $ (invariable).
+			Old-style (pre-reform) declensions use ъ instead of (blank), ъ-а
+			instead of -а, ъ-ья instead of -ья, and инъ, ёнокъ/онокъ/енокъ,
+			ёночекъ/оночекъ/еночекъ instead of the same without terminating ъ.
+			The declensions can also be written with an accent on them; this
+			chooses the same declension (except for е vs. е́), but causes
+			ACCENT to default to pattern b instead of a.
+
+			For adjectival nouns, you should normally supply just + and let
+			the ending determine the declension; supply +ь in the case of a
+			possessive adjectival noun in -ий, which have an extra -ь- in
+			most endings compared with normal adjectival nouns in -ий, but
+			which can't be distinguished based on the nominative singular.
+			You can also supply +short, +mixed or +proper, which constrains
+			the declension appropriately but still autodetects the
+			gender-specific and stress-specific variant. If you do supply
+			a specific declension type, as with regular nouns you need to
+			omit the ending from the lemma field and supply just the stem.
+			Possibilities are +ый, +ое, +ая, +ій, +ее, +яя, +ой, +о́е, +а́я,
+			+ьій, +ье, +ья, +-short or +#-short (masc), +о-short,
+			+о-stressed-short or +о́-short, +а-short, +а-stressed-short or
+			+а́-short, and similar for -mixed and -proper (except there aren't
+			any stressed mixed declensions).
 		DECLTYPE/DECLTYPE is used for nouns with one declension in the
 			singular and a different one in the plural, for cases that
 			PLVARIANT doesn't cover.
@@ -137,18 +154,15 @@ TODO:
    templates to use '$'. Test that omitting a manual form leaves the form
    as a big dash.
 7. Add proper support for Zaliznyak b', f''. [IMPLEMENTED. NEED TO TEST.]
-7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
+7a. In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
 7c. FIXME: Mixed and proper-noun adjectives have built-in notes. We need to
    handle those notes with an "internal_notes" section similar to what is used
    in the adjective module.
-7d. FIXME: Adjective detection code here needs to work the same as for the
+7d. Adjective detection code here needs to work the same as for the
    adjective module, in particular in the handling of short, stressed-short,
-   mixed, proper, stressed-proper. (Possibly we don't need quite this many
-   distinctions, e.g. proper, stressed-proper and stressed-short have the
-   same endings in masc and fem. We have a stress category so we can more
-   easily handle the stressed and unstressed short/proper variants.)
+   mixed, proper, stressed-proper. [IMPLEMENTED. NEED TO TEST.]
 7e. FIXME: Change calls to ru-adj11 to use the new proper name support in
    ru-adjective.
 7f. FIXME: Add words ребёночек, щеночек, сапожок, зубок. Fix decls of
@@ -174,15 +188,15 @@ TODO:
    the two coding issues mentioned above.]
 7j. [FIXME: Consider simplifying plural-variant code to only allow -ья as a
    plural variant, and maybe even change that to be something like (1').]
-7k. FIXME: Remove code that recognizes gender for adjectival nouns; not
-   needed.
+7k. Remove code that recognizes gender for adjectival nouns; not
+   needed. [IMPLEMENTED. NEED TO TEST.]
 7l. FIXME: Create categories for use with the category code (but first change
    the stress categories to Zaliznyak-style).
 7m. FIXME: Integrate stress categories with those in Vitalik's module.
 7n. FIXME: Remove boolean recognize_plurals; this should always be true.
    Do in conjunction with merging multiple-words/manual-translit branches.
 7o. FIXME: Automatically superscript *, numbers and similar things at the
-   beginning of a note.
+   beginning of a note. Also do this in adjective module.
 7p. FIXME: Eliminate мя-1; it's only one noun, and can use slash declension +
    plural stem.
 7q. FIXME: Consider eliminating о-ья and replacing it with slash declension
@@ -206,6 +220,9 @@ TODO:
    in it, which should have triggered an error whenever there was a nom_sg or
    nom_pl override but didn't. Is there an error causing this never to be
    called? Check.
+7x. FIXME: With pluralia tantum adjectival nouns, we don't know the gender.
+   By default we assume masculine (or feminine for old-style -ія nouns) and
+   currently this goes into the category, but shouldn't.
 8. [Get error "Unable to dereduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
@@ -810,8 +827,8 @@ function export.do_generate_forms(args, old)
 		insert_cat("~ with multiple stems")
 	end
 
-	-- Default stem defaults to previous stem.
-	local default_stem = nil
+	-- Default lemma defaults to previous lemma.
+	local default_lemma = nil
 
 	for _, stem_set in ipairs(stem_sets) do
 		local stress_arg = stem_set[1]
@@ -836,25 +853,24 @@ function export.do_generate_forms(args, old)
 		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
 		decl_class, args.reducible = rsubb(decl_class, "%*", "")
 		decl_class = rsub(decl_class, ";", "")
-		local stem = args.manual and "-" or stem_set[2] or default_stem
-		if not stem then
-			error("Stem in first stem set must be specified")
+		local lemma = args.manual and "-" or stem_set[2] or default_lemma
+		if not lemma then
+			error("Lemma in first stem set must be specified")
 		end
-		local orig_stem = stem
-		default_stem = stem
-		local was_accented, was_plural, was_autodetected
+		default_lemma = lemma
+		local stem, was_accented, was_plural, was_autodetected
 		if rfind(decl_class, "^%+") then
 			stem, decl_class, was_accented, was_plural, was_autodetected =
-				detect_adj_type(stem, decl_class, old)
+				detect_adj_type(lemma, decl_class, old)
 		else
 			stem, decl_class, was_accented, was_plural, was_autodetected =
-				determine_decl(stem, decl_class, args)
+				determine_decl(lemma, decl_class, args)
 		end
 		if was_plural then
 			args.n = args.n or "p"
 		end
 		stem, args.allow_unaccented = rsubb(stem, "^%*", "")
-		if not args.allow_unaccented and not stress_arg and was_autodetected and com.needs_accents(orig_stem) then
+		if not args.allow_unaccented and not stress_arg and was_autodetected and com.needs_accents(lemma) then
 			-- If user gave the full word and expects us to determine the
 			-- declension and stress, the word should have an accent on the
 			-- stem or ending. We have a separate check farther below for
@@ -862,7 +878,7 @@ function export.do_generate_forms(args, old)
 			-- ending; but this way we get an error if the user e.g. writes
 			-- "гора" without an accent rather than assuming it's stem
 			-- stressed, as would otherwise happen.
-			error("Stem must have an accent in it: " .. orig_stem)
+			error("Lemma must have an accent in it: " .. lemma)
 		end
 		if not stress_arg then
 			stress_arg = detect_stress_pattern(decl_class, was_accented)
@@ -1357,61 +1373,59 @@ function export.catboiler(frame)
 end
 
 --------------------------------------------------------------------------
---                   Autodetection and stem munging                     --
+--                   Autodetection and lemma munging                    --
 --------------------------------------------------------------------------
 
--- Attempt to detect the type of the stem (= including ending) based
--- on its ending, separating off the base and the ending. GENDER
--- must be present with -ь and plural stems, and is otherwise ignored.
--- Return up to three values: The base (stem minus ending), the singular
--- stem ending, and if the stem was plural, the plural stem ending.
--- If the stem was singular, the singular stem ending will contain any
--- user-given accents; likewise, if the stem was plural, the plural ending
--- will contain such accents.
-local function detect_stem_type(stem, gender, anim)
-	local base, ending = rmatch(stem, "^(.*)([еЕ]́)$") -- accented
+-- Attempt to detect the type of the lemma based on its ending, separating
+-- off the stem and the ending. GENDER must be present with -ь and plural
+-- stems, and is otherwise ignored. Return up to three values: The stem
+-- (lemma minus ending), the singular lemma ending, and if the lemma was
+-- plural, the plural lemma ending. If the lemma was singular, the singular
+-- lemma ending will contain any user-given accents; likewise, if the
+-- lemma was plural, the plural ending will contain such accents.
+local function detect_lemma_type(lemma, gender, anim)
+	local base, ending = rmatch(lemma, "^(.*)([еЕ]́)$") -- accented
 	if base then
 		return base, ulower(ending)
 	end
-	base = rmatch(stem, "^(.*[" .. com.sib_c .. "])[еЕ]$") -- unaccented
+	base = rmatch(lemma, "^(.*[" .. com.sib_c .. "])[еЕ]$") -- unaccented
 	if base then
 		return base, "о"
 	end
-	base, ending = rmatch(stem, "^(.*)([ёоЁО]́?[нН][оО][кК][ъЪ]?)$")
+	base, ending = rmatch(lemma, "^(.*)([ёоЁО]́?[нН][оО][кК][ъЪ]?)$")
 	if base then
 		return base, ulower(ending)
 	end
-	base, ending = rmatch(stem, "^(.*)([ёоЁО]́?[нН][оО][чЧ][еЕ][кК][ъЪ]?)$")
+	base, ending = rmatch(lemma, "^(.*)([ёоЁО]́?[нН][оО][чЧ][еЕ][кК][ъЪ]?)$")
 	if base then
 		return base, ulower(ending)
 	end
-	base, ending = rmatch(stem, "^(.*[аяАЯ]́?[нН])([иИ]́?[нН][ъЪ]?)$")
+	base, ending = rmatch(lemma, "^(.*[аяАЯ]́?[нН])([иИ]́?[нН][ъЪ]?)$")
 	-- Need to check the animacy to avoid nouns like маиганин, цианин,
 	-- меланин, соланин, etc.
 	if base and anim == "a" then
 		return base, ulower(ending)
 	end
-	base, ending = rmatch(stem, "^(.*)([мМ][яЯ]́?)$")
+	base, ending = rmatch(lemma, "^(.*)([мМ][яЯ]́?)$")
 	if base then
 		-- We don't worry about мя-1, as it's extremely rare -- there's only
 		-- one word with the declension.
 		return base, ending
 	end
 	--recognize plural endings
-	--NOT CLEAR IF THIS IS A GOOD IDEA.
 	if recognize_plurals then
 		if gender == "n" then
-			base, ending = rmatch(stem, "^(.*)([ьЬ][яЯ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([ьЬ][яЯ]́?)$")
 			if base then
 				-- Don't do this; о-ья is too rare
-				-- error("Ambiguous plural stem " .. stem .. " in -ья, singular could be -о or -ье/-ьё; specify the singular")
+				-- error("Ambiguous plural lemma " .. lemma .. " in -ья, singular could be -о or -ье/-ьё; specify the singular")
 				return base, "ье", ending
 			end
-			base, ending = rmatch(stem, "^(.*)([аяАЯ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([аяАЯ]́?)$")
 			if base then
 				return base, rfind(ending, "[аА]") and "о" or "е", ending
 			end
-			base, ending = rmatch(stem, "^(.*)([ыиЫИ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([ыиЫИ]́?)$")
 			if base then
 				if rfind(ending, "[ыЫ]") or rfind(base, "[" .. com.sib .. com.velar .. "]$") then
 					return base, "о-и", ending
@@ -1422,71 +1436,71 @@ local function detect_stem_type(stem, gender, anim)
 			end
 		end
 		if gender == "f" then
-			base, ending = rmatch(stem, "^(.*)([ьЬ][иИ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([ьЬ][иИ]́?)$")
 			if base then
 				return base, "ья", ending
 			end
 		end
 		if gender == "m" then
-			base, ending = rmatch(stem, "^(.*)([ьЬ][яЯ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([ьЬ][яЯ]́?)$")
 			if base then
 				return base, "-ья", ending
 			end
-			base, ending = rmatch(stem, "^(.*)([аА]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([аА]́?)$")
 			if base then
 				return base, "-а", ending
 			end
-			base, ending = rmatch(stem, "^(.*)([яЯ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([яЯ]́?)$")
 			if base then
 				return base, "ь-я", ending
 			end
 		end
 		if gender == "m" or gender == "f" then
-			base, ending = rmatch(stem, "^(.*[" .. com.sib .. com.velar .. "])([иИ]́?)$")
+			base, ending = rmatch(lemma, "^(.*[" .. com.sib .. com.velar .. "])([иИ]́?)$")
 			if not base then
-				base, ending = rmatch(stem, "^(.*)([ыЫ]́?)$")
+				base, ending = rmatch(lemma, "^(.*)([ыЫ]́?)$")
 			end
 			if base then
 				return base, gender == "m" and "" or "а", ending
 			end
-			base, ending = rmatch(stem, "^(.*[" .. com.vowel .. "]́?)([иИ]́?)$")
+			base, ending = rmatch(lemma, "^(.*[" .. com.vowel .. "]́?)([иИ]́?)$")
 			if base then
 				return base, gender == "m" and "й" or "я", ending
 			end
-			base, ending = rmatch(stem, "^(.*)([иИ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([иИ]́?)$")
 			if base then
 				return base, gender == "m" and "ь-m" or "я", ending
 			end
 		end
 		if gender == "3f" then
-			base, ending = rmatch(stem, "^(.*)([иИ]́?)$")
+			base, ending = rmatch(lemma, "^(.*)([иИ]́?)$")
 			if base then
 				return base, "ь-f", ending
 			end
 		end
 	end
-	base, ending = rmatch(stem, "^(.*)([ьЬ][яеёЯЕЁ]́?)$")
+	base, ending = rmatch(lemma, "^(.*)([ьЬ][яеёЯЕЁ]́?)$")
 	if base then
 		return base, ulower(ending)
 	end
-	base, ending = rmatch(stem, "^(.*)([йаяеоёъЙАЯЕОЁЪ]́?)$")
+	base, ending = rmatch(lemma, "^(.*)([йаяеоёъЙАЯЕОЁЪ]́?)$")
 	if base then
 		return base, ulower(ending)
 	end
-	base = rmatch(stem, "^(.*)[ьЬ]$")
+	base = rmatch(lemma, "^(.*)[ьЬ]$")
 	if base then
 		if gender == "m" or gender == "f" then
 			return base, "ь-" .. gender
 		elseif gender == "3f" then
 			return base, "ь-f"
 		else
-			error("Need to specify gender m or f with stem in -ь: ".. stem)
+			error("Need to specify gender m or f with lemma in -ь: ".. lemma)
 		end
 	end
-	if rfind(stem, "[уыэюиіѣѵУЫЭЮИІѢѴ]́?$") then
-		error("Don't know how to decline stem ending in this type of vowel: " .. stem)
+	if rfind(lemma, "[уыэюиіѣѵУЫЭЮИІѢѴ]́?$") then
+		error("Don't know how to decline lemma ending in this type of vowel: " .. lemma)
 	end
-	return stem, ""
+	return lemma, ""
 end
 
 local plural_variation_detection_map = {
@@ -1511,45 +1525,49 @@ local special_case_1_to_plural_variation = {
 
 -- Attempt to determine the actual declension (including plural variants)
 -- based on a combination of the declension the user specified, what can be
--- detected from the stem, and special case (1), if given in the declension.
+-- detected from the lemma, and special case (1), if given in the declension.
 -- DECL is the value the user passed for the declension field, after
 -- extraneous annotations (special cases (1) and (2), * for reducible,
 -- ё for ё/ё alternation and a ; that may precede ё) have been stripped off.
 -- What's left is one of the following:
 --
--- 1. Blank, meaning to autodetect the declension from the stem
+-- 1. Blank, meaning to autodetect the declension from the lemma
 -- 2. A hyphen followed by a requested plural variant (-а, -я, -ья, -ы, -и)
 -- 3. A gender (m, f, n, 3f)
 -- 4. A gender plural plural variant (e.g. m-а)
 -- 5. An actual declension, possibly including a plural variant (e.g. о-ы) or
 --    a slash declension (e.g. я/-ья, used for the noun дядя).
 --
--- Return five args: stem minus ending, canonicalized declension,
--- whether the specified declension or detected stem ending was accented,
--- whether the detected stem ending was pl, and whether the declension was
--- autodetected (i.e. the stem was actually a full word with ending
--- attached). "Canonicalized" means after autodetection, with accents removed,
--- with any aliases mapped- to their canonical versions and with any requested
--- plural variants applied. The result is either a declension that will have
--- a categorization entry (in declensions_cat[] or declensions_old_cat[]) or
--- a slash declension where each part similarly has a categorization entry.
+-- Return five args: stem (lemma minus ending), canonicalized declension,
+-- whether the specified declension or detected ending was accented,
+-- whether the detected ending was pl, and whether the declension was
+-- autodetected (corresponds to cases where a full word with ending attached
+-- is required in the lemma field). "Canonicalized" means after autodetection,
+-- with accents removed, with any aliases mapped to their canonical versions
+-- and with any requested plural variants applied. The result is either a
+-- declension that will have a categorization entry (in declensions_cat[] or
+-- declensions_old_cat[]) or a slash declension where each part similarly has
+-- a categorization entry.
 --
 -- Note that gender is never required when an explicit declension is given,
--- and in connection with stem autodetection is required only when the stem
+-- and in connection with stem autodetection is required only when the lemma
 -- either ends in -ь or is plural.
-function determine_decl(stem, decl, args)
+function determine_decl(lemma, decl, args)
 	-- Assume we're passed a value for DECL of types 1-4 above, and
 	-- fetch gender and requested plural variant
 	local gender = rmatch(decl, "^(3?[mfn]?)$")
+	local stem = lemma
 	local user_plural, orig_pl_ending
 	local was_autodetected
 	if not gender then
 		gender, user_plural = rmatch(decl, "^(3?[mfn]?)(%-.+)$")
 	end
-	-- If DECL is of type 1-4, detect the actual declension from the full stem
+	-- If DECL is of type 1-4, detect the actual declension from the lemma
 	if gender then
-		stem, decl, orig_pl_ending = detect_stem_type(stem, gender, args.a)
+		stem, decl, orig_pl_ending = detect_lemma_type(lemma, gender, args.a)
 		was_autodetected = true
+	else
+		stem = lemma
 	end
 	-- The ending should be treated as accented if either the original singular
 	-- or plural ending was accented, or if the stem is non-syllabic.
@@ -1648,16 +1666,11 @@ end
 -- with +:
 --
 -- 1. +, meaning to autodetect the declension from the stem
--- 2. +short or +mixed, with the declension partly specified but the
---    particular gender/number-specific short/mixed variant to be
+-- 2. +ь, same as + but selects +ьий instead of +ий if lemma ends in -ий
+-- 3. +short, +mixed or +proper, with the declension partly specified but
+--    the particular gender/number-specific short/mixed variant to be
 --    autodetected
--- 3. A gender (+m, +f or +n), used only for detecting the singular of
---    plural-form lemmas (NOTE: It's probably not necessary information,
---    since we will normally be declining the resulting nouns as
---    pluralia tantum.)
--- 4. A gender plus short/mixed (e.g. +f-mixed), again with the gender used
---    only for detecting the singular of plural-form short/mixed lemmas
--- 5. An actual declension, possibly including a slash declension
+-- 4. An actual declension, possibly including a slash declension
 --    (WARNING: Unclear if slash declensions will work, especially those
 --    that are adjective/noun combinations)
 --
@@ -1666,45 +1679,48 @@ end
 function detect_adj_type(lemma, decl, old)
 	local was_autodetected
 	local base, ending
-	local basedecl, g = rmatch(decl, "^(%+)([mfn])$")
-	if not basedecl then
-		g, basedecl = rmatch(decl, "^%+([mfn])%-([a-z]+)$")
-		if basedecl then
-			basedecl = "+" .. basedecl
-		end
-	end
-	decl = basedecl or decl
-	if decl == "+" then
+	if decl == "+" or decl == "+ь" then
 		base, ending = rmatch(lemma, "^(.*)([ыиіьаяое]́?[йея])$")
-		if base then
+		if ending == "ий" and decl == "+ь" then
+			decl = "+ьий"
+		elseif ending == "ій" and decl == "+ь" then
+			decl = "+ьій"
+		elseif ending then
 			decl = "+" .. ending
 		else
-			-- FIXME! Not clear if this works with accented endings, check it
 			base, ending = rmatch(lemma, "^(.-)([оаыъ]?́?)$")
 			assert(base)
-			local shortmixed = rlfind(base, "[ёео]́?в$") and "short" or
-				rlfind(base, "[ыи]́н$") "mixed"
+			local shortmixed = rfind(base, "^[" .. com.uppercase .. "].*[иы]́н$") and "stressed-proper" or -- accented
+				rfind(base, "^[" .. com.uppercase .. "].*[иы]н$") and "proper" or --not accented
+				rlfind(base, "[ёео]́?в$") and "short" or
+				rlfind(base, "[ыи]́н$") and "stressed-short" or -- accented
+				rlfind(base, "[ыи]н$") and "mixed" --not accented
 			if not shortmixed then
 				error("Cannot determine stem type of adjective: " .. lemma)
 			end
 			decl = "+" .. ending .. "-" .. shortmixed
 		end
 		was_autodetected = true
-	elseif decl == "+short" or decl == "+mixed" then
-		-- FIXME! Not clear if this works with accented endings, check it
+	elseif ut.contains({"+short", "+mixed", "+proper"}, decl) then
 		base, ending = rmatch(lemma, "^(.-)([оаыъ]?́?)$")
 		assert(base)
-		decl = "+" .. ending .. "-" .. usub(decl, 2)
+		local shortmixed = usub(decl, 2)
+		if rlfind(base, "[ыи]́н$") then -- accented
+			if shortmixed == "short" then shortmixed = "stressed-short"
+			elseif shortmixed == "proper" then shortmixed = "stressed-proper"
+			end
+		end
+		decl = "+" .. ending .. "-" .. shortmixed
 		was_autodetected = true
 	else
 		base = lemma
 	end
 
 	-- Remove any accents from the declension, but not their presence.
-	-- We will convert was_accented into stress pattern 2, and convert that
+	-- We will convert was_accented into stress pattern b, and convert that
 	-- back to an accented version in determine_stress_variant(). This way
 	-- we end up with the stressed version whether the user placed an accent
-	-- in the ending or decl or specified stress pattern 2.
+	-- in the ending or decl or specified stress pattern b.
 	-- FIXME, might not work in the presence of slash declensions
 	local was_accented = com.is_stressed(decl)
 	decl = com.remove_accents(decl)
@@ -1726,21 +1742,20 @@ function detect_adj_type(lemma, decl, old)
 		return decl
 	end
 
-	decl = map_decl(decl,convert_sib_velar_variant)
+	decl = map_decl(decl, convert_sib_velar_variant)
 	local singdecl
 	if decl == "+ые" then
-		singdecl = (g == "m" or not g) and (was_accented and "+ой" or "+ый") or not old and g == "f" and "+ая" or not old and g == "n" and "+ое"
+		singdecl = was_accented and "+ой" or "+ый"
 	elseif decl == "+ие" and not old then
-		singdecl = (g == "m" or not g) and "+ий" or g == "f" and "+яя" or g == "n" and "+ее"
-	elseif decl == "+іе" and old and (g == "m" or not g) then
+		singdecl = "+ий"
+	elseif decl == "+іе" and old and then
 		singdecl = "+ій"
 	elseif decl == "+ія" and old then
-		singdecl = (g == "f" or not g) and "+яя" or g == "n" and "+ее"
+		singdecl = "+яя"
 	elseif decl == "+ьи" then
-		singdecl = (g == "m" or not g) and (old and "+ьій" or "+ьий") or g == "f" and "+ья" or g == "n" and "+ье"
-	elseif decl == "+ы-mixed" or decl == "+ы-short" then
-		local beg = (g == "m" or not g) and (old and "ъ" or "") or g == "f" and "а" or g == "n" and "о"
-		singdecl = beg and "+" .. beg .. usub(decl, 2)
+		singdecl = old and "+ьій" or "+ьий"
+	elseif rfind(decl, "^%+ы%-") then -- decl +ы-mixed or similar
+		singdecl = "+" .. (old and "ъ" or "") .. usub(decl, 3)
 	end
 	if singdecl then
 		was_plural = true
@@ -1802,6 +1817,15 @@ function determine_stress_variant(decl, stress)
 			return "+а́я"
 		elseif decl == "+ое" then
 			return "+о́е"
+		else
+			-- Convert +...-short to +...-stressed-short and same for -proper
+			local b, e = rmatch(decl, "^%+(.*)%-(short)$")
+			if not b then
+				b, e = rmatch(decl, "^%+(.*)%-(proper)$")
+			end
+			if b then
+				return "+" .. b .. "-stressed-" .. e
+			end
 		end
 	end
 	return decl
@@ -2434,6 +2458,15 @@ declensions_old_cat["$"] = { decl="invariable", hard="none", g="none" }
 --                              Adjectival                              --
 --------------------------------------------------------------------------
 
+-- Meaning of entry is:
+-- 1. The declension name in module ru-adjective
+-- 2. The masculine declension name in this module
+-- 3. The neuter declension name in this module
+-- 4. The feminine declension name in this module
+-- 5. The value of hard= for the declensions_cat entry
+-- 6. The value of decl= for the declensions_cat entry
+-- 7. The value of possadj= for the declensions_cat entry (true if possessive
+--    or similar type of adjective)
 local adj_decl_map = {
 	{"ый", "ый", "ое", "ая", "hard", "long", false},
 	{"ій", "ій", "ее", "яя", "soft", "long", false},
@@ -2441,6 +2474,9 @@ local adj_decl_map = {
 	{"ьій", "ьій", "ье", "ья", "palatal", "long", true},
 	{"short", "ъ-short", "о-short", "а-short", "hard", "short", true},
 	{"mixed", "ъ-mixed", "о-mixed", "а-mixed", "hard", "mixed", true},
+	{"proper", "ъ-proper", "о-proper", "а-proper", "hard", "proper", true},
+	{"stressed-short", "ъ-stressed-short", "о-stressed-short", "а-stressed-short", "hard", "short", true},
+	{"stressed-proper", "ъ-stressed-proper", "о-stressed-proper", "а-stressed-proper", "hard", "proper", true},
 }
 
 local function get_adjectival_decl(adjtype, gender, old)
@@ -2478,10 +2514,16 @@ for _, declspec in ipairs(adj_decl_map) do
 	end
 end
 
--- Set up some aliases. е-short and е-mixed exist because е instead of о
--- appears after sibilants and ц.
-declensions_old_aliases["+е-short"] = "+о-short"
-declensions_old_aliases["+е-mixed"] = "+о-mixed"
+-- Set up some aliases.
+declensions_old_aliases["+о́-short"] = "+о-stressed-short"
+declensions_old_aliases["+а́-short"] = "+а-stressed-short"
+declensions_old_aliases["+о́-proper"] = "+о-stressed-proper"
+declensions_old_aliases["+а́-proper"] = "+а-stressed-proper"
+declensions_aliases["+#-short"] = "+-short"
+declensions_aliases["+#-mixed"] = "+-mixed"
+declensions_aliases["+#-proper"] = "+-proper"
+declensions_aliases["+#-stressed-short"] = "+-stressed-short"
+declensions_aliases["+#-stressed-proper"] = "+-stressed-proper"
 
 --------------------------------------------------------------------------
 --                         Populate new from old                        --
