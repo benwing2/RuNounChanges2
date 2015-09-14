@@ -96,8 +96,8 @@
 			the lemma field should be just the stem, without the ending.
 
 			Possibilities for regular nouns are (blank) or # for hard-consonant
-			declension, а, я, о, е or ё, е́, й, ья, ье or ьё, ь-m, ь-f, ин,
-			ёнок or онок or енок, ёночек or оночек or еночек, мя, мя-1,
+			declension, а, я, о, е or ё, е́, й, ья, ье or ьё, ь-m, ь-f,
+			ин, ёнок or онок or енок, ёночек or оночек or еночек, мя,
 			-а or #-а, ь-я, й-я, о-и or о-ы, -ья or #-ья, $ (invariable).
 			Old-style (pre-reform) declensions use ъ instead of (blank), ъ-а
 			instead of -а, ъ-ья instead of -ья, and инъ, ёнокъ/онокъ/енокъ,
@@ -199,8 +199,9 @@ TODO:
 7o. Automatically superscript *, numbers and similar things at the
    beginning of a note. Also do this in adjective module. [IMPLEMENTED.
    NEED TO TEST.]
-7p. FIXME: Eliminate мя-1; it's only one noun, and can use slash declension +
-   plural stem.
+7p. Eliminate мя-1; it's only one noun, and can use slash declension +
+   plural stem. [IMPLEMENTED. NEED TO REPLACE ENTRY FOR знамя as follows:
+   {{ru-noun-table|зна́|мя/о||знамён}}]
 7q. Consider eliminating о-ья and replacing it with slash declension
    о/-ья like we do for feminine, masculine soft, etc. nouns. [IMPLEMENTED.
    NEED TO TEST.]
@@ -1422,8 +1423,6 @@ local function detect_lemma_type(lemma, gender, anim)
 	end
 	base, ending = rmatch(lemma, "^(.*)([мМ][яЯ]́?)$")
 	if base then
-		-- We don't worry about мя-1, as it's extremely rare -- there's only
-		-- one word with the declension.
 		return base, ending
 	end
 	--recognize plural endings
@@ -2414,23 +2413,6 @@ declensions_old["мя"] = {
 }
 
 declensions_old_cat["мя"] = { decl="3rd", hard="soft", g="n", cant_reduce=true }
-
-declensions_old["мя-1"] = {
-	["nom_sg"] = "мя",
-	["gen_sg"] = "мени",
-	["dat_sg"] = "мени",
-	["acc_sg"] = nil,
-	["ins_sg"] = "менемъ",
-	["pre_sg"] = "мени",
-	["nom_pl"] = "мёна",
-	["gen_pl"] = "мёнъ",
-	["dat_pl"] = "мёнамъ",
-	["acc_pl"] = nil,
-	["ins_pl"] = "мёнами",
-	["pre_pl"] = "мёнахъ",
-}
-
-declensions_old_cat["мя-1"] = { decl="3rd", hard="soft", g="n", cant_reduce=true }
 
 --------------------------------------------------------------------------
 --                              Invariable                              --
