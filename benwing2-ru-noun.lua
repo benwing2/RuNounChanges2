@@ -183,6 +183,12 @@ TODO:
    Do in conjunction with merging multiple-words/manual-translit branches.
 7o. FIXME: Automatically superscript *, numbers and similar things at the
    beginning of a note.
+7p. FIXME: Eliminate мя-1; it's only one noun, and can use slash declension +
+   plural stem.
+7q. FIXME: Consider eliminating о-ья and replacing it with slash declension
+   о/-ья like we do for feminine, masculine soft, etc. nouns.
+7r. FIXME: Implement check for bare argument specified when neither nominative
+   singular nor genitive plural makes use of bare.
 8. [Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
