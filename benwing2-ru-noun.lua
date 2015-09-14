@@ -86,8 +86,9 @@
 			third-declension feminine with singular in -ь rather than a
 			first-declension feminine with singular in -а or -я.
 		PLVARIANT is one way of specifying declensions with irregular plurals;
-			most commonly used to specify special plural variant -ья. Other
-			possible values are -а, -я, -ы, -и. See also special case (1).
+			the only currently allowed value is -ья and will select a
+			mixed declension that has some normal declension in its singular
+			and the -ья plural declension. See also special case (1).
 		DECLTYPE is an explicit declension type. Normally you shouldn't use
 			this, and should instead let the declension type be autodetected
 			based on the ending, supplying the appropriate hint if needed
@@ -123,10 +124,10 @@
 			any stressed mixed declensions).
 		DECLTYPE/DECLTYPE is used for nouns with one declension in the
 			singular and a different one in the plural, for cases that
-			PLVARIANT doesn't cover.
+			PLVARIANT and special case (1) below don't cover.
 		Special-case markers:
 			(1) for Zaliznyak-style alternate nominative plural ending:
-				-а for masculine, -и for neuter
+				-а or -я for masculine, -и or -ы for neuter
 			(2) for Zaliznyak-style alternate genitive plural ending:
 				-ъ/none for masculine, -ей for feminine, -ов(ъ) for neuter,
 				-ей for plural variant -ья
@@ -187,8 +188,10 @@ TODO:
    declensions and special plural stems and rewrite them internally to
    separate stems with 'sg' and 'pl' declension flags; but there are still
    the two coding issues mentioned above.]
-7j. [FIXME: Consider simplifying plural-variant code to only allow -ья as a
-   plural variant, and maybe even change that to be something like (1').]
+7j. FIXME: Consider simplifying plural-variant code to only allow -ья as a
+   plural variant [and maybe even change that to be something like (1')].
+   [IMPLEMENTED REDUCTION OF PLURAL VARIANTS TO -ья; PLURAL-VARIANT CODE
+   STILL COMPLEX, THOUGH. NEED TO TEST.]
 7k. Remove code that recognizes gender for adjectival nouns; not
    needed. [IMPLEMENTED. NEED TO TEST.]
 7l. FIXME: Create categories for use with the category code (but first change
@@ -230,6 +233,10 @@ TODO:
 7y. [FIXME: Consider renaming "stem set" to something else. I proposed
    "arg set" but that's maybe too generic. Maybe "declension arg set" or
    "declension arg group" or "declension group"?]
+7z. FIXME: Implement smart code to check properly whether an explicit bare is
+   a reducible by looking to see if it's one more syllable than the stem.
+   We should probably do this test only when args.reducible not set, otherwise
+   assume reducible.
 8. [Get error "Unable to dereduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
@@ -1544,15 +1551,8 @@ local function detect_lemma_type(lemma, gender, anim)
 end
 
 local plural_variation_detection_map = {
-	[""] = {["-а"]="-а", ["-ья"]="-ья", ["-ы"]="", ["-и"]=""},
-	["ъ"] = {["-а"]="ъ-а", ["-ья"]="ъ-ья", ["-ы"]="ъ", ["-и"]="ъ"},
-	["й"] = {["-и"]="й", ["-я"]="й-я"},
-	["ь-m"] = {["-и"]="ь-m", ["-я"]="ь-я"},
-	["а"] = {["-ы"]="а", ["-и"]="а"},
-	["я"] = {["-и"]="я"},
-	["о"] = {["-а"]="о", ["-ы"]="о-и", ["-о"]="о-и"},
-	["е"] = {},
-	["ь-f"] = {["-и"]="ь-f"},
+	[""] = {["-ья"]="-ья"},
+	["ъ"] = {["-ья"]="ъ-ья"},
 }
 
 local special_case_1_to_plural_variation = {
@@ -1572,9 +1572,9 @@ local special_case_1_to_plural_variation = {
 -- What's left is one of the following:
 --
 -- 1. Blank, meaning to autodetect the declension from the lemma
--- 2. A hyphen followed by a requested plural variant (-а, -я, -ья, -ы, -и)
+-- 2. A hyphen followed by a requested plural variant (only -ья currently)
 -- 3. A gender (m, f, n, 3f)
--- 4. A gender plural plural variant (e.g. m-а)
+-- 4. A gender plural plural variant (e.g. f-ья)
 -- 5. An actual declension, possibly including a plural variant (e.g. о-ы) or
 --    a slash declension (e.g. я/-ья, used for the noun дядя).
 --
@@ -1597,10 +1597,10 @@ function determine_decl(lemma, decl, args)
 	-- fetch gender and requested plural variant
 	local gender = rmatch(decl, "^(3?[mfn]?)$")
 	local stem = lemma
-	local user_plural, orig_pl_ending
+	local want_ya_plural, orig_pl_ending
 	local was_autodetected
 	if not gender then
-		gender, user_plural = rmatch(decl, "^(3?[mfn]?)(%-.+)$")
+		gender, want_ya_plural = rmatch(decl, "^(3?[mfn]?)(%-ья)$")
 	end
 	-- If DECL is of type 1-4, detect the actual declension from the lemma
 	if gender then
@@ -1617,32 +1617,40 @@ function determine_decl(lemma, decl, args)
 	local was_plural = not not orig_pl_ending
 	decl = canonicalize_decl(decl, args.old)
 
-	-- The rest of this code concerns plural variants. It's complicated because
-	-- there are potentially four sources of plural variants (not to mention
-	-- plural variants constructed using slash notation):
+	-- The rest of this code concerns plural variants. It's somewhat
+	-- complicated because there are potentially four sources of plural
+	-- variants (not to mention plural variants constructed using slash
+	-- notation):
 	--
 	-- 1. A user-requested plural variant in declension types 2 or 4 above
-	-- 2. A explicit plural variant encoded in an explicit declension of
+	--    (currently only -ья)
+	-- 2. An explicit plural variant encoded in an explicit declension of
 	--    type 5 above
 	-- 3. An autodetected plural variant (which will happen in some cases
 	--    when autodetection is performed on a nominative plural)
 	-- 4. A plural variant derived using special case (1).
 	--
 	-- Up to three actual plural variants might exist (e.g. if the user
-	-- specifies a DECL value or 'm-а(1)' and a STEM ending in -а). We
-	-- can't have all four because if there's an explicit plural variant,
-	-- there won't be a user-requested or autodetected plural variant.
+	-- specifies a DECL value or 'm-ья(1)' and a STEM ending in -а,
+	-- although not all three can ever be compatible because -ья and (1)
+	-- are never compatible). We can't have all four because if there's
+	-- an explicit plural variant, there won't be a user-requested or
+	-- autodetected plural variant.
 	--
 	-- The goal below is to do two things: Check that all available plural
 	-- variants are the same, and generate the actual declension.
 	-- If we have a type-2 or type-3 variant, we already have the actual
 	-- declension; else we need to use a table to map the basic declension
 	-- to the one with the plural variant encoded in it.
+	--
+	-- NOTE: The code below was written with a more general plural-variant
+	-- system. It probably can be simplified a lot now.
 
 	-- 1: Handle explicit decl with slash variant
 	if rfind(decl, "/") then
-		if user_plural then
-			error("User-requested plural variation " .. user_plural .. " not compatible with slash declension " .. decl)
+		if want_ya_plural then
+			-- Don't think this can happen
+			error("Plural variation " .. want_ya_plural .. " not compatible with slash declension " .. decl)
 		end
 		if args.want_sc1 then
 			error("Special case (1) not compatible with slash declension" .. decl)
@@ -1659,8 +1667,8 @@ function determine_decl(lemma, decl, args)
 
 	-- 3: Any user-requested plural variant must agree with explicit or
 	--    autodetected variant.
-	if user_plural and detected_or_explicit_plural and user_plural ~= detected_or_explicit_plural then
-		error("Plural variant " .. user_plural .. " requested but plural variant " .. detected_or_explicit_plural .. " detected from plural stem")
+	if want_ya_plural and detected_or_explicit_plural and want_ya_plural ~= detected_or_explicit_plural then
+		error("Plural variant " .. want_ya_plural .. " requested but plural variant " .. detected_or_explicit_plural .. " detected from plural stem")
 	end
 
 	-- 4: Handle special case (1). Derive the full declension, make sure its
@@ -1670,7 +1678,7 @@ function determine_decl(lemma, decl, args)
 		local sc1_decl = special_case_1_to_plural_variation[basic_decl] or
 			error("Special case (1) not compatible with declension " .. basic_decl)
 		local sc1_plural = rsub(sc1_decl, "^.*%-", "-")
-		local other_plural = user_plural or detected_or_explicit_plural
+		local other_plural = want_ya_plural or detected_or_explicit_plural
 		if other_plural and sc1_plural ~= other_plural then
 			error("Plural variant " .. other_plural .. " specified or detected, but special case (1) calls for plural variant " .. sc1_plural)
 		end
@@ -1681,15 +1689,15 @@ function determine_decl(lemma, decl, args)
 	--    one. (If an explicit or detected one exists, we've already checked
 	--    that it agrees with the user-requested one, and so we already have
 	--    our full declension.)
-	if user_plural and not detected_or_explicit_plural then
+	if want_ya_plural and not detected_or_explicit_plural then
 		local variant_decl
 		if plural_variation_detection_map[decl] then
-			variant_decl = plural_variation_detection_map[decl][user_plural]
+			variant_decl = plural_variation_detection_map[decl][want_ya_plural]
 		end
 		if variant_decl then
 			return stem, variant_decl, was_accented, was_plural, was_autodetected
 		else
-			return stem, decl .. "/" .. user_plural, was_accented, was_plural, was_autodetected
+			return stem, decl .. "/" .. want_ya_plural, was_accented, was_plural, was_autodetected
 		end
 	end
 
