@@ -215,7 +215,7 @@ TODO:
 10. pltailall/sgtailall. [IMPLEMENTED. PLTAILALL IMPLEMENTED IN WIKTIONARY.]
 11. More sophisticated handling of user-requested plural variant vs. special
   case (1) vs. plural-detected variant. [IMPLEMENTED. NEED TO TEST FURTHER.]
-12. Unreducing masculine plural. [IMPLEMENTED. TESTED.]
+12. Dereducing masculine plural. [IMPLEMENTED. TESTED.]
 13. Solution to ambiguous plural involving gender spec "3f". [IMPLEMENTED;
    NEED TO TEST.]
 14. N*d(2) in masc nouns will have different dereduced form in
@@ -974,7 +974,7 @@ function export.do_generate_forms(args, old)
 			local sgdc = decl_cats[sgdecl]
 			local resolved_bare = bare
 			-- Handle (un)reducibles
-			-- FIXME! We are unreducing based on the singular declension.
+			-- FIXME! We are dereducing based on the singular declension.
 			-- In a slash declension things can get weird and we don't
 			-- handle that. We are also computing the bare value from the
 			-- singular stem, and again things can get weird with a plural
@@ -1008,16 +1008,16 @@ function export.do_generate_forms(args, old)
 						else
 							track("unpredictable-reducible")
 						end
-					elseif is_unreducible(sgdc) then
+					elseif is_dereducible(sgdc) then
 						local autobare = export.dereduce_nom_sg_stem(stem, sgdc, stress, old)
 						if not autobare then
-							track("error-unreducible")
+							track("error-dereducible")
 						elseif autobare == bare then
-							track("predictable-unreducible")
+							track("predictable-dereducible")
 						elseif com.make_unstressed(autobare) == com.make_unstressed(bare) then
-							track("predictable-unreducible-but-for-stress")
+							track("predictable-dereducible-but-for-stress")
 						else
-							track("unpredictable-unreducible")
+							track("unpredictable-dereducible")
 						end
 					else
 						track("bare-without-reducibility")
@@ -1054,7 +1054,7 @@ function export.do_generate_forms(args, old)
 								sgdc, stress, old, "error")
 						end
 					end
-				elseif is_unreducible(sgdc) then
+				elseif is_dereducible(sgdc) then
 					resolved_bare = export.dereduce_nom_sg_stem(stem, sgdc,
 						stress, old, "error")
 				else
@@ -1869,7 +1869,7 @@ function export.reduce_nom_sg_stem(stem, decl, can_err)
 	return ret
 end
 
-function is_unreducible(decl_cat)
+function is_dereducible(decl_cat)
 	if decl_cat.suffix or decl_cat.cant_reduce or decl_cat.adj then
 		return false
 	elseif decl_cat.decl == "1st" or decl_cat.decl == "2nd" and decl_cat.g == "n" then
@@ -1882,7 +1882,7 @@ end
 -- Add a possible suffix to the bare stem, according to the declension and
 -- value of OLD. This may be -ь, -ъ, -й or nothing. We need to do this here
 -- because we don't actually attach such a suffix in attach_unstressed() due
--- to situations where we don't want the suffix added, e.g. unreducible nouns
+-- to situations where we don't want the suffix added, e.g. dereducible nouns
 -- in -ня.
 function add_bare_suffix(bare, old, sgdc, dereduced)
 	if old and sgdc.hard == "hard" then

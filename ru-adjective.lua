@@ -79,7 +79,7 @@ TODO:
    simply mean a misc. irregularity; explained on p. 61).
 3. Should non-reducible adjectives in -нный and -нний default to special case
    (1)?
-4. In the case of a non-unreducible short masc sing of stress type b, we don't
+4. In the case of a non-dereducible short masc sing of stress type b, we don't
    currently move the stress to the last syllable. Should we?
 ]=]--
 
@@ -242,7 +242,7 @@ local function generate_forms(args, old, manual)
 
 		-- Set stem and unstressed version. Also construct end-accented version
 		-- of stem if unstressed; needed for short forms of adjectives of
-		-- type -о́й. We do this here before doing the unreduction
+		-- type -о́й. We do this here before doing the dereduction
 		-- transformation so that we don't end up stressing an unstressed
 		-- epenthetic vowel, and so that the previous syllable instead ends
 		-- up stressed (in type -о́й adjectives the stem won't have any stress).
@@ -817,7 +817,7 @@ function construct_bare_and_short_stem(args, short_accent, short_stem,
 	-- is non-syllabic (i.e. short masculine singular of long adjectives,
 	-- and masculine singular of short, mixed and proper adjectives). Comes
 	-- from short masculine or 3rd argument if explicitly given, else from the
-	-- accented stem, possibly with the unreduction transformation applied
+	-- accented stem, possibly with the dereduction transformation applied
 	-- (if * occurs in the short accent spec).
 	local reducible, sc1, sc2
 	if short_accent then
