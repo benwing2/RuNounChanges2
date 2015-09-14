@@ -688,8 +688,6 @@ local function arg1_is_stress(arg1)
 end
 
 function export.do_generate_forms(args, old)
-	local args = clone_args(frame)
-
 	old = old or args.old
 	args.old = old
 
@@ -779,7 +777,7 @@ function export.do_generate_forms(args, old)
 		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
 		decl_class, args.reducible = rsubb(decl_class, "%*", "")
 		decl_class = rsub(decl_class, ";", "")
-		local stem = stem_set[2] or default_stem or args.manual and "-"
+		local stem = args.manual and "-" or stem_set[2] or default_stem
 		if not stem then
 			error("Stem in first stem set must be specified")
 		end
@@ -864,6 +862,14 @@ function export.do_generate_forms(args, old)
 			end
 
 			local function restress_stem(stem, stress, stem_needs_stress)
+				-- If the user has indicated they purposely are leaving the
+				-- word unstressed by putting a * at the beginning of the main
+				-- stem, leave it unstressed. This might indicate lack of
+				-- knowledge of the stress or a truly unaccented word
+				-- (e.g. an unaccented suffix).
+				if allow_unaccented then
+					return stem
+				end
 				-- it's safe to accent monosyllabic stems
 				if com.is_monosyllabic(stem) then
 					stem = com.make_ending_stressed(stem)
@@ -871,16 +877,14 @@ function export.do_generate_forms(args, old)
 				-- nominative (and hence are likely to be expressed without an
 				-- accent on the stem) it's safe to put a particular accent on
 				-- the stem depending on the stress type. Otherwise, give an
-				-- error unless the user has indicated they purposely are
-				-- leaving the word unstressed (e.g. due to not knowing the
-				-- stress) by putting a * at the beginning of the main stem
+				-- error if no accent.
 				elseif stem_needs_stress then
 					if rfind(stress, "^6") then
 						stem = com.make_beginning_stressed(stem)
 					elseif (rfind(stress, "^[24]") or
 						args.n == "p" and ending_stressed_pl_patterns[stress]) then
 						stem = com.make_ending_stressed(stem)
-					elseif not allow_unaccented then
+					else
 						error("Stem " .. stem .. " requires an accent")
 					end
 				end
@@ -889,15 +893,18 @@ function export.do_generate_forms(args, old)
 
 			stem = restress_stem(stem, stress, stem_was_unstressed)
 
-			if pl and com.is_monosyllabic(pl) then
-				pl = com.make_ending_stressed(pl)
-			end
-			-- I think this is safe.
-			if pl and com.is_unstressed(pl) then
-				if ending_stressed_pl_patterns[stress] then
+			-- Leave pl unaccented if user wants this; see restress_stem().
+			if pl and not allow_unaccented then
+				if com.is_monosyllabic(pl) then
 					pl = com.make_ending_stressed(pl)
-				elseif not allow_unaccented then
-					error("Plural stem " .. pl .. " requires an accent")
+				end
+				-- I think this is safe.
+				if com.is_unstressed(pl) then
+					if ending_stressed_pl_patterns[stress] then
+						pl = com.make_ending_stressed(pl)
+					elseif not allow_unaccented then
+						error("Plural stem " .. pl .. " requires an accent")
+					end
 				end
 			end
 
@@ -995,13 +1002,13 @@ function export.do_generate_forms(args, old)
 				resolved_bare = add_bare_suffix(stem_for_bare, old, sgdc, false)
 			end
 
-			if resolved_bare and com.is_monosyllabic(resolved_bare) then
-				resolved_bare = com.make_ending_stressed(resolved_bare)
-			end
-
-			-- Bare should always be stressed
-			if resolved_bare and com.is_unstressed(resolved_bare) and not allow_unaccented then
-				error("Resolved bare stem " .. resolved_bare .. " requires an accent")
+			-- Leave unaccented if user wants this; see restress_stem().
+			if resolved_bare and not allow_unaccented then
+				if com.is_monosyllabic(resolved_bare) then
+					resolved_bare = com.make_ending_stressed(resolved_bare)
+				elseif com.is_unstressed(resolved_bare) then
+					error("Resolved bare stem " .. resolved_bare .. " requires an accent")
+				end
 			end
 
 			args.stem = stem
@@ -1011,7 +1018,7 @@ function export.do_generate_forms(args, old)
 			args.upl = com.make_unstressed_once(args.pl)
 			-- Special hack for любо́вь and other reducible 3rd-fem nouns,
 			-- which have the full stem in the ins sg
-			args.ins_sg_stem = sgdecl == "ь-f" and resolved_bare
+			args.ins_sg_stem = sgdecl == "ь-f" and args.reducible and resolved_bare
 
 			-- Loop over declension classes (we may have two of them, one for
 			-- singular and one for plural, in the case of a mixed declension
@@ -1663,15 +1670,19 @@ end
 -- is inherently ending-stressed or an explicit stress was given. NOTE: This
 -- function is run after alias resolution and accent removal.
 function detect_stress_pattern(decl, stress_arg, was_accented)
-	-- ёнок and ёночек always bear stress
-	-- not anchored to ^ or $ in case of a slash declension and old-style decls
-	if rfind(decl, "ёнок") or rfind(decl, "ёночек") then
+	-- ёнок and ёночек always bear stress; if user specified 1 or a
+	-- Zaliznyak-style, convert to 2
+	-- don't do this in slash patterns, though; FIXME, slash patterns should
+	-- be removed
+	if (stress_arg == "1" or stress_arg == "a") and (rfind(decl, "^ёнокъ?$") or rfind(decl, "^ёночекъ?$")) then
 		return "2"
 	elseif stress_arg then
 		return stress_arg
 	-- stressed suffix и́н; missing in plural and true endings don't bear stress
 	-- (except for exceptional господи́н)
-	elseif rfind(decl, "ин") and was_accented then
+	-- don't do this in slash patterns, though; FIXME, slash patterns should
+	-- be removed
+	elseif rfind(decl, "^инъ?$") and was_accented then
 		return "4"
 	-- Adjectival -ой always bears the stress
 	elseif rfind(decl, "%+ой") then

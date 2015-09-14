@@ -92,7 +92,7 @@ local cases
 local trailing_letter_type
 
 -- FIXME: Remove this
-local test_new_ru_noun_module = true
+local test_new_ru_noun_module = false
 
 local function tracking_code(stress_arg, stress, decl_class,
 		real_decl_class, args)
@@ -312,9 +312,25 @@ local function do_show(frame, old)
 		local m_new_ru_noun = require("Module:User:Benwing2/ru-noun")
 		local newargs = clone_args(frame)
 		newargs = m_new_ru_noun.do_generate_forms(newargs, old)
-		for _, case in ipairs(cases) do
-			if args[case] ~= newargs[case] then
-				track("different-decl")
+		for case in pairs(cases) do
+			local is_pl = rfind(case, "_pl")
+			if args.n == "s" and is_pl or args.n == "p" and not is_pl then
+				-- continue
+			elseif not ut.equals(args[case], newargs[case]) then
+				local monosyl_accent_diff = false
+				if args[case] and newargs[case] and #args[case] == 1 and #newargs[case] == 1 then
+					local val1 = args[case][1]
+					local val2 = newargs[case][1]
+					if com.is_monosyllabic(val1) and com.is_monosyllabic(val2) and com.remove_accents(val1) == com.remove_accents(val2) then
+						monosyl_accent_diff = true
+					end
+				end
+				if monosyl_accent_diff then
+					track("monosyl-accent-diff")
+				else
+					-- error(case .. " " .. (args[case] and table.concat(args[case], ",") or "nil") .. " " .. (newargs[case] and table.concat(newargs[case], ",") or "nil"))
+					track("different-decl")
+				end
 				break
 			end
 		end
@@ -1263,13 +1279,18 @@ function handle_forms_and_overrides(args)
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.sgtail
 			end
 		end
-		if args.pltail and ispl and args.forms[case] then
+		if ispl and args.forms[case] then
 			local lastarg = #(args.forms[case])
-			if lastarg > 0 then
+			if lastarg > 0 and args.pltailall then
+				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltailall
+			end
+			if lastarg > 1 and args.pltail then
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltail
 			end
 		end
 		if args[case] then
+			-- clean <br /> that's in many multi-form entries and messes up linking
+			args[case] = rsub(args[case], "<br%s*/>", "")
 			args[case] = rsub(args[case], "~", ispl and args.pl or args.stem)
 		end
 		args[case] = args[case] and rsplit(args[case], "%s*,%s*") or args.forms[case]
