@@ -202,6 +202,10 @@ TODO:
 7v. FIXME: Make the check for multiple stress patterns (categorizing/tracking)
    smarter, to keep a list of them and check at the end, so we handle
    multiple stress patterns specified through different arg sets.
+7w. FIXME: override_matches_suffix() had a free variable reference to ARGS
+   in it, which should have triggered an error whenever there was a nom_sg or
+   nom_pl override but didn't. Is there an error causing this never to be
+   called? Check.
 8. [Get error "Unable to dereduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
@@ -570,12 +574,12 @@ local function categorize(stress, decl_class, args)
 	-- Check whether an override for nom_sg or nom_pl still contains the
 	-- normal suffix (which should already have accents removed) in at least
 	-- one of its entries. If no override then of course we return true.
-	local function override_matches_suffix(override, suffix, ispl)
+	local function override_matches_suffix(args, case, suffix)
+		assert(suffix == com.remove_accents(suffix))
+		local override = canonicalize_override(args, case)
 		if not override then
 			return true
 		end
-		assert(suffix == com.remove_accents(suffix))		
-		override = canonicalize_override(override, args, ispl)
 		for _, x in ipairs(override) do
 			local entry, notes = m_table_tools.get_notes(x)
 			entry = com.remove_accents(m_links.remove_links(entry))
@@ -653,7 +657,7 @@ local function categorize(stress, decl_class, args)
 		sgsuffix = com.remove_accents(sgsuffix[1])
 		-- If we are a plurale tantum or if nom_sg is overridden and has
 		-- an unusual suffix, then don't create category for sg suffix
-		if args.n == "p" or not override_matches_suffix(args["nom_sg"], sgsuffix, false) then
+		if args.n == "p" or not override_matches_suffix(args, "nom_sg", sgsuffix) then
 			sgsuffix = nil
 		end
 	end
@@ -663,7 +667,7 @@ local function categorize(stress, decl_class, args)
 		plsuffix = com.remove_accents(plsuffix[1])
 		-- If we are a singulare tantum or if nom_pl is overridden and has
 		-- an unusual suffix, then don't create category for pl suffix
-		if args.n == "s" or not override_matches_suffix(args["nom_pl"], plsuffix, true) then
+		if args.n == "s" or not override_matches_suffix(args, "nom_pl", plsuffix) then
 			plsuffix = nil
 		end
 	end
@@ -849,9 +853,8 @@ function export.do_generate_forms(args, old)
 		if was_plural then
 			args.n = args.n or "p"
 		end
-		local allow_unaccented
-		stem, allow_unaccented = rsubb(stem, "^%*", "")
-		if not allow_unaccented and not stress_arg and was_autodetected and com.needs_accents(orig_stem) then
+		stem, args.allow_unaccented = rsubb(stem, "^%*", "")
+		if not args.allow_unaccented and not stress_arg and was_autodetected and com.needs_accents(orig_stem) then
 			-- If user gave the full word and expects us to determine the
 			-- declension and stress, the word should have an accent on the
 			-- stem or ending. We have a separate check farther below for
@@ -926,7 +929,7 @@ function export.do_generate_forms(args, old)
 				-- stem, leave it unstressed. This might indicate lack of
 				-- knowledge of the stress or a truly unaccented word
 				-- (e.g. an unaccented suffix).
-				if allow_unaccented then
+				if args.allow_unaccented then
 					return stem
 				end
 				-- it's safe to accent monosyllabic stems
@@ -953,7 +956,7 @@ function export.do_generate_forms(args, old)
 			stem = restress_stem(stem, stress, stem_was_unstressed)
 
 			-- Leave pl unaccented if user wants this; see restress_stem().
-			if pl and not allow_unaccented then
+			if pl and not args.allow_unaccented then
 				if com.is_monosyllabic(pl) then
 					pl = com.make_ending_stressed(pl)
 				end
@@ -961,7 +964,7 @@ function export.do_generate_forms(args, old)
 				if com.is_unstressed(pl) then
 					if ending_stressed_pl_patterns[stress] then
 						pl = com.make_ending_stressed(pl)
-					elseif not allow_unaccented then
+					elseif not args.allow_unaccented then
 						error("Plural stem " .. pl .. " requires an accent")
 					end
 				end
@@ -1062,7 +1065,7 @@ function export.do_generate_forms(args, old)
 			end
 
 			-- Leave unaccented if user wants this; see restress_stem().
-			if resolved_bare and not allow_unaccented then
+			if resolved_bare and not args.allow_unaccented then
 				if com.is_monosyllabic(resolved_bare) then
 					resolved_bare = com.make_ending_stressed(resolved_bare)
 				elseif com.is_unstressed(resolved_bare) then
@@ -2895,14 +2898,28 @@ cases = {
 -- to separate off any trailing "notes" (asterisks, superscript numbers, etc.),
 -- and m_links.remove_links() to remove any links to get the raw override
 -- form.
-function canonicalize_override(val, args, ispl)
+function canonicalize_override(args, case)
+	local val = args[case]
 	if val then
 		-- clean <br /> that's in many multi-form entries and messes up linking
 		val = rsub(val, "<br%s*/>", "")
-		local stem = ispl and args.pl or args.stem
+		local stem = rfind(case, "_pl") and args.pl or args.stem
 		val = rsub(val, "~~", com.make_unstressed_once(stem))
 		val = rsub(val, "~", stem)
 		val = rsplit(val, "%s*,%s*")
+		local newvals = {}
+		for _, v in ipairs(val) do
+			if not args.allow_unaccented then
+				-- it's safe to accent monosyllabic stems
+				if com.is_monosyllabic(v) then
+					v = com.make_ending_stressed(v)
+				elseif not com.is_stressed(v) then
+					error("Override " .. v .. " for case " .. case .. " requires an accent")
+				end
+			end
+			table.insert(newvals, v)
+		end
+		val = newvals
 	end
 	return val
 end
@@ -2935,7 +2952,7 @@ function handle_forms_and_overrides(args)
 			end
 		end
 		if args[case] then
-			args[case] = canonicalize_override(args[case], args, ispl)
+			args[case] = canonicalize_override(args, case)
 		else
 			args[case] = args.forms[case]
 		end
