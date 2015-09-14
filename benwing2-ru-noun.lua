@@ -189,6 +189,7 @@ TODO:
    о/-ья like we do for feminine, masculine soft, etc. nouns.
 7r. FIXME: Implement check for bare argument specified when neither nominative
    singular nor genitive plural makes use of bare.
+7s. FIXME: ADJECTIVE MODULE: Add categories for short-adjective accent patterns.
 8. [Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
@@ -225,12 +226,12 @@ TODO:
 19. Fixes for stem-multi-syllabic words with ending stress in gen pl but
    non-syllabic gen pl, with stress transferring onto final syllable even if
    stem is otherwise stressed on an earlier syllable (e.g. голова́ in
-   accent pattern 6, nom pl го́ловы, gen pl голо́в). Currently these are handled
+   accent pattern f, nom pl го́ловы, gen pl голо́в). Currently these are handled
    by overriding "bare" but I want to make bare predictable mostly, just
    specifying that the noun is reducible should be enough. [IMPLEMENTED
    IN WIKTIONARY. SHOULD REMOVE THE TRACKING CODE.]
-20. If decl omitted, it should default to 1 or 2 depending on whether accent
-   is on stem or ending, not always 1. [IMPLEMENTED. TESTED.]
+20. If stress omitted, it should default to a or b depending on whether accent
+   is on stem or ending, not always a. [IMPLEMENTED. TESTED.]
 21. Should recognize plural in the auto-detection code when the gender is set.
    [IMPLEMENTED. TESTED.]
 22. Issue an error unless allow_no_accent is given (using a * at the beginning
@@ -442,7 +443,7 @@ local test_new_ru_noun_module = false
 -- FIXME!! Delete most of this tracking code once we've enabled all the
 -- categories. Note that some of the tracking categories aren't redundant;
 -- in particular, we have more specific categories that combine
--- decl and stress classes, such as "а/5" or "о-ья/4*"; we also have
+-- decl and stress classes, such as "а/a" or "о-ья/d'"; we also have
 -- the same prefixed by "reducible-stem/" for reducible stems.
 local function tracking_code(stress, decl_class, real_decl_class, args)
 	assert(decl_class)
@@ -704,23 +705,23 @@ end
 --------------------------------------------------------------------------
 
 -- FIXME! Properly support b', f''
-local zaliznyak_to_our_stress_pattern = {
-	["a"] = "1",
-	["b"] = "2",
-	["b'"] = "2",
-	["c"] = "3",
-	["d"] = "4",
-	["d'"] = "4*",
-	["e"] = "5",
-	["f"] = "6",
-	["f'"] = "6*",
-	["f''"] = "6*",
+local numbered_to_zaliznyak_stress_pattern = {
+	["1"] = "a",
+	["2"] = "b",
+	["2"] = "b'",
+	["3"] = "c",
+	["4"] = "d",
+	["4*"] = "d'",
+	["5"] = "e",
+	["6"] = "f",
+	["6*"] = "f'",
+	["6*"] = "f''",
 }
 
 local function arg1_is_stress(arg1)
 	if not arg1 then return false end
 	for _, arg in ipairs(rsplit(arg1, ",")) do
-		if not (rfind(arg, "^[1-6]%*?$") or rfind(arg, "^[a-f]'?'?$")) then
+		if not (rfind(arg, "^[a-f]'?'?$") or rfind(arg, "^[1-6]%*?$")) then
 			return false
 		end
 	end
@@ -846,19 +847,23 @@ function export.do_generate_forms(args, old)
 			-- stressed, as would otherwise happen.
 			error("Stem must have an accent in it: " .. orig_stem)
 		end
-		stress_arg = detect_stress_pattern(decl_class, stress_arg, was_accented)
-
-		-- validate/canonicalize stress arg and convert to list
-		stress_arg = rsplit(stress_arg, ",")
-		for i=1,#stress_arg do
-			stress_arg[i] = zaliznyak_to_our_stress_pattern[stress_arg[i]] or
-				stress_arg[i]
-		end
-		for _, stress in ipairs(stress_arg) do
-			if not stress_patterns[stress] then
-				error("Unrecognized accent pattern " .. stress)
+		if not stress_arg then
+			stress_arg = detect_stress_pattern(decl_class, was_accented)
+		else
+			-- validate/canonicalize stress arg, override in certain cases
+			-- and convert to list
+			stress_arg = rsplit(stress_arg, ",")
+			for i=1,#stress_arg do
+				local stress = stress_arg[i]
+				stress = override_stress_pattern(decl_class, stress)
+				stress = numbered_to_zaliznyak_stress_pattern[stress] or stress
+				if not stress_patterns[stress] then
+					error("Unrecognized accent pattern " .. stress)
+				end
+				stress_arg[i] = stress
 			end
 		end
+
 		-- convert decl type to list
 		local sub_decl_classes
 		if rfind(decl_class, "/") then
@@ -919,9 +924,9 @@ function export.do_generate_forms(args, old)
 				-- the stem depending on the stress type. Otherwise, give an
 				-- error if no accent.
 				elseif stem_needs_stress then
-					if rfind(stress, "^6") then
+					if rfind(stress, "^f") then
 						stem = com.make_beginning_stressed(stem)
-					elseif (rfind(stress, "^[24]") or
+					elseif (rfind(stress, "^[bd]") or
 						args.n == "p" and ending_stressed_pl_patterns[stress]) then
 						stem = com.make_ending_stressed(stem)
 					else
@@ -957,8 +962,8 @@ function export.do_generate_forms(args, old)
 			-- handle that. We are also computing the bare value from the
 			-- singular stem, and again things can get weird with a plural
 			-- stem. Note that we don't compute a bare value unless we have
-			-- to (either (un)reducible or stress pattern 6/6* combined with
-			-- ё special case); the remaining times we generate the bare
+			-- to (either (un)reducible or stress pattern f/f'/f'' combined
+			-- with ё special case); the remaining times we generate the bare
 			-- value directly from the plural stem.
 			if bare then
 				-- FIXME: Tracking code eventually to remove; track cases
@@ -1023,7 +1028,7 @@ function export.do_generate_forms(args, old)
 						-- plural stem probably сапо́жк- and gen pl probably
 						-- сапо́жек.)
 						stem = restress_stem(stem, stress, com.is_unstressed(stem))
-						if stress ~= "1" and stress ~= "2" and args.alt_gen_pl and not pl then
+						if stress ~= "a" and stress ~= "b" and args.alt_gen_pl and not pl then
 							-- Nouns like рожо́к, глазо́к of type 3*d(2) have
 							-- gen pl's ро́жек, гла́зок; to handle this,
 							-- unreduce the reduced stem and store in a
@@ -1199,17 +1204,6 @@ local zaliznyak_stem_type = {
 	["3rd-declension"] = "8",
 }
 
-local zaliznyak_stress_pattern = {
-	["1"] = "a",
-	["2"] = "b (b' for 3rd-declension feminine nouns)",
-	["3"] = "c",
-	["4"] = "d",
-	["4*"] = "d'",
-	["5"] = "e",
-	["6"] = "f",
-	["6*"] = "f' (f'' for 3rd-declension feminine nouns)",
-}
-
 local stem_gender_endings = {
     masculine = {
 		["hard-stem"]      = {"a hard consonant (-ъ old-style)", "-ы"},
@@ -1276,7 +1270,7 @@ function export.catboiler(frame)
 			error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type accent-1 nominals\"")
 		end
 		local stem_gender_text = get_stem_gender_text(stem, gender)
-		local accent_text = " This nominal is stressed according to accent pattern " .. stress .. ", corresponding to Zaliznyak's type " .. zaliznyak_stress_pattern[stress] .. "."
+		local accent_text = " This nominal is stressed according to accent pattern " .. stress .. "."
 		maintext = stem_gender_text .. accent_text
 		insert_category(cats, "~ by stem type, gender and accent pattern")
 	elseif args[1] == "stemgender" then
@@ -1310,12 +1304,11 @@ function export.catboiler(frame)
 			possessive = ""
 			stemtext = " The stem ends in " .. stem_expl[stem] .. " and is Zaliznyak's type " .. zaliznyak_stem_type[stem] .. "."
 		end
-		local stresstext = stress == "1" and
-			"This nominal is stressed according to accent pattern 1 (stress on the stem), corresponding to Zaliznyak's type a." or
-			stress == "2" and
-			"This nominal is stressed according to accent pattern 2 (stress on the ending), corresponding to Zaliznyak's type b." or
-			"All nominals of this class are stressed according to accent pattern 1 (stress on the stem), corresponding to Zaliznyak's type a."
-		local decl = stress == "1"
+		local stresstext = stress == "a" and
+			"This nominal is stressed according to accent pattern a (stress on the stem)." or
+			stress == "b" and
+			"This nominal is stressed according to accent pattern b (stress on the ending)." or
+			"All nominals of this class are stressed according to accent pattern a (stress on the stem)."
 		maintext = stem .. " " .. gender .. " ~, with " .. possessive .. "adjectival endings, ending in nominative singular " .. args[2] .. " and nominative plural " .. args[3] .. "." .. stemtext .. " " .. stresstext
 		insert_category(cats, "~ by stem type, gender and accent pattern")
 	elseif args[1] == "sg" then
@@ -1328,7 +1321,7 @@ function export.catboiler(frame)
 		maintext = "~ ending in nominative singular " .. args[2] .. " and nominative plural " .. args[3] .. "."
 		insert_category(cats, "~ by singular and plural ending")
 	elseif args[1] == "stress" then
-		maintext = "~ with accent pattern " .. args[2] .. ", corresponding to Zaliznyak's type " .. zaliznyak_stress_pattern[args[2]] .. "."
+		maintext = "~ with accent pattern " .. args[2] .. "."
 		insert_category(cats, "~ by accent pattern")
 	elseif args[1] == "extracase" then
 		maintext = "~ with a separate " .. args[2] .. " singular case."
@@ -1739,37 +1732,55 @@ function detect_adj_type(lemma, decl, old)
 	return base, canonicalize_decl(decl, old), was_accented, was_plural, was_autodetected
 end
 
--- Detect stress pattern based on whether ending is stressed, the decl class
--- is inherently ending-stressed or an explicit stress was given. NOTE: This
--- function is run after alias resolution and accent removal.
-function detect_stress_pattern(decl, stress_arg, was_accented)
-	-- ёнок and ёночек always bear stress; if user specified 1 or a
-	-- Zaliznyak-style, convert to 2
-	-- don't do this in slash patterns, though; FIXME, slash patterns should
-	-- be removed
-	if (stress_arg == "1" or stress_arg == "a") and (rfind(decl, "^ёнокъ?$") or rfind(decl, "^ёночекъ?$")) then
-		return "2"
-	elseif stress_arg then
-		return stress_arg
+-- If stress pattern omitted, detect it based on whether ending is stressed
+-- or the decl class calls for inherent stress. This is run after alias
+-- resolution and accent removal of DECL; WAS_ACCENTED indicates whether
+-- the ending was originally stressed. FIXME: This is run before splitting
+-- slash patterns but should be run after.
+function detect_stress_pattern(decl, was_accented)
+	-- ёнок and ёночек always bear stress
+	if rfind(decl, "ёнокъ?") or rfind(decl, "ёночекъ?") then
+		return "b"
 	-- stressed suffix и́н; missing in plural and true endings don't bear stress
 	-- (except for exceptional господи́н)
-	-- don't do this in slash patterns, though; FIXME, slash patterns should
-	-- be removed
-	elseif rfind(decl, "^инъ?$") and was_accented then
-		return "4"
+	elseif rfind(decl, "инъ?") and was_accented then
+		return "d"
 	-- Adjectival -ой always bears the stress
 	elseif rfind(decl, "%+ой") then
-		return "2"
-	-- Finally, class 2 if ending was accented by user
+		return "b"
+	-- Finally, pattern b if ending was accented by user
 	elseif was_accented then
-		return "2"
+		return "b"
 	else
-		return "1"
+		return "a"
 	end
 end
 
+-- In certain special cases, depending on the declension, we override the
+-- user-specified stress pattern and convert it to something else.
+-- NOTE: This function is run after alias resolution and accent removal,
+-- but before canonicalizing the stress pattern from numbered to
+-- Zaliznyak-style. FIXME: It's also run before splitting slash patterns
+-- but should be run after.
+function override_stress_pattern(decl, stress)
+	-- ёнок and ёночек always bear stress; if user specified a or 1,
+	-- convert to b. Don't do this with slash patterns (see FIXME above).
+	if (stress == "a" or stress == "1") and (rfind(decl, "^ёнокъ?$") or rfind(decl, "^ёночекъ?$")) then
+		return "b"
+	-- For compatibility, numbered pattern 2 can expand to either b or b';
+	-- similarly, 6* can expand to either f' or f''.
+	elseif rfind(decl, "^ь-f") then
+		if stress == "2" then
+			return "b'"
+		elseif stress == "6*" then
+			return "f''"
+		end
+	end
+	return stress
+end
+
 function determine_stress_variant(decl, stress)
-	if stress == "2" then
+	if stress == "b" then
 		if decl == "+ая" then
 			return "+а́я"
 		elseif decl == "+ое" then
@@ -1865,7 +1876,7 @@ function add_bare_suffix(bare, old, sgdc, unreduced)
 		-- trailing -ь. It appears to apply to most nouns in -ня (possibly
 		-- all in -льня), but ку́хня (gen pl ку́хонь) and дерéвня (gen pl
 		-- дереве́нь) is an exception. (Vitalik's module has an extra
-		-- condition here 'stress == "1"' that would exlucde дере́вня but I
+		-- condition here 'stress == "a"' that would exlucde дере́вня but I
 		-- don't think this condition is in Zaliznyak, as he indicates
 		-- дере́вня as having an exceptional genitive plural.)
 		if unreduced and rfind(bare, "[нН]$") and sgdc.decl == "1st" then
@@ -2166,8 +2177,8 @@ declensions_old["ья"] = {
 	["nom_pl"] = "ьи́",
 	["gen_pl"] = function(stem, stress)
 		-- circumflex accent is a signal that forces stress, particularly
-		-- in accent pattern 4.
-		return (ending_stressed_gen_pl_patterns[stress] or stress == "4" or stress == "4*") and "е̂й" or "ий"
+		-- in accent pattern d/d'.
+		return (ending_stressed_gen_pl_patterns[stress] or stress == "d" or stress == "d'") and "е̂й" or "ий"
 	end,
 	["dat_pl"] = "ья́мъ",
 	["acc_pl"] = nil,
@@ -2335,7 +2346,7 @@ declensions_old["ь-f"] = {
 	["gen_sg"] = "и́",
 	["dat_sg"] = "и́",
 	["acc_sg"] = "ь",
-	["ins_sg"] = "ью", -- note no stress, will always trigger stem stress even in classes 2/4/6
+	["ins_sg"] = "ью́",
 	["pre_sg"] = "и́",
 	["nom_pl"] = "и́",
 	["gen_pl"] = "е́й",
@@ -2773,51 +2784,61 @@ function do_stress_pattern(stress, args, decl, number)
 	end
 end
 
-stress_patterns["1"] = {
+stress_patterns["a"] = {
 	nom_sg="-", gen_sg="-", dat_sg="-", acc_sg="-", ins_sg="-", pre_sg="-",
 	nom_pl="-", gen_pl="-", dat_pl="-", acc_pl="-", ins_pl="-", pre_pl="-",
 }
 
-stress_patterns["2"] = {
+stress_patterns["b"] = {
 	nom_sg="+", gen_sg="+", dat_sg="+", acc_sg="+", ins_sg="+", pre_sg="+",
 	nom_pl="+", gen_pl="+", dat_pl="+", acc_pl="+", ins_pl="+", pre_pl="+",
 }
 
-stress_patterns["3"] = {
+stress_patterns["b'"] = {
+	nom_sg="+", gen_sg="+", dat_sg="+", acc_sg="+", ins_sg="-", pre_sg="+",
+	nom_pl="+", gen_pl="+", dat_pl="+", acc_pl="+", ins_pl="+", pre_pl="+",
+}
+
+stress_patterns["c"] = {
 	nom_sg="-", gen_sg="-", dat_sg="-", acc_sg="-", ins_sg="-", pre_sg="-",
 	nom_pl="+", gen_pl="+", dat_pl="+", acc_pl="+", ins_pl="+", pre_pl="+",
 }
 
-stress_patterns["4"] = {
+stress_patterns["d"] = {
 	nom_sg="+", gen_sg="+", dat_sg="+", acc_sg="+", ins_sg="+", pre_sg="+",
 	nom_pl="-", gen_pl="-", dat_pl="-", acc_pl="-", ins_pl="-", pre_pl="-",
 }
 
-stress_patterns["4*"] = {
+stress_patterns["d'"] = {
 	nom_sg="+", gen_sg="+", dat_sg="+", acc_sg="-", ins_sg="+", pre_sg="+",
 	nom_pl="-", gen_pl="-", dat_pl="-", acc_pl="-", ins_pl="-", pre_pl="-",
 }
 
-stress_patterns["5"] = {
+stress_patterns["e"] = {
 	nom_sg="-", gen_sg="-", dat_sg="-", acc_sg="-", ins_sg="-", pre_sg="-",
 	nom_pl="-", gen_pl="+", dat_pl="+", acc_pl="+", ins_pl="+", pre_pl="+",
 }
 
-stress_patterns["6"] = {
+stress_patterns["f"] = {
 	nom_sg="+", gen_sg="+", dat_sg="+", acc_sg="+", ins_sg="+", pre_sg="+",
 	nom_pl="-", gen_pl="+", dat_pl="+", acc_pl="+", ins_pl="+", pre_pl="+",
 }
 
-stress_patterns["6*"] = {
+stress_patterns["f'"] = {
 	nom_sg="+", gen_sg="+", dat_sg="+", acc_sg="-", ins_sg="+", pre_sg="+",
 	nom_pl="-", gen_pl="+", dat_pl="+", acc_pl="+", ins_pl="+", pre_pl="+",
 }
 
-ending_stressed_gen_pl_patterns = ut.list_to_set({"2", "3", "5", "6", "6*"})
-ending_stressed_pre_sg_patterns = ut.list_to_set({"2", "4", "4*", "6", "6*"})
+stress_patterns["f''"] = {
+	nom_sg="+", gen_sg="+", dat_sg="+", acc_sg="+", ins_sg="-", pre_sg="+",
+	nom_pl="-", gen_pl="+", dat_pl="+", acc_pl="+", ins_pl="+", pre_pl="+",
+}
+
+ending_stressed_gen_pl_patterns = ut.list_to_set({"b", "b'", "c", "e", "f", "f'", "f''"})
+ending_stressed_pre_sg_patterns = ut.list_to_set({"b", "b'", "d", "d'", "f", "f'", "f''"})
 ending_stressed_dat_sg_patterns = ending_stressed_pre_sg_patterns
 ending_stressed_sg_patterns = ending_stressed_pre_sg_patterns
-ending_stressed_pl_patterns = ut.list_to_set({"2", "3"})
+ending_stressed_pl_patterns = ut.list_to_set({"b", "b'", "c"})
 
 local after_titles = {
 	["a"] = " (animate)",
