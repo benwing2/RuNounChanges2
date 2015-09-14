@@ -14,9 +14,11 @@ local uupper = mw.ustring.upper
 local usub = mw.ustring.sub
 
 local AC = u(0x0301) -- acute =  ́
+local GR = u(0x0300) -- grave =  ̀
 
-export.vowel = "аеиоуяэыёюіѣѵАЕИОУЯЭЫЁЮІѢѴ"
-export.vowel_no_jo = "аеиоуяэыюіѣѵАЕИОУЯЭЫЮІѢѴ" -- omit ёЁ
+export.composed_grave_vowel = "ѐЀѝЍ"
+export.vowel_no_jo = "аеиоуяэыюіѣѵАЕИОУЯЭЫЮІѢѴ" .. export.composed_grave_vowel -- omit ёЁ
+export.vowel = export.vowel_no_jo .. "ёЁ"
 export.cons_except_sib_c = "бдфгйклмнпрствхзьъБДФГЙКЛМНПРСТВХЗЬЪ"
 export.sib = "шщчжШЩЧЖ"
 export.sib_c = export.sib .. "цЦ"
@@ -82,7 +84,8 @@ end
 
 function export.is_stressed(word)
 	-- A word that has ё in it is inherently stressed.
-	return rfind(word, "[ёЁ́]")
+	-- diaeresis occurs in сѣ̈дла plural of сѣдло́
+	return rfind(word, "[́̈ёЁ]")
 end
 
 function export.is_unstressed(word)
@@ -98,15 +101,18 @@ function export.is_monosyllabic(word)
 	return not rfind(word, "[" .. export.vowel .. "].*[" .. export.vowel .. "]")
 end
 
-local deaccenter = {
-    [AC] = "", -- acute accent
+
+local grave_deaccenter = {
     ["̀"] = "", -- grave accent
-    ["̈"] = "", -- diaeresis
     ["ѐ"] = "е", -- composed Cyrillic chars w/grave accent
     ["Ѐ"] = "Е",
     ["ѝ"] = "и",
     ["Ѝ"] = "И",
 }
+
+local deaccenter = mw.clone(grave_deaccenter)
+deaccenter[AC] = "" -- acute accent
+deaccenter["̈"] = "" -- diaeresis
 
 function export.remove_accents(word)
 	-- remove acute, grave and diaeresis (but not affecting composed ёЁ)
@@ -137,22 +143,30 @@ function export.remove_jo(word)
 end
 
 function export.make_unstressed_once(word)
-    return rsub(word, "([̀́̈ёЁѐЀѝЍ])([^́̀̈ёЁѐЀѝЍ]*)$", function(x, rest) return destresser[x] .. rest; end, 1)
+	-- leave graves alone
+    return rsub(word, "([́̈ёЁ])([^́̈ёЁ]*)$", function(x, rest) return destresser[x] .. rest; end, 1)
 end
 
 function export.make_unstressed_once_at_beginning(word)
-    return rsub(word, "^([^́̀ёЁѐЀѝЍ]*)([̀́̈ёЁѐЀѝЍ])", function(rest, x) return rest .. destresser[x]; end, 1)
+	-- leave graves alone
+    return rsub(word, "^([^́̈ёЁ]*)([́̈ёЁ])", function(rest, x) return rest .. destresser[x]; end, 1)
+end
+
+function export.correct_grave_acute_clash(word)
+	word = rsub(word, "([̀ѐЀѝЍ])́", function(x) return grave_deaccenter[x] .. AC; end)
+	return rsub(word, AC .. GR, AC)
 end
 
 function export.make_ending_stressed(word)
 	-- If already ending stressed, just return word so we don't mess up ё 
 	if rfind(word, "[ёЁ][^" .. export.vowel .. "]*$") or
-		rfind(word, "[" .. export.vowel .. "]́[^" .. export.vowel .. "]*$") then
+		rfind(word, "[" .. export.vowel .. "][́̈][^" .. export.vowel .. "]*$") then
 		return word
 	end
 	word = export.make_unstressed_once(word)
-	return rsub(word, "([" .. export.vowel_no_jo .. "])([^" .. export.vowel .. "]*)$",
+	word = rsub(word, "([" .. export.vowel_no_jo .. "])([^" .. export.vowel .. "]*)$",
 		"%1́%2")
+	return export.correct_grave_acute_clash(word)
 end
 
 function export.make_beginning_stressed(word)
@@ -162,8 +176,9 @@ function export.make_beginning_stressed(word)
 		return word
 	end
 	word = export.make_unstressed_once_at_beginning(word)
-	return rsub(word, "^([^" .. export.vowel .. "]*)([" .. export.vowel_no_jo .. "])",
+	word = rsub(word, "^([^" .. export.vowel .. "]*)([" .. export.vowel_no_jo .. "])",
 		"%1%2́")
+	return export.correct_grave_acute_clash(word)
 end
 
 -- used for tracking and categorization
