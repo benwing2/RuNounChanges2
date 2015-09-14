@@ -189,7 +189,9 @@ TODO:
    о/-ья like we do for feminine, masculine soft, etc. nouns.
 7r. FIXME: Implement check for bare argument specified when neither nominative
    singular nor genitive plural makes use of bare.
-7s. FIXME: ADJECTIVE MODULE: Add categories for short-adjective accent patterns.
+7s. FIXME: ADJECTIVE MODULE: Add categories for short-adjective accent
+   patterns.
+7t. FIXME: Rename "stem set" to "arg set" and "unreduce" to "dereduce".
 8. [Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
