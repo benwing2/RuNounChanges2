@@ -1315,7 +1315,7 @@ local stem_gender_endings = {
 		["soft-stem"]      = {"-е", "-я"},
 		["i-stem"]         = {"-е", "-я"},
 		["vowel-stem"]     = {"-е", "-я"},
-		["3rd-declension"] = {"-мя", "-мена or -мёна"},
+		["3rd-declension"] = {"-мя", "-мена"},
 	},
 }
 
