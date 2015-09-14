@@ -210,8 +210,7 @@ TODO:
    UNDER "pointless-bare". NEED TO TEST.]
 7s. ADJECTIVE MODULE: Add categories for short-adjective accent
    patterns. [IMPLEMENTED.]
-7t. FIXME: Rename "stem set" to "arg set" and "unreduce" to "dereduce".
-   [IMPLEMENTED UNREDUCE->DEREDUCE.]
+7t. Rename "unreduce" to "dereduce". [IMPLEMENTED.]
 7u. FIXME: Change stress-pattern detection and overriding to happen inside of
    looping over the two parts of a slash decl. Requires that the loop over
    the two parts happen outside of the loop over stress patterns. Requires
@@ -228,6 +227,9 @@ TODO:
 7x. FIXME: With pluralia tantum adjectival nouns, we don't know the gender.
    By default we assume masculine (or feminine for old-style -ія nouns) and
    currently this goes into the category, but shouldn't.
+7y. [FIXME: Consider renaming "stem set" to something else. I proposed
+   "arg set" but that's maybe too generic. Maybe "declension arg set" or
+   "declension arg group" or "declension group"?]
 8. [Get error "Unable to dereduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
@@ -255,7 +257,8 @@ TODO:
 16. Remove barepl, make pl= be 5th argument. [IMPLEMENTED IN WIKTIONARY.]
 17. [Add accent pattern for ь-stem numbers. Wikitiki handled that through
    overriding the ins_sg. I thought there would be complications with the
-   nom_sg in multi-syllabic words but no.] [MIGHT NOT IMPLEMENT.]
+   nom_sg in multi-syllabic words but no.] [INSTEAD, DISTINGUISHED b from b',
+   f' from f''. CAN USE PLAIN b.]
 18. Eliminate complicated defaulting code for second and further stem sets.
    Should simply default to same values as the first stem set does, without
    the first stem set serving as defaults for the remainder, except that
