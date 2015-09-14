@@ -385,7 +385,7 @@ local declensions = {}
 -- 'enable_categories' is a special hack for testing, which disables all
 -- category insertion if false. Delete this as soon as we've verified the
 -- working of the category code and created all the necessary categories.
-local enable_categories = true
+local enable_categories = false
 -- Whether to recognize plural stem forms given the gender.
 local recognize_plurals = true
 -- Category/type info corresponding to old-style declensions; see above.
