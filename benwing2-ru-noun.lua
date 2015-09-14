@@ -750,18 +750,15 @@ end
 --                              Main code                               --
 --------------------------------------------------------------------------
 
--- FIXME! Properly support b', f''
 local numbered_to_zaliznyak_stress_pattern = {
 	["1"] = "a",
 	["2"] = "b",
-	["2"] = "b'",
 	["3"] = "c",
 	["4"] = "d",
 	["4*"] = "d'",
 	["5"] = "e",
 	["6"] = "f",
 	["6*"] = "f'",
-	["6*"] = "f''",
 }
 
 local function arg1_is_stress(arg1)
