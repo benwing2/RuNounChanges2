@@ -201,7 +201,7 @@ end
 --------------------------------------------------------------------------
 
 -- Implementation of main entry point
-local function generate_forms(args, old, manual)
+local function generate_forms(args, old)
 	PAGENAME = mw.title.getCurrentTitle().text
 	SUBPAGENAME = mw.title.getCurrentTitle().subpageText
 	NAMESPACE = mw.title.getCurrentTitle().nsText
@@ -219,11 +219,12 @@ local function generate_forms(args, old, manual)
 	end
 
 	local overall_short_forms_allowed
-	local decl_types = manual and "-" or args[2] or ""
+	local manual = args[2] == "manual"
+	local decl_types = manual and "$" or args[2] or ""
 	for _, decl_type in ipairs(rsplit(decl_types, ",")) do
 		local lemma
 		if manual then
-			lemma = ""
+			lemma = "-"
 		elseif not args[1] then
 			error("Lemma (first argument) must be specified")
 		else
@@ -349,9 +350,9 @@ local function generate_forms(args, old, manual)
 end
 
 -- Implementation of main entry point
-local function do_show(frame, old, manual)
+local function do_show(frame, old)
 	local args = clone_args(frame)
-	local args = generate_forms(args, old, manual)
+	local args = generate_forms(args, old)
 	return make_table(args) .. m_utilities.format_categories(args.categories, lang)
 end
 
@@ -363,16 +364,6 @@ end
 -- The main entry point for old declension tables.
 function export.show_old(frame)
 	return do_show(frame, true)
-end
-
--- The main entry point for manual declension tables.
-function export.show_manual(frame)
-	return do_show(frame, false, "manual")
-end
-
--- The main entry point for manual old declension tables.
-function export.show_manual_old(frame)
-	return do_show(frame, true, "manual")
 end
 
 -- Entry point for use in Module:ru-noun.
@@ -533,7 +524,7 @@ function categorize(decl_type, args, orig_short_accent, short_accent,
 		insert_cat("mixed possessive ~")
 	elseif ut.contains({"proper", "stressed-proper"}) then
 		insert_cat("proper-name ~")
-	elseif decl_type == "-" then
+	elseif decl_type == "$" then
 		insert_cat("invariable ~")
 	else
 		local hint_types = com.get_stem_trailing_letter_type(args.stem)
@@ -1066,26 +1057,26 @@ internal_notes_table_old["proper"] = "<sup>1</sup> Rare."
 internal_notes_table["stressed-proper"] = "<sup>1</sup> Rare."
 internal_notes_table_old["stressed-proper"] = "<sup>1</sup> Rare."
 
-declensions["-"] = {
-	["nom_m"] = "-",
-	["nom_n"] = "-",
-	["nom_f"] = "-",
-	["nom_p"] = "-",
-	["gen_m"] = "-",
-	["gen_f"] = "-",
-	["gen_p"] = "-",
-	["dat_m"] = "-",
-	["dat_f"] = "-",
-	["dat_p"] = "-",
-	["acc_f"] = "-",
+declensions["$"] = {
+	["nom_m"] = "",
+	["nom_n"] = "",
+	["nom_f"] = "",
+	["nom_p"] = "",
+	["gen_m"] = "",
+	["gen_f"] = "",
+	["gen_p"] = "",
+	["dat_m"] = "",
+	["dat_f"] = "",
+	["dat_p"] = "",
+	["acc_f"] = "",
 	-- don't do this; instead we default it to nom_n
-	-- ["acc_n"] = "-",
-	["ins_m"] = "-",
-	["ins_f"] = "-",
-	["ins_p"] = "-",
-	["pre_m"] = "-",
-	["pre_f"] = "-",
-	["pre_p"] = "-",
+	-- ["acc_n"] = "",
+	["ins_m"] = "",
+	["ins_f"] = "",
+	["ins_p"] = "",
+	["pre_m"] = "",
+	["pre_f"] = "",
+	["pre_p"] = "",
 }
 
 declensions_old["ый"] = {
@@ -1246,7 +1237,7 @@ declensions_old["proper"] = {
 
 declensions_old["stressed-proper"] = declensions_old["proper"]
 
-declensions_old["-"] = declensions["-"]
+declensions_old["$"] = declensions["$"]
 
 --------------------------------------------------------------------------
 --                          Sibilant/Velar/ц rules                      --
@@ -1408,7 +1399,8 @@ function decline(args, decl, stressed)
 	for _, case in ipairs(args.old and old_long_cases or long_cases) do
 		gen_form(args, decl, case, attacher)
 	end
-	-- default acc_n to nom_n; applies chiefly in manual declension tables
+	-- default acc_n to nom_n; applies chiefly in the invariable declension
+	-- (used with manual declension tables)
 	if not args.acc_n then
 		args.acc_n = args.nom_n
 	end

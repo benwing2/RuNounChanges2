@@ -149,10 +149,11 @@ TODO:
   WIKTIONARY.]
 5. Require stem to be specified instead of defaulting to page,
   and fix errors that result. [IMPLEMENTED IN WIKTIONARY.]
-6. FIXME: Change '-' to mean invariable to '$' in ru-adjective.lua. Change
+6. Change '-' to mean invariable to '$' in ru-adjective.lua. Change
    the stem from empty to "-" and change the endings to be empty. Change any
    templates to use '$'. Test that omitting a manual form leaves the form
-   as a big dash.
+   as a big dash. [IMPLEMENTED. DON'T THINK THERE ARE ANY TEMPLATES USING IT.
+   NEED TO TEST OMITTING A FORM.]
 7. Add proper support for Zaliznyak b', f''. [IMPLEMENTED. NEED TO TEST.]
 7a. In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
