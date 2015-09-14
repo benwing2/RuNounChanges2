@@ -8,12 +8,11 @@
 		3. multiple sets of arguments separated by the literal word "or"
 
 	Arguments:
-		ACCENT: Accent pattern (a b c d e f b' d' f' f'' or a number, where
-		   1 through 6 are equivalent to a through f, 4* and 6* are equivalent
-		   to d' and f'). Specifying b' and f'' is actually equivalent to
-		   specifying b and f', respectively; in either case, the b' and f''
-		   variants will be chosen with 3rd-declension feminine nouns, and
-		   the b and f' variants otherwise. Multiple values can be specified,
+		ACCENT: Accent pattern (a b c d e f b' d' f' f''). For compatibility,
+		   can also be a number, 1 through 6 equivalent to a through f and
+		   4* and 6* are equivalent to d' and f', except that for
+		   3rd-declension feminine nouns, 2 maps to b' instead of b, and 6*
+		   maps to f'' instead of f. Multiple values can be specified,
 		   separated by commas. If omitted, defaults to a or b depending on
 		   the position of stress on the lemma or explicitly-specified
 		   declension.
