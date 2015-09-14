@@ -136,7 +136,7 @@ TODO:
    the stem from empty to "-" and change the endings to be empty. Change any
    templates to use '$'. Test that omitting a manual form leaves the form
    as a big dash.
-7. FIXME: Add proper support for Zaliznyak b', f''.
+7. Add proper support for Zaliznyak b', f''. [IMPLEMENTED. NEED TO TEST.]
 7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
@@ -153,11 +153,12 @@ TODO:
    ru-adjective.
 7f. FIXME: Add words ребёночек, щеночек, сапожок, зубок. Fix decls of
    сяжок (3*b // 3*d(2)), глазок, рожок.
-7g. FIXME: Change this module to use Zaliznyak-style accent patterns
-   internally instead of numbered ones.
-7h. FIXME: Change stress pattern categories to use Zaliznyak-style accent
+7g. Change this module to use Zaliznyak-style accent patterns internally
+   instead of numbered ones. [IMPLEMENTED. NEED TO TEST.]
+7h. Change stress pattern categories to use Zaliznyak-style accent
    patterns. Do this when supporting b' and f'' and changing module
-   internally to use Zaliznyak-style accent patterns.
+   internally to use Zaliznyak-style accent patterns. [IMPLEMENTED. NEED TO
+   TEST.]
 7i. [FIXME: Consider removing slash patterns and instead handling them by
    allowing additional declension flags 'sg' and 'pl'. This simplifies the
    various special cases caused by slash declensions. It would also be
@@ -191,6 +192,15 @@ TODO:
 7s. FIXME: ADJECTIVE MODULE: Add categories for short-adjective accent
    patterns.
 7t. FIXME: Rename "stem set" to "arg set" and "unreduce" to "dereduce".
+7u. FIXME: Change stress-pattern detection and overriding to happen inside of
+   looping over the two parts of a slash decl. Requires that the loop over
+   the two parts happen outside of the loop over stress patterns. Requires
+   that the category code get split into two parts, one to handle combined
+   singular/plural categories that goes outside the two loops, and one to
+   handle everything else that goes inside the two loops.
+7v. FIXME: Make the check for multiple stress patterns (categorizing/tracking)
+   smarter, to keep a list of them and check at the end, so we handle
+   multiple stress patterns specified through different arg sets.
 8. [Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
