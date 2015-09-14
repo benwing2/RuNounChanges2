@@ -179,6 +179,8 @@ TODO:
 7l. FIXME: Create categories for use with the category code (but first change
    the stress categories to Zaliznyak-style).
 7m. FIXME: Integrate stress categories with those in Vitalik's module.
+7n. FIXME: Remove boolean recognize_plurals; this should always be true.
+   Do in conjunction with merging multiple-words/manual-translit branches.
 8. [Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
