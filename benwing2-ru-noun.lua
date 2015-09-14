@@ -120,23 +120,23 @@
 
 TODO:
 
-1. FIXME: Change {{temp|ru-decl-noun-pl}} and {{temp|ru-decl-noun-unc}} to use
-   'manual' instead of '*' as the decl class. Implement in master.
-   [IMPLEMENTED IN MASTER. NEED TO TEST, AND FIX THE TEMPLATES.]
-2. FIXME: Find places with '-' as the decl class and remove or change to #.
-  [ALREADY FOUND AND FIXED A PLACE. USE TRACKING.]
-3. FIXME: Find places with '*' as the decl class and change to $. There is at
-  least one. [USE TRACKING.]
-4. FIXME: Implement skipping entirely an empty first stress argument in master,
+1. Change {{temp|ru-decl-noun-pl}} and {{temp|ru-decl-noun-unc}} to use
+   'manual' instead of '*' as the decl class.
+   [IMPLEMENTED IN WIKTIONARY.]
+2. Find places with '-' as the decl class and remove or change to #.
+  [IMPLEMENTED IN WITKIONARY.]
+3. Find places with '*' as the decl class and change to $. There is at
+  least one. [IMPLEMENTED IN WIKTIONARY; NEED TO REMOVE * AS ALIAS.
+  NEED TO TEST THAT OMITTING A MANUAL FORM LEAVES THE FORM AS A BIG DASH.]
+4. Implement skipping entirely an empty first stress argument in master,
   and fix cases that use it, in preparation for switching. [IMPLEMENTED IN
-  MASTER. NEEDS TESTING. NEED TO FIND AND CORRECT CASES USING EMPTY ARGUMENT.]
-5. FIXME: In master, require stem to be specified instead of defaulting to page,
-  and fix errors that result. [IMPLEMENTED IN MASTER. NEED TO FIND AND
-  CORRECT SUCH CASES.]
-6. Consider changing '-' to mean invariable to '$' or '~' or similar.
-   [IMPLEMENTED. CHANGED TO $. NEED TO TEST MANUAL SETTINGS SIMILAR TO HOW
-   THINGS WORK WITH ADJECTIVES, ESP. WITH SOME MISSING FORMS TO MAKE SURE
-   WE DON'T GET ERRORS.]
+  WIKTIONARY.]
+5. Require stem to be specified instead of defaulting to page,
+  and fix errors that result. [IMPLEMENTED IN WIKTIONARY.]
+6. FIXME: Change '-' to mean invariable to '$' in ru-adjective.lua. Change
+   the stem from empty to "-" and change the endings to be empty. Change any
+   templates to use '$'. Test that omitting a manual form leaves the form
+   as a big dash.
 7. FIXME: Add proper support for Zaliznyak b', f''.
 7a. FIXME: In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
@@ -150,17 +150,21 @@ TODO:
    distinctions, e.g. proper, stressed-proper and stressed-short have the
    same endings in masc and fem. We have a stress category so we can more
    easily handle the stressed and unstressed short/proper variants.)
+7e. FIXME: Change calls to ru-adj11 to use the new proper name support in
+   ru-adjective.
+7f. FIXME: Add words ребёночек, щеночек, сапожок.
+7g. FIXME: Change this module to use Zaliznyak-style accent patterns
+   internally instead of numbered ones.
 8. Get error "Unable to unreduce" with strange noun ва́йя, what should
   happen? [WILL NOT FIX; USE AN OVERRIDE]
 9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
   stem любв- in gen/dat/pre sg and throughout the plural (I think),
-  but ins sg любо́вью. [IMPLEMENTED. NEED TO TEST, AND CHANGE NOUNS OF THIS
-  SORT TO USE THE NEW WAY. любо́вь, нелюбо́вь, вошь, це́рковь, ложь, рожь.
-  ADD це́рковь TO TEST NOUNS.]
-10. pltailall/sgtailall. [IMPLEMENTED; NEED TO TEST.]
+  but ins sg любо́вью. [IMPLEMENTED. TESTED. CHANGE NOUNS OF THIS
+  SORT TO USE THE NEW WAY. любо́вь, нелюбо́вь, вошь, це́рковь, ложь, рожь.]
+10. pltailall/sgtailall. [IMPLEMENTED. PLTAILALL IMPLEMENTED IN WIKTIONARY.]
 11. More sophisticated handling of user-requested plural variant vs. special
-  case (1) vs. plural-detected variant. [IMPLEMENTED; NEED TO TEST.]
-12. Unreducing masculine plural. [IMPLEMENTED; NEED TO TEST.]
+  case (1) vs. plural-detected variant. [IMPLEMENTED. NEED TO TEST FURTHER.]
+12. Unreducing masculine plural. [IMPLEMENTED. TESTED.]
 13. Solution to ambiguous plural involving gender spec "3f". [IMPLEMENTED;
    NEED TO TEST.]
 14. N*d(2) in masc nouns will have different unreduced form in
@@ -170,12 +174,11 @@ TODO:
    we need to restress an unstressed reduced stem according to the way we
    do it for the normal stem with b/d(')/f(') stress patterns. The nouns
    that appear to work this way are all 3*d(2): зубо́к, сапожо́к (3*d(2) // 3*b),
-   рожо́к, сяжо́к (3*b // 3*d(2)), глазо́к. [IMPLEMENTED; NEED TO TEST; NEED TO
-   ADD THESE NOUNS ESP. сапожо́к TO THE TEST CASES.]
+   рожо́к, сяжо́к (3*b // 3*d(2)), глазо́к. [IMPLEMENTED. TESTED. NEED TO CHANGE
+   THE WIKTIONARY NOUNS TO INCORPORATE THESE AND ADD сапожо́к.]
 15. Bug in -я nouns with bare specified; gen pl should not have -ь ending. Old
-   templates did not add this ending when bare occurred. [IMPLEMENTED;
-   NEED TO TEST. GEN PL NEVER ADDS NON-SYLLABIC ь OR й. TRACKING CODE PRESENT
-   TO CHECK FOR CASES WHERE IT MIGHT BE WRONG.]
+   templates did not add this ending when bare occurred. [IMPLEMENTED IN
+   WIKTIONARY. SHOULD REMOVE THE TRACKING CODE.]
 16. Remove barepl, make pl= be 5th argument. [IMPLEMENTED IN WIKTIONARY.]
 17. [Add accent pattern for ь-stem numbers. Wikitiki handled that through
    overriding the ins_sg. I thought there would be complications with the
@@ -190,15 +193,14 @@ TODO:
    stem is otherwise stressed on an earlier syllable (e.g. голова́ in
    accent pattern 6, nom pl го́ловы, gen pl голо́в). Currently these are handled
    by overriding "bare" but I want to make bare predictable mostly, just
-   specifying that the noun is reducible should be enough. [IMPLEMENTED.
-   TRACKING CODE PRESENT TO CHECK FOR CASES WHERE IT MIGHT BE WRONG.]
+   specifying that the noun is reducible should be enough. [IMPLEMENTED
+   IN WIKTIONARY. SHOULD REMOVE THE TRACKING CODE.]
 20. If decl omitted, it should default to 1 or 2 depending on whether accent
-   is on stem or ending, not always 1. [IMPLEMENTED.]
+   is on stem or ending, not always 1. [IMPLEMENTED. TESTED.]
 21. Should recognize plural in the auto-detection code when the gender is set.
-   [IMPLEMENTED.]
+   [IMPLEMENTED. TESTED.]
 22. Issue an error unless allow_no_accent is given (using a * at the beginning
-   of the stem). [IMPLEMENTED. AT LEAST ONE WIKTIONARY ENTRY WILL
-   NEED TO HAVE THE * ADDED]
+   of the stem). [IMPLEMENTED. FIXED WIKTIONARY ENTRIES.]
 23. Make it so that the plural-specifying decl classes -а, -ья, and new -ы, -и
    still auto-detect the class and convert the resulting auto-detected class
    to one with the plural variant. It's useful then to have explicit names for
@@ -216,14 +218,13 @@ TODO:
    о           о           о-ья         о-и        о-и
    е           *           *            *          *
    ь-f         *           *            *          ь-f
-  [IMPLEMENTED. NEED TO TEST.]
+  [IMPLEMENTED. NEED TO TEST MORE.]
 24. Support adjective declensions. Autodetection should happen by putting +
    in decl field to indicate it's an adjective. Adjective decl types should
    begin with a +. (Formerly a * but that is used for reducibles.)]
    [IMPLEMENTED. TESTED.]
 24a. Implement autodetection of plural adjective declensions given gender,
-   and conversion to singular declension, with n=pl set. [IMPLEMENTED.
-   NEED TO TEST.]
+   and conversion to singular declension, with n=pl set. [IMPLEMENTED. TESTED.]
 25. Implement (1) as an alias for certain irregular plurals, for
     compatibility with Zaliznyak. [IMPLEMENTED. APPEARS TO WORK BUT SHOULD
     CHECK.]
@@ -393,6 +394,11 @@ local cases
 -- Type of trailing letter, for tracking purposes
 local trailing_letter_type
 
+-- If enabled, compare this module with new version of module to make
+-- sure all declensions are the same. Eventually consider removing this;
+-- but useful as new code is created.
+local test_new_ru_noun_module = false
+
 --------------------------------------------------------------------------
 --                     Tracking and categorization                      --
 --------------------------------------------------------------------------
@@ -456,7 +462,7 @@ local function tracking_code(stress, decl_class, real_decl_class, args)
 	if args.alt_gen_pl then
 		track("alt-gen-pl")
 	end
-	for case in pairs(cases) do
+	for _, case in ipairs(cases) do
 		if args[case] then
 			track("irreg/" .. case)
 			-- questionable use: dotrack("irreg/" .. case .. "/")
@@ -640,7 +646,7 @@ local function categorize(stress, decl_class, args)
 	if sgdc.adj then
 		insert_cat("adjectival ~")
 	end
-	for case in pairs(cases) do
+	for _, case in ipairs(cases) do
 		if args[case] then
 			local engcase = rsub(case, "^([a-z]*)", {
 				nom="nominative", gen="genitive", dat="dative",
@@ -1044,6 +1050,39 @@ function export.do_generate_forms(args, old)
 	end
 
 	handle_forms_and_overrides(args)
+
+	-- Test code to compare existing module to new one.
+	if test_new_ru_noun_module then
+		local m_new_ru_noun = require("Module:User:Benwing2/ru-noun")
+		local newargs = clone_args(frame)
+		newargs = m_new_ru_noun.do_generate_forms(newargs, old)
+		for _, case in ipairs(cases) do
+			local is_pl = rfind(case, "_pl")
+			if args.n == "s" and is_pl or args.n == "p" and not is_pl then
+				-- Don't need to check cases that won't be displayed.
+			elseif not ut.equals(args[case], newargs[case]) then
+				local monosyl_accent_diff = false
+				-- Differences only in monosyllabic accents. Enable if we
+				-- change the algorithm for these.
+				--if args[case] and newargs[case] and #args[case] == 1 and #newargs[case] == 1 then
+				--	local val1 = args[case][1]
+				--	local val2 = newargs[case][1]
+				--	if com.is_monosyllabic(val1) and com.is_monosyllabic(val2) and com.remove_accents(val1) == com.remove_accents(val2) then
+				--		monosyl_accent_diff = true
+				--	end
+				--end
+				if monosyl_accent_diff then
+					track("monosyl-accent-diff")
+				else
+					-- Uncomment this to display the particular case and
+					-- differing forms.
+					--error(case .. " " .. (args[case] and table.concat(args[case], ",") or "nil") .. " " .. (newargs[case] and table.concat(newargs[case], ",") or "nil"))
+					track("different-decl")
+				end
+				break
+			end
+		end
+	end
 
 	return args
 end
@@ -2691,7 +2730,7 @@ local attachers = {
 }
 
 function do_stress_pattern(stress, args, decl, number)
-	for case in pairs(decl_cases) do
+	for _, case in ipairs(decl_cases) do
 		if not number or (number == "sg" and rfind(case, "_sg")) or
 			(number == "pl" and rfind(case, "_pl")) then
 			gen_form(args, decl, case, stress,
@@ -2768,17 +2807,17 @@ local notes_template = nil
 local templates = {}
 
 -- cases that are declined normally instead of handled through overrides
-decl_cases = ut.list_to_set({
+decl_cases = {
 	"nom_sg", "gen_sg", "dat_sg", "acc_sg", "ins_sg", "pre_sg",
 	"nom_pl", "gen_pl", "dat_pl", "acc_pl", "ins_pl", "pre_pl",
-})
+}
 
 -- all cases displayable or handleable through overrides
-cases = ut.list_to_set({
+cases = {
 	"nom_sg", "gen_sg", "dat_sg", "acc_sg", "ins_sg", "pre_sg",
 	"nom_pl", "gen_pl", "dat_pl", "acc_pl", "ins_pl", "pre_pl",
 	"par", "loc", "voc",
-})
+}
 
 -- Convert a raw override into a canonicalized list of individual overrides.
 -- If input is nil, so is output. Certain junk (e.g. <br/>) is removed,
@@ -2800,7 +2839,7 @@ function canonicalize_override(val, args, ispl)
 end
 
 function handle_forms_and_overrides(args)
-	for case in pairs(cases) do
+	for _, case in ipairs(cases) do
 		local ispl = rfind(case, "_pl")
 		if args[case .. "_tail"] and args.forms[case] then
 			local lastarg = #(args.forms[case])
@@ -2871,7 +2910,7 @@ function make_table(args)
 	args.title = args.title or
 		strutils.format(old and old_title_temp or title_temp, args)
 
-	for case in pairs(cases) do
+	for _, case in ipairs(cases) do
 		if args[case] then
 			if type(args[case]) ~= "table" then
 				error("Logic error, args[case] should be nil or table")
@@ -2898,7 +2937,7 @@ function make_table(args)
 		end
 	end
 
-	for case in pairs(cases) do
+	for _, case in ipairs(cases) do
 		if args[case] then
 			if #args[case] == 1 and args[case][1] == "-" then
 				args[case] = "&mdash;"
