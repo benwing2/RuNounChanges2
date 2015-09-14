@@ -158,9 +158,9 @@ TODO:
 7a. In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
-7c. FIXME: Mixed and proper-noun adjectives have built-in notes. We need to
+7c. Mixed and proper-noun adjectives have built-in notes. We need to
    handle those notes with an "internal_notes" section similar to what is used
-   in the adjective module.
+   in the adjective module. [IMPLEMENTED. NEED TO TEST.]
 7d. Adjective detection code here needs to work the same as for the
    adjective module, in particular in the handling of short, stressed-short,
    mixed, proper, stressed-proper. [IMPLEMENTED. NEED TO TEST.]
@@ -379,6 +379,11 @@ local declensions_old = {}
 -- New-style declensions; computed automatically from the old-style ones,
 -- for the most part.
 local declensions = {}
+-- Internal notes for old-style declensions. Only currently used for
+-- adjectival nouns.
+local internal_notes_table_old = {}
+-- Same for new-style declensions.
+local internal_notes_table = {}
 -- Category and type information corresponding to declensions: These may
 -- contain the following fields: 'singular', 'plural', 'decl', 'hard', 'g',
 -- 'suffix', 'gensg', 'irregpl', 'cant_reduce', 'ignore_reduce', 'stem_suffix'.
@@ -814,6 +819,7 @@ function export.do_generate_forms(args, old)
 	local function insert_cat(cat)
 		insert_category(args.categories, cat)
 	end
+	args.internal_notes = {}
 	-- Superscript footnote marker at beginning of note, similarly to what's
 	-- done at end of forms.
 	if args.notes then
@@ -823,6 +829,7 @@ function export.do_generate_forms(args, old)
 
 	local decls = old and declensions_old or declensions
 	local decl_cats = old and declensions_old_cat or declensions_cat
+	local intable = old and internal_notes_table_old or internal_notes_table
 
 	if #stem_sets > 1 then
 		track("multiple-stems")
@@ -1117,6 +1124,10 @@ function export.do_generate_forms(args, old)
 				assert(decls[real_decl_class])
 				tracking_code(stress, orig_decl_class, real_decl_class, args)
 				do_stress_pattern(stress, args, decls[real_decl_class], number)
+				local internal_note = intable[real_decl_class]
+				if internal_note then
+					ut.insert_if_not(args.internal_notes, internal_note)
+				end
 			end
 
 			categorize(stress, decl_class, args)
@@ -2919,6 +2930,7 @@ local title_temp = [=[Declension of <b lang="ru" class="Cyrl">{lemma}</b>]=]
 local partitive = nil
 local locative = nil
 local vocative = nil
+local internal_notes_template = nil
 local notes_template = nil
 local templates = {}
 
@@ -3137,7 +3149,8 @@ function make_table(args)
 	args.loc_clause = args.loc and strutils.format(locative, args) or ""
 	args.voc_clause = args.voc and strutils.format(vocative, args) or ""
 	args.notes_clause = args.notes and strutils.format(notes_template, args) or ""
-	args.internal_notes_clause = args.internal_notes and strutils.format(internal_notes_template, args) or ""
+	args.internal_notes_clause = #args.internal_notes > 0 and strutils.format(internal_notes_template, args) or ""
+	args.internal_notes = table.concat(args.internal_notes, "<br />")
 
 	return strutils.format(templates[temp], args)
 end

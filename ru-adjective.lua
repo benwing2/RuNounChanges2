@@ -160,6 +160,8 @@ local declensions = {}
 local declensions_old = {}
 local internal_notes_table = {}
 local internal_notes_table_old = {}
+local internal_notes_genders = {}
+local internal_notes_genders_old = {}
 local short_declensions = {}
 local short_declensions_old = {}
 local short_internal_notes_table = {}
@@ -210,7 +212,7 @@ local function generate_forms(args, old)
 	old = old or args.old
 	args.old = old
 	args.suffix = args.suffix or ""
-	args.internal_notes = nil
+	args.internal_notes = {}
 	-- Superscript footnote marker at beginning of note, similarly to what's
 	-- done at end of forms.
 	if args.notes then
@@ -337,11 +339,10 @@ local function generate_forms(args, old)
 		local intable = old and internal_notes_table_old or internal_notes_table
 		local shortintab = old and short_internal_notes_table_old or
 			short_internal_notes_table
-		-- FIXME, what if there are multiple internal notes? They will all
-		-- end up numbered the same with only the last one displaying.
-		-- Fix this shit!
-		args.internal_notes = intable[decl_type] or
-			shortintab[short_decl_type]
+		local internal_note = intable[decl_type] or shortintab[short_decl_type]
+		if internal_note then
+			ut.insert_if_not(args.internal_notes, internal_note)
+		end
 	end
 
 	handle_forms_and_overrides(args, overall_short_forms_allowed)
@@ -401,7 +402,12 @@ function export.get_nominal_decl(decl, gender, old)
 	if gender == "m" and d.nom_mp then
 		n.nom_pl = d.nom_mp
 	end
-	return n
+	local intable = old and internal_notes_table_old or internal_notes_table
+	local ingenders = old and internal_notes_genders_old or internal_notes_genders
+	-- FIXME, what if there are multiple internal notes? See comment in
+	-- generate_forms().
+	local internal_notes = ingenders[decl] and ut.contains(ingenders[decl], gender) and intable[decl]
+	return n, internal_notes
 end
 
 local function get_form(forms)
@@ -1010,10 +1016,10 @@ declensions["mixed"] = {
 	["nom_n"] = "о",
 	["nom_f"] = "а",
 	["nom_p"] = "ы",
-	["gen_m"] = {"ого", "а1"},
+	["gen_m"] = {"ого", "а2"},
 	["gen_f"] = "ой",
 	["gen_p"] = "ых",
-	["dat_m"] = {"ому", "у1"},
+	["dat_m"] = {"ому", "у2"},
 	["dat_f"] = "ой",
 	["dat_p"] = "ым",
 	["acc_f"] = "у",
@@ -1026,8 +1032,10 @@ declensions["mixed"] = {
 	["pre_p"] = "ых",
 }
 
-internal_notes_table["mixed"] = "<sup>1</sup> Dated."
-internal_notes_table_old["mixed"] = "<sup>1</sup> Dated."
+internal_notes_table["mixed"] = "<sup>2</sup> Dated."
+internal_notes_genders["mixed"] = {"m"}
+internal_notes_table_old["mixed"] = "<sup>2</sup> Dated."
+internal_notes_genders_old["mixed"] = {"m"}
 
 declensions["proper"] = {
 	["nom_m"] = "",
@@ -1052,10 +1060,12 @@ declensions["proper"] = {
 
 declensions["stressed-proper"] = declensions["proper"]
 
-internal_notes_table["proper"] = "<sup>1</sup> Rare."
-internal_notes_table_old["proper"] = "<sup>1</sup> Rare."
-internal_notes_table["stressed-proper"] = "<sup>1</sup> Rare."
-internal_notes_table_old["stressed-proper"] = "<sup>1</sup> Rare."
+for _, decl in ipairs({"proper", "stressed-proper"}) do
+	internal_notes_table[decl] = "<sup>1</sup> Rare."
+	internal_notes_table_old[decl] = "<sup>1</sup> Rare."
+	internal_notes_genders[decl] = {"f"}
+	internal_notes_genders_old[decl] = {"f"}
+end
 
 declensions["$"] = {
 	["nom_m"] = "",
@@ -1571,7 +1581,8 @@ function make_table(args)
 		end
 	end
 
-	args.internal_notes_clause = args.internal_notes and strutils.format(internal_notes_template, args) or ""
+	args.internal_notes_clause = #args.internal_notes > 0 and strutils.format(internal_notes_template, args) or ""
+	args.internal_notes = table.concat(args.internal_notes, "<br />")
 	args.notes_clause = args.notes and strutils.format(notes_template, args) or ""
 
 	return strutils.format(temp, args)
