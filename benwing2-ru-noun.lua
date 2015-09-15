@@ -1046,13 +1046,13 @@ function export.do_generate_forms(args, old)
 			local sgdecl = sub_decl_classes[1][1]
 			local sgdc = decl_cats[sgdecl]
 			local resolved_bare = bare
-			-- Handle (un)reducibles
+			-- Handle (de)reducibles
 			-- FIXME! We are dereducing based on the singular declension.
 			-- In a slash declension things can get weird and we don't
 			-- handle that. We are also computing the bare value from the
 			-- singular stem, and again things can get weird with a plural
 			-- stem. Note that we don't compute a bare value unless we have
-			-- to (either (un)reducible or stress pattern f/f'/f'' combined
+			-- to (either (de)reducible or stress pattern f/f'/f'' combined
 			-- with ё special case); the remaining times we generate the bare
 			-- value directly from the plural stem.
 			if bare then
@@ -1131,7 +1131,7 @@ function export.do_generate_forms(args, old)
 					resolved_bare = export.dereduce_nom_sg_stem(stem, sgdc,
 						stress, old, "error")
 				else
-					error("Declension class " .. sgdecl .. " not (un)reducible")
+					error("Declension class " .. sgdecl .. " not (de)reducible")
 				end
 			elseif stem_for_bare and stem ~= stem_for_bare then
 				resolved_bare = add_bare_suffix(stem_for_bare, old, sgdc, false)
