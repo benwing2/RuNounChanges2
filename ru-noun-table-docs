@@ -194,6 +194,10 @@ produces
 # Maybe a masculine neuter-form noun with both (1) and (2) special cases
 # At the end, ребёнок, totally suppletive in plural
 
+===TODO===
+Expand table above of declension tables, adding й-я, maybe removing о-ья and
+fixing up the genitive plural in the descriptions.
+
 ===Example 9: Multiple stems===
 
 <code><nowiki>{{ru-noun-table|феноме́н|or|фено́мен}}</nowiki></code>
