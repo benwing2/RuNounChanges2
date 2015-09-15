@@ -150,7 +150,9 @@ TODO:
   and fix cases that use it, in preparation for switching. [IMPLEMENTED IN
   WIKTIONARY.]
 5. Require stem to be specified instead of defaulting to page,
-  and fix errors that result. [IMPLEMENTED IN WIKTIONARY.]
+  and fix errors that result. [IMPLEMENTED IN WIKTIONARY. UNDID THIS AND
+  IMPLEMENTED THE OPPOSITE, TO ALLOW FOR DEFAULTING IN CASE OF PAGES WITH
+  Ё IN THEM.]
 6. Change '-' to mean invariable to '$' in ru-adjective.lua. Change
    the stem from empty to "-" and change the endings to be empty. Change any
    templates to use '$'. Test that omitting a manual form leaves the form
@@ -207,14 +209,15 @@ TODO:
    beginning of a note. Also do this in adjective module. [IMPLEMENTED.
    NEED TO TEST.]
 7p. Eliminate мя-1; it's only one noun, and can use slash declension +
-   plural stem. [IMPLEMENTED. NEED TO REPLACE ENTRY FOR знамя as follows:
+   plural stem. [IMPLEMENTED. REPLACED ENTRY FOR знамя AS FOLLOWS:
    {{ru-noun-table|зна́|мя/о||знамён}}]
 7q. Consider eliminating о-ья and replacing it with slash declension
    о/-ья like we do for feminine, masculine soft, etc. nouns. [IMPLEMENTED.
    NEED TO TEST.]
 7r. Implement check for bare argument specified when neither nominative
    singular nor genitive plural makes use of bare. [IMPLEMENTED. TRACKING
-   UNDER "pointless-bare". NEED TO TEST.]
+   UNDER "pointless-bare". ELIMINATED MOST ADJECTIVES HERE, A COUPLE LEFT
+   ARE IN -Я AND WILL DISAPPEAR AS SOON AS WE PUSH THE NEW MODULE.
 7s. ADJECTIVE MODULE: Add categories for short-adjective accent
    patterns. [IMPLEMENTED.]
 7t. Rename "unreduce" to "dereduce". [IMPLEMENTED.]
@@ -304,7 +307,10 @@ TODO:
    о           о           *            о-и        о-и
    е           *           *            *          *
    ь-f         *           *            *          ь-f
-  [IMPLEMENTED. NEED TO TEST MORE.]
+  [IMPLEMENTED. THEN REMOVED MOST PLURAL VARIANTS, LEAVING ONLY -ья AND
+  (1) AND (2). NEED TO TEST -ья, ALTHOUGH PRESUMABLY THEY GOT TESTEED
+  THROUGH THE TEST PAGES AND THROUGH BEING RUN ON ALL THE EXISTING DECLED
+  RUSSIAN NOUNS IN WIKTIONARY.]
 24. Support adjective declensions. Autodetection should happen by putting +
    in decl field to indicate it's an adjective. Adjective decl types should
    begin with a +. (Formerly a * but that is used for reducibles.)]
@@ -335,7 +341,7 @@ local m_utilities = require("Module:utilities")
 local ut = require("Module:utils")
 local m_links = require("Module:links")
 local com = require("Module:ru-common")
-local m_ru_adj = require("Module:User:Benwing2/ru-adjective")
+local m_ru_adj = require("Module:ru-adjective")
 local m_ru_translit = require("Module:ru-translit")
 local strutils = require("Module:string utilities")
 local m_table_tools = require("Module:table tools")
