@@ -12,7 +12,7 @@
 		   can also be a number, 1 through 6 equivalent to a through f and
 		   4* and 6* are equivalent to d' and f', except that for
 		   3rd-declension feminine nouns, 2 maps to b' instead of b, and 6*
-		   maps to f'' instead of f. Multiple values can be specified,
+		   maps to f'' instead of f'. Multiple values can be specified,
 		   separated by commas. If omitted, defaults to a or b depending on
 		   the position of stress on the lemma or explicitly-specified
 		   declension.
@@ -323,7 +323,7 @@ TODO:
    from a previous declension. Maybe use $ or ~ for an invariable word; don't
    use semicolon.
 29. FIXME: In multiple-words branch, with normal ru-noun-table, allow -
-    as a joiner, now that something else ($ or ~?) is used for invariable.
+    as a joiner, now that $ is used for invariable.
 30. [Eventually: Even with decl type explicitly given, the full stem with
     ending should be included.] [MAY NEVER IMPLEMENT]
 
@@ -1970,7 +1970,7 @@ function add_bare_suffix(bare, old, sgdc, dereduced)
 		-- trailing -ь. It appears to apply to most nouns in -ня (possibly
 		-- all in -льня), but ку́хня (gen pl ку́хонь) and дерéвня (gen pl
 		-- дереве́нь) is an exception. (Vitalik's module has an extra
-		-- condition here 'stress == "a"' that would exlucde дере́вня but I
+		-- condition here 'stress == "a"' that would exclude дере́вня but I
 		-- don't think this condition is in Zaliznyak, as he indicates
 		-- дере́вня as having an exceptional genitive plural.)
 		if dereduced and rfind(bare, "[нН]$") and sgdc.decl == "1st" then
@@ -2010,17 +2010,6 @@ end
 --------------------------------------------------------------------------
 --                      Second-declension masculine                     --
 --------------------------------------------------------------------------
-
--- This needs to be up here because it is called just below.
-local function old_to_new(v)
-	v = rsub(v, "ъ$", "")
-	v = rsub(v, "^ъ", "")
-	v = rsub(v, "(%A)ъ", "%1")
-	v = rsub(v, "ъ(%A)", "%1")
-	v = rsub(v, "і", "и")
-	v = rsub(v, "ѣ", "е")
-	return v
-end
 
 ----------------- Masculine hard -------------------
 
@@ -2474,6 +2463,17 @@ declensions_old_cat["$"] = { decl="invariable", hard="none", g="none" }
 --------------------------------------------------------------------------
 --                              Adjectival                              --
 --------------------------------------------------------------------------
+
+-- This needs to be up here because it is called just below.
+local function old_to_new(v)
+	v = rsub(v, "ъ$", "")
+	v = rsub(v, "^ъ", "")
+	v = rsub(v, "(%A)ъ", "%1")
+	v = rsub(v, "ъ(%A)", "%1")
+	v = rsub(v, "і", "и")
+	v = rsub(v, "ѣ", "е")
+	return v
+end
 
 -- Meaning of entry is:
 -- 1. The declension name in module ru-adjective
