@@ -77,9 +77,20 @@ function export.iotation(stem, shch)
     return stem
 end
 
-function export.needs_accents(word)
-	-- A word needs accents if it is unstressed and contains more than one vowel
-	return export.is_unstressed(word) and not export.is_monosyllabic(word)
+-- Does a word of set of connected text need accents? We need to split by word
+-- and check each one.
+function export.needs_accents(text)
+	local function word_needs_accents(word)
+		-- A word needs accents if it is unstressed and contains more than one vowel
+		return export.is_unstressed(word) and not export.is_monosyllabic(word)
+	end
+	local words = rsplit(text, "%s")
+	for _, word in ipairs(words) do
+		if word_needs_accents(word) then
+			return true
+		end
+	end
+	return false
 end
 
 function export.is_stressed(word)
