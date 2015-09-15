@@ -11,8 +11,8 @@
 		ACCENT: Accent pattern (a b c d e f b' d' f' f''). For compatibility,
 		   can also be a number, 1 through 6 equivalent to a through f and
 		   4* and 6* are equivalent to d' and f', except that for
-		   3rd-declension feminine nouns, 2 maps to b' instead of b, and 6*
-		   maps to f'' instead of f'. Multiple values can be specified,
+		   3rd-declension feminine nouns, 2 maps to b' instead of b, and 6
+		   maps to f'' instead of f. Multiple values can be specified,
 		   separated by commas. If omitted, defaults to a or b depending on
 		   the position of stress on the lemma or explicitly-specified
 		   declension.
@@ -142,7 +142,7 @@ TODO:
    'manual' instead of '*' as the decl class.
    [IMPLEMENTED IN WIKTIONARY.]
 2. Find places with '-' as the decl class and remove or change to #.
-  [IMPLEMENTED IN WITKIONARY.]
+  [IMPLEMENTED IN WIKTIONARY.]
 3. Find places with '*' as the decl class and change to $. There is at
   least one. [IMPLEMENTED IN WIKTIONARY; NEED TO REMOVE * AS ALIAS.
   NEED TO TEST THAT OMITTING A MANUAL FORM LEAVES THE FORM AS A BIG DASH.]
@@ -157,7 +157,10 @@ TODO:
    as a big dash. [IMPLEMENTED. DON'T THINK THERE ARE ANY TEMPLATES USING IT.
    NEED TO TEST OMITTING A FORM.]
 7. Add proper support for Zaliznyak b', f''. [IMPLEMENTED. NEED TO TEST.]
-7a. In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^ and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED. NEED TO TEST.]
+7a. In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^
+   and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,
+   U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED.
+   NEED TO TEST.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
 7c. Mixed and proper-noun adjectives have built-in notes. We need to
@@ -231,10 +234,8 @@ TODO:
 7x. FIXME: With pluralia tantum adjectival nouns, we don't know the gender.
    By default we assume masculine (or feminine for old-style -ія nouns) and
    currently this goes into the category, but shouldn't.
-7y. Consider renaming "stem set" to something else. I proposed
-   "arg set" but that's maybe too generic. I'm thinking "argument set",
-   the specification of a declension. [IMPLEMENTED WITH "DECLENSION SPEC",
-   ABBREVIATED TO "DECL SPEC".]
+7y. Consider renaming "stem set" to "arg set". I considered "decl spec/
+   declension spec" but that proved too obscure. [IMPLEMENTED.]
 7z. FIXME: Implement smart code to check properly whether an explicit bare is
    a reducible by looking to see if it's one more syllable than the stem.
    We should probably do this test only when args.reducible not set, otherwise
@@ -284,7 +285,7 @@ TODO:
    is on stem or ending, not always a. [IMPLEMENTED. TESTED.]
 21. Should recognize plural in the auto-detection code when the gender is set.
    [IMPLEMENTED. TESTED.]
-22. Issue an error unless allow_no_accent is given (using a * at the beginning
+22. Issue an error unless allow_unaccented is given (using a * at the beginning
    of the stem). [IMPLEMENTED. FIXED WIKTIONARY ENTRIES.]
 23. Make it so that the plural-specifying decl classes -а, -ья, and new -ы, -и
    still auto-detect the class and convert the resulting auto-detected class
@@ -489,6 +490,22 @@ local trailing_letter_type
 -- sure all declensions are the same. Eventually consider removing this;
 -- but useful as new code is created.
 local test_new_ru_noun_module = false
+
+-- Forward functions
+
+local determine_decl
+local handle_forms_and_overrides
+local make_table
+local detect_adj_type
+local detect_stress_pattern
+local override_stress_pattern
+local determine_stress_variant
+local is_reducible
+local is_dereducible
+local add_bare_suffix
+local attach_stressed
+local do_stress_pattern
+local canonicalize_override
 
 --------------------------------------------------------------------------
 --                     Tracking and categorization                      --
@@ -800,6 +817,7 @@ local function arg1_is_stress(arg1)
 end
 
 function export.do_generate_forms(args, old)
+	local SUBPAGENAME = mw.title.getCurrentTitle().subpageText
 	old = old or args.old
 	args.old = old
 	args.suffix = args.suffix or ""
@@ -866,8 +884,8 @@ function export.do_generate_forms(args, old)
 		insert_cat("~ with multiple stems")
 	end
 
-	-- Default lemma defaults to previous lemma.
-	local default_lemma = nil
+	-- Default lemma defaults to previous lemma, first one to page name.
+	local default_lemma = SUBPAGENAME
 
 	for _, arg_set in ipairs(arg_sets) do
 		local stress_arg = arg_set[1]
@@ -920,7 +938,7 @@ function export.do_generate_forms(args, old)
 			error("Lemma must have an accent in it: " .. lemma)
 		end
 		if not stress_arg then
-			stress_arg = detect_stress_pattern(decl_class, was_accented)
+			stress_arg = {detect_stress_pattern(decl_class, was_accented)}
 		else
 			-- validate/canonicalize stress arg, override in certain cases
 			-- and convert to list
@@ -978,7 +996,7 @@ function export.do_generate_forms(args, old)
 				stem_for_bare = stem
 			end
 
-			local function restress_stem(stem, stress, stem_needs_stress)
+			local function restress_stem(stem, stress, stem_unstressed)
 				-- If the user has indicated they purposely are leaving the
 				-- word unstressed by putting a * at the beginning of the main
 				-- stem, leave it unstressed. This might indicate lack of
@@ -995,13 +1013,13 @@ function export.do_generate_forms(args, old)
 				-- accent on the stem) it's safe to put a particular accent on
 				-- the stem depending on the stress type. Otherwise, give an
 				-- error if no accent.
-				elseif stem_needs_stress then
+				elseif stem_unstressed then
 					if rfind(stress, "^f") then
 						stem = com.make_beginning_stressed(stem)
 					elseif (rfind(stress, "^[bd]") or
 						args.n == "p" and ending_stressed_pl_patterns[stress]) then
 						stem = com.make_ending_stressed(stem)
-					else
+					elseif com.needs_accents(stem) then
 						error("Stem " .. stem .. " requires an accent")
 					end
 				end
@@ -1016,7 +1034,7 @@ function export.do_generate_forms(args, old)
 					pl = com.make_ending_stressed(pl)
 				end
 				-- I think this is safe.
-				if com.is_unstressed(pl) then
+				if com.needs_accents(pl) then
 					if ending_stressed_pl_patterns[stress] then
 						pl = com.make_ending_stressed(pl)
 					elseif not args.allow_unaccented then
@@ -1046,9 +1064,9 @@ function export.do_generate_forms(args, old)
 				elseif com.make_unstressed(stem) == com.make_unstressed(bare) then
 					track("explicit-bare-different-stress")
 					track("explicit-bare-different-stress-from-stem")
-				elseif rfind(decl_class, "^ь-") and (stem .. "ь") == bare then
+				elseif rfind(decl_class, "^ь%-") and (stem .. "ь") == bare then
 					track("explicit-bare-same-as-nom-sg")
-				elseif rfind(decl_class, "^ь-") and com.make_unstressed(stem .. "ь") == com.make_unstressed(bare) then
+				elseif rfind(decl_class, "^ь%-") and com.make_unstressed(stem .. "ь") == com.make_unstressed(bare) then
 					track("explicit-bare-different-stress")
 					track("explicit-bare-different-stress-from-nom-sg")
 				else
@@ -1123,7 +1141,7 @@ function export.do_generate_forms(args, old)
 			if resolved_bare and not args.allow_unaccented then
 				if com.is_monosyllabic(resolved_bare) then
 					resolved_bare = com.make_ending_stressed(resolved_bare)
-				elseif com.is_unstressed(resolved_bare) then
+				elseif com.needs_accents(resolved_bare) then
 					error("Resolved bare stem " .. resolved_bare .. " requires an accent")
 				end
 			end
@@ -1164,9 +1182,8 @@ function export.do_generate_forms(args, old)
 				return suff and #suff == 1 and nonsyllabic_suffixes[suff[1]]
 			end
 			if bare and not is_nonsyllabic(args.suffixes.nom_sg) and not is_nonsyllabic(args.suffixes.gen_pl) then
-					track("pointless-bare")
-					track("pointless-bare/" .. decl_class)
-				end
+				track("pointless-bare")
+				track("pointless-bare/" .. decl_class)
 			end
 
 			categorize(stress, decl_class, args)
@@ -1350,7 +1367,7 @@ function export.catboiler(frame)
 
 	local maintext
 	if args[1] == "stemgenderstress" then
-		local stem, gender, stress = rmatch(SUBPAGENAME, "^Russian (.-) (.-)%-type accent-(.-) ")
+		local stem, gender, stress = rmatch(SUBPAGENAME, "^Russian (.-) (.-)%-type accent%-(.-) ")
 		if not stem then
 			error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type accent-a nominals\"")
 		end
@@ -1370,7 +1387,7 @@ function export.catboiler(frame)
 		end
 		insert_category(cats, "~ by stem type and gender")
 	elseif args[1] == "adj" then
-		local stem, gender, stress = rmatch(SUBPAGENAME, "^Russian (.*) (.-) accent-(.-) adjectival")
+		local stem, gender, stress = rmatch(SUBPAGENAME, "^Russian (.*) (.-) accent%-(.-) adjectival")
 		if not stem then
 			stem, gender = rmatch(SUBPAGENAME, "^Russian (.*) (.-) adjectival")
 		end
@@ -1566,6 +1583,49 @@ local special_case_1_to_plural_variation = {
 	["о"] = "о-и",
 }
 
+local function map_decl(decl, fun)
+	if rfind(decl, "/") then
+		local split_decl = rsplit(decl, "/")
+		if #split_decl ~= 2 then
+			error("Mixed declensional class " .. decl
+				.. "needs exactly two classes, singular and plural")
+		end
+		return fun(split_decl[1]) .. "/" .. fun(split_decl[2])
+	else
+		return fun(decl)
+	end
+end
+
+-- Canonicalize decl class into non-accented and alias-resolved form;
+-- but note that some canonical decl class names with an accent in them
+-- (e.g. е́, not the same as е, whose accented version is ё; and various
+-- adjective declensions).
+local function canonicalize_decl(decl, old)
+	-- FIXME: For compatibility; remove it after changing uses of о-ья
+	if com.remove_accents(decl) == "о-ья" then
+		decl = "о/-ья"
+	end
+	local function do_canon(decl)
+		-- remove accents, but not from е́ (for adj decls, accent matters
+		-- as well but we handle that by mapping the accent to a stress pattern
+		-- and then to the accented version in determine_stress_variant())
+		if decl ~= "е́" then
+			decl = com.remove_accents(decl)
+		end
+
+		local decl_aliases = old and declensions_old_aliases or declensions_aliases
+		local decl_cats = old and declensions_old_cat or declensions_cat
+		if decl_aliases[decl] then
+			-- If we find an alias, map it.
+			decl = decl_aliases[decl]
+		elseif not decl_cats[decl] then
+			error("Unrecognized declension class " .. decl)
+		end
+		return decl
+	end
+	return map_decl(decl, do_canon)
+end
+
 -- Attempt to determine the actual declension (including plural variants)
 -- based on a combination of the declension the user specified, what can be
 -- detected from the lemma, and special case (1), if given in the declension.
@@ -1595,7 +1655,7 @@ local special_case_1_to_plural_variation = {
 -- Note that gender is never required when an explicit declension is given,
 -- and in connection with stem autodetection is required only when the lemma
 -- either ends in -ь or is plural.
-function determine_decl(lemma, decl, args)
+determine_decl = function(lemma, decl, args)
 	-- Assume we're passed a value for DECL of types 1-4 above, and
 	-- fetch gender and requested plural variant
 	local gender = rmatch(decl, "^(3?[mfn]?)$")
@@ -1727,7 +1787,7 @@ end
 --
 -- Returns the same five args as for determine_decl(). The returned
 -- declension will always begin with +.
-function detect_adj_type(lemma, decl, old)
+detect_adj_type = function(lemma, decl, old)
 	local was_autodetected
 	local base, ending
 	if decl == "+" or decl == "+ь" then
@@ -1775,7 +1835,7 @@ function detect_adj_type(lemma, decl, old)
 	-- FIXME, might not work in the presence of slash declensions
 	local was_accented = com.is_stressed(decl)
 	decl = com.remove_accents(decl)
-	
+
 	function convert_sib_velar_variant(decl)
 		local iend = rmatch(decl, "^%+[іи]([йея]?)$")
 		-- Convert ій/ий to ый after velar or sibilant. This is important for
@@ -1799,7 +1859,7 @@ function detect_adj_type(lemma, decl, old)
 		singdecl = was_accented and "+ой" or "+ый"
 	elseif decl == "+ие" and not old then
 		singdecl = "+ий"
-	elseif decl == "+іе" and old and then
+	elseif decl == "+іе" and old then
 		singdecl = "+ій"
 	elseif decl == "+ія" and old then
 		singdecl = "+яя"
@@ -1820,7 +1880,7 @@ end
 -- resolution and accent removal of DECL; WAS_ACCENTED indicates whether
 -- the ending was originally stressed. FIXME: This is run before splitting
 -- slash patterns but should be run after.
-function detect_stress_pattern(decl, was_accented)
+detect_stress_pattern = function(decl, was_accented)
 	-- ёнок and ёночек always bear stress
 	if rfind(decl, "ёнокъ?") or rfind(decl, "ёночекъ?") then
 		return "b"
@@ -1845,24 +1905,24 @@ end
 -- but before canonicalizing the stress pattern from numbered to
 -- Zaliznyak-style. FIXME: It's also run before splitting slash patterns
 -- but should be run after.
-function override_stress_pattern(decl, stress)
+override_stress_pattern = function(decl, stress)
 	-- ёнок and ёночек always bear stress; if user specified a or 1,
 	-- convert to b. Don't do this with slash patterns (see FIXME above).
 	if (stress == "a" or stress == "1") and (rfind(decl, "^ёнокъ?$") or rfind(decl, "^ёночекъ?$")) then
 		return "b"
 	-- For compatibility, numbered pattern 2 can expand to either b or b';
-	-- similarly, 6* can expand to either f' or f''.
-	elseif rfind(decl, "^ь-f") then
+	-- similarly, 6 can expand to either f or f''.
+	elseif rfind(decl, "^ь%-f") then
 		if stress == "2" then
 			return "b'"
-		elseif stress == "6*" then
+		elseif stress == "6" then
 			return "f''"
 		end
 	end
 	return stress
 end
 
-function determine_stress_variant(decl, stress)
+determine_stress_variant = function(decl, stress)
 	if stress == "b" then
 		if decl == "+ая" then
 			return "+а́я"
@@ -1882,50 +1942,7 @@ function determine_stress_variant(decl, stress)
 	return decl
 end
 
-function map_decl(decl, fun)
-	if rfind(decl, "/") then
-		local split_decl = rsplit(decl, "/")
-		if #split_decl ~= 2 then
-			error("Mixed declensional class " .. decl
-				.. "needs exactly two classes, singular and plural")
-		end
-		return fun(split_decl[1]) .. "/" .. fun(split_decl[2])
-	else
-		return fun(decl)
-	end
-end
-
--- Canonicalize decl class into non-accented and alias-resolved form;
--- but note that some canonical decl class names with an accent in them
--- (e.g. е́, not the same as е, whose accented version is ё; and various
--- adjective declensions).
-function canonicalize_decl(decl_class, old)
-	-- FIXME: For compatibility; remove it after changing uses of о-ья
-	if com.remove_accents(decl) == "о-ья" then
-		decl = "о/-ья"
-	end
-	local function do_canon(decl)
-		-- remove accents, but not from е́ (for adj decls, accent matters
-		-- as well but we handle that by mapping the accent to a stress pattern
-		-- and then to the accented version in determine_stress_variant())
-		if decl ~= "е́" then
-			decl = com.remove_accents(decl)
-		end
-
-		local decl_aliases = old and declensions_old_aliases or declensions_aliases
-		local decl_cats = old and declensions_old_cat or declensions_cat
-		if decl_aliases[decl] then
-			-- If we find an alias, map it.
-			decl = decl_aliases[decl]
-		elseif not decl_cats[decl] then
-			error("Unrecognized declension class " .. decl)
-		end
-		return decl
-	end
-	return map_decl(decl_class, do_canon)
-end
-
-function is_reducible(decl_cat)
+is_reducible = function(decl_cat)
 	if decl_cat.suffix or decl_cat.cant_reduce or decl_cat.adj then
 		return false
 	elseif decl_cat.decl == "3rd" and decl_cat.g == "f" or decl_cat.g == "m" then
@@ -1948,7 +1965,7 @@ function export.reduce_nom_sg_stem(stem, decl, can_err)
 	return ret
 end
 
-function is_dereducible(decl_cat)
+is_dereducible = function(decl_cat)
 	if decl_cat.suffix or decl_cat.cant_reduce or decl_cat.adj then
 		return false
 	elseif decl_cat.decl == "1st" or decl_cat.decl == "2nd" and decl_cat.g == "n" then
@@ -1963,7 +1980,7 @@ end
 -- because we don't actually attach such a suffix in attach_unstressed() due
 -- to situations where we don't want the suffix added, e.g. dereducible nouns
 -- in -ня.
-function add_bare_suffix(bare, old, sgdc, dereduced)
+add_bare_suffix = function(bare, old, sgdc, dereduced)
 	if old and sgdc.hard == "hard" then
 		return bare .. "ъ"
 	elseif sgdc.hard == "soft" or sgdc.hard == "palatal" then
@@ -2774,7 +2791,7 @@ end
 
 -- Analogous to attach_unstressed() but for the unstressed stem and a
 -- stressed suffix.
-function attach_stressed(args, case, suf)
+attach_stressed = function(args, case, suf)
 	if suf == nil then
 		return nil, nil
 	end
@@ -2813,7 +2830,7 @@ local function attach_with(args, case, suf, fun)
 		return all_combineds, all_realsufs
 	else
 		local combined, realsuf = fun(args, case, suf)
-		return {combined .. args.suffix}, {realsuf}
+		return {combined and combined .. args.suffix}, {realsuf}
 	end
 end
 
@@ -2851,7 +2868,7 @@ local attachers = {
 	["-"] = attach_unstressed,
 }
 
-function do_stress_pattern(stress, args, decl, number)
+do_stress_pattern = function(stress, args, decl, number)
 	for _, case in ipairs(decl_cases) do
 		if not number or (number == "sg" and rfind(case, "_sg")) or
 			(number == "pl" and rfind(case, "_pl")) then
@@ -2959,33 +2976,63 @@ cases = {
 -- to separate off any trailing "notes" (asterisks, superscript numbers, etc.),
 -- and m_links.remove_links() to remove any links to get the raw override
 -- form.
-function canonicalize_override(args, case)
+canonicalize_override = function(args, case)
 	local val = args[case]
-	if val then
-		-- clean <br /> that's in many multi-form entries and messes up linking
-		val = rsub(val, "<br%s*/>", "")
-		local stem = rfind(case, "_pl") and args.pl or args.stem
-		val = rsub(val, "~~", com.make_unstressed_once(stem))
-		val = rsub(val, "~", stem)
-		val = rsplit(val, "%s*,%s*")
-		local newvals = {}
-		for _, v in ipairs(val) do
-			if not args.allow_unaccented then
-				-- it's safe to accent monosyllabic stems
-				if com.is_monosyllabic(v) then
-					v = com.make_ending_stressed(v)
-				elseif not com.is_stressed(v) then
-					error("Override " .. v .. " for case " .. case .. " requires an accent")
-				end
-			end
-			table.insert(newvals, v)
-		end
-		val = newvals
+	if not val then
+		return nil
 	end
+
+	-- clean <br /> that's in many multi-form entries and messes up linking
+	val = rsub(val, "<br%s*/>", "")
+	-- substitute ~ and ~~ and split by commas
+	local stem = rfind(case, "_pl") and args.pl or args.stem
+	val = rsub(val, "~~", com.make_unstressed_once(stem))
+	val = rsub(val, "~", stem)
+	val = rsplit(val, "%s*,%s*")
+
+	-- handle + in loc/par meaning "the expected form"; NOTE: This requires
+	-- that dat_sg has already been processed!
+	if case == "loc" or case == "par" then
+		local new_vals = {}
+		for _, arg in ipairs(val) do
+			-- don't just handle + by itself in case the arg has в or на
+			-- or whatever attached to it
+			if rfind(arg, "^%+") or rfind(arg, "[%s%[|]%+") then
+				for _, dat in ipairs(args["dat_sg"]) do
+					local subval = case == "par" and dat or com.make_ending_stressed(dat)
+					-- wrap the word in brackets so it's linked; but not if it
+					-- appears to already be linked
+					local newarg = rsub(arg, "^%+", "[[" .. subval .. "]]")
+					newarg = rsub(newarg, "([%[|])%+", "%1" .. subval)
+					newarg = rsub(newarg, "(%s)%+", "%1[[" .. subval .. "]]")
+					table.insert(new_vals, newarg)
+				end
+			else
+				table.insert(new_vals, arg)
+			end
+		end
+		val = new_vals
+	end
+
+	-- auto-accent/check for necessary accents
+	local newvals = {}
+	for _, v in ipairs(val) do
+		if not args.allow_unaccented then
+			-- it's safe to accent monosyllabic stems
+			if com.is_monosyllabic(v) then
+				v = com.make_ending_stressed(v)
+			elseif com.needs_accents(v) then
+				error("Override " .. v .. " for case " .. case .. " requires an accent")
+			end
+		end
+		table.insert(newvals, v)
+	end
+	val = newvals
+
 	return val
 end
 
-function handle_forms_and_overrides(args)
+handle_forms_and_overrides = function(args)
 	for _, case in ipairs(cases) do
 		local ispl = rfind(case, "_pl")
 		if args[case .. "_tail"] and args.forms[case] then
@@ -2993,7 +3040,7 @@ function handle_forms_and_overrides(args)
 			if lastarg > 0 then
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args[case .. "_tail"]
 			end
-		end			
+		end
 		if not ispl and args.forms[case] then
 			local lastarg = #(args.forms[case])
 			if lastarg > 0 and args.sgtailall then
@@ -3012,6 +3059,9 @@ function handle_forms_and_overrides(args)
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltail
 			end
 		end
+	end
+
+	local function process_override(case)
 		if args[case] then
 			args[case] = canonicalize_override(args, case)
 		else
@@ -3019,34 +3069,19 @@ function handle_forms_and_overrides(args)
 		end
 	end
 
-	-- handle + in loc/par meaning "the expected form"
-	for _, case in ipairs({"loc", "par"}) do
-		if args[case] then
-			local new_args = {}
-			for _, arg in ipairs(args[case]) do
-				-- don't just handle + by itself in case the arg has в or на
-				-- or whatever attached to it
-				if rfind(arg, "^%+") or rfind(arg, "[%s%[|]%+") then
-					for _, dat in ipairs(args["dat_sg"]) do
-						local subval = case == "par" and dat or com.make_ending_stressed(dat)
-						-- wrap the word in brackets so it's linked; but not if it
-						-- appears to already be linked
-						local newarg = rsub(arg, "^%+", "[[" .. subval .. "]]")
-						newarg = rsub(newarg, "([%[|])%+", "%1" .. subval)
-						newarg = rsub(newarg, "(%s)%+", "%1[[" .. subval .. "]]")
-						table.insert(new_args, newarg)
-					end
-				else
-					table.insert(new_args, arg)
-				end
-			end
-			args[case] = new_args
+	-- do dative singular first because it will be used by loc/par
+	process_override("dat_sg")
+
+	-- now do the rest
+	for _, case in ipairs(cases) do
+		if case ~= "dat_sg" then
+			process_override(case)
 		end
 	end
 end
 
 -- Make the table
-function make_table(args)
+make_table = function(args)
 	local anim = args.a
 	local numb = args.n
 	local old = args.old
@@ -3154,8 +3189,9 @@ function make_table(args)
 	args.loc_clause = args.loc and strutils.format(locative, args) or ""
 	args.voc_clause = args.voc and strutils.format(vocative, args) or ""
 	args.notes_clause = args.notes and strutils.format(notes_template, args) or ""
-	args.internal_notes_clause = #args.internal_notes > 0 and strutils.format(internal_notes_template, args) or ""
+
 	args.internal_notes = table.concat(args.internal_notes, "<br />")
+	args.internal_notes_clause = #args.internal_notes > 0 and strutils.format(internal_notes_template, args) or ""
 
 	return strutils.format(templates[temp], args)
 end
@@ -3187,7 +3223,7 @@ notes_template = [===[
 
 internal_notes_template = rsub(notes_template, "notes", "internal_notes")
 
-function template_prelude(min_width)
+local function template_prelude(min_width)
 	min_width = min_width or "70"
 	return rsub([===[
 <div>
@@ -3199,7 +3235,7 @@ function template_prelude(min_width)
 ]===], "MINWIDTH", min_width)
 end
 
-function template_postlude()
+local function template_postlude()
 	return [===[|-{par_clause}{loc_clause}{voc_clause}
 |{\cl}{internal_notes_clause}{notes_clause}</div></div></div>]===]
 end
