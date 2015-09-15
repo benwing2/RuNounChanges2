@@ -131,7 +131,16 @@ produces
 
 (Note the use of <code>~</code> to stand for the stem де́в.)
 
-===Example 3: A noun with plural in -а and partitive and locative case forms===
+===Example 3: A noun ending in stressed -ие́===
+A noun ending in stressed -ие́.
+
+<code><nowiki>{{ru-noun-table|житие́}}</nowiki></code>
+
+produces
+
+{{ru-noun-table|житие́}}
+
+===Example 4: A noun with plural in -а and partitive and locative case forms===
 
 <code><nowiki>{{ru-noun-table|c|снег|(1)|par=+|loc=+}}</nowiki></code>
 
@@ -139,7 +148,7 @@ produces
 
 {{ru-noun-table|c|снег|(1)|par=+|loc=+}}
 
-===Example 4: A noun with irregularly stressed alternative nominative and genitive singular===
+===Example 5: A noun with irregularly stressed alternative nominative and genitive singular===
 The irregularly stressed forms are found in technical usage. Includes a usage note to this effect.
 
 <code><nowiki>{{ru-noun-table|и́скра|nom_sg=и́скра,искра́*|gen_sg=и́скры,искры́*|notes=* Asterisk marks technical usage.}}</nowiki></code>
@@ -148,7 +157,7 @@ produces
 
 {{ru-noun-table|и́скра|nom_sg=и́скра,искра́*|gen_sg=и́скры,искры́*|notes=* Asterisk marks technical usage.}}
 
-===Example 5: A noun with multiple stress patterns in the singular===
+===Example 6: A noun with multiple stress patterns in the singular===
 A noun with multiple stress patterns in the singular, except for the prepositional singular (as well as a locative case form). Implemented by placing it in two stress classes and overriding the prepositional singular. Note that when two forms from different stress patterns coincide, only one form is shown.
 
 <code><nowiki>{{ru-noun-table|b,c|мост|pre_sg=мо́сте|loc=+}}</nowiki></code>
@@ -157,7 +166,7 @@ produces
 
 {{ru-noun-table|b,c|мост|pre_sg=мо́сте|loc=+}}
 
-===Example 6: A defective noun with a missing genitive plural===
+===Example 7: A defective noun with a missing genitive plural===
 A defective noun with a missing genitive plural.
 
 <code><nowiki>{{ru-noun-table|хвала́|gen_pl=-}}</nowiki></code>
@@ -166,7 +175,7 @@ produces
 
 {{ru-noun-table|хвала́|gen_pl=-}}
 
-===Example 7: A noun with irregular plural stem===
+===Example 8: A noun with irregular plural stem===
 A noun with irregular plural stem, irregular plural ending in -ья, and a locative case form.
 
 <code><nowiki>{{ru-noun-table|по́вод|-ья||пово́д|loc=+}}</nowiki></code>
@@ -175,14 +184,15 @@ produces
 
 {{ru-noun-table|по́вод|-ья||пово́д|loc=+}}
 
-===Example 8: A noun ending in stressed -ие́===
-A noun ending in stressed -ие́.
-
-<code><nowiki>{{ru-noun-table|житие́}}</nowiki></code>
-
-produces
-
-{{ru-noun-table|житие́}}
+===Examples to put somewhere: ===
+# {{m|ru|учищийся|student}} -- adjectival noun
+# a neuter plurale tantum noun, possibly reducible
+# a neuter end-stressed reducible noun in special case ;ё; comment about how you can distort the stem instead of using special case ;ё
+# голова pattern f, which can be given in lemma form голова́ despite all 3 syllables being stressed in various forms (голова́ vs. nom pl го́ловы vs. gen pl голо́в).
+# железа, which requires special case ;ё because there's no way to distort the stem to get the proper result in both nom and gen pl
+# сапожок, with either 3*d(2) and 3*b declensions
+# Maybe a masculine neuter-form noun with both (1) and (2) special cases
+# At the end, ребёнок, totally suppletive in plural
 
 ===Example 9: Multiple stems===
 
