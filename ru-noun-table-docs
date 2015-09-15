@@ -31,7 +31,9 @@ Parameters:
 ; {{para|sgtailall}}
 : Same but for singular entries.
 ; {{para|CASE_NUM_tail}}
-: Similar to {{para|pltail}} but restricted to a single form.
+: Similar to {{para|pltailall}} but restricted to a single form.
+; {{para|suffix}}
+: Add a suffix such as ся to all forms.
 
 Multiple sets of arguments can be specified by separating them with an argument consisting solely of the word <code>or</code>. See the examples below.
 
@@ -60,7 +62,7 @@ DECLTYPE is an explicit declension type. Normally you shouldn't use this, and sh
 
 For adjectival nouns, you should normally supply just <code>+</code> and let the ending determine the declension; supply <code>+ь</code> in the case of a possessive adjectival noun in -ий, which have an extra -ь- in most endings compared with normal adjectival nouns in -ий, but which can't be distinguished based on the nominative singular.  You can also supply <code>+short</code>, <code>+mixed</code> or <code>+proper</code>, which constrains the declension appropriately but still autodetects the gender-specific and stress-specific variant. If you do supply a specific declension type, as with regular nouns you need to omit the ending from the lemma field and supply just the stem.  Possibilities are <code>+ый</code>, <code>+ое</code>, <code>+ая</code>, <code>+ій</code>, <code>+ее</code>, <code>+яя</code>, <code>+ой</code>, <code>+о́е</code>, <code>+а́я</code>, <code>+ьій</code>, <code>+ье</code>, <code>+ья</code>, <code>+-short</code> or <code>+#-short</code> (masc), <code>+о-short</code>, <code>+о-stressed-short</code> or <code>+о́-short</code>, <code>+а-short</code>, <code>+а-stressed-short</code> or <code>+а́-short</code>, and similar for <code>-mixed</code> and <code>-proper</code> (except there aren't any stressed mixed declensions).
 
-DECLTYPE/DECLTYPE is used for nouns with one declension in the singular and a different one in the plural, for cases that <code>-ья</code> and special cases <code>(1)</code> and <code>(2)</code> below don't cover, e.g. <code>о/-ья</code> to decline the singular with class <code>о</code> and the plural with class <code>-ья</code> (as for {{m|ru|коле́но||joint}})
+DECLTYPE/DECLTYPE is used for nouns with one declension in the singular and a different one in the plural, for cases that <code>-ья</code> and special cases <code>(1)</code> and <code>(2)</code> below don't cover, e.g. <code>о/ь-m</code> to decline the singular with class <code>о</code> and the plural with class <code>ь-m</code> (as for {{m|ru|коле́но||knee}}).
 
 Special-case markers:
 * <code>(1)</code> for Zaliznyak-style alternate nominative plural ending: -а or -я for masculine, -и or -ы for neuter
