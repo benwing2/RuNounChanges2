@@ -198,6 +198,15 @@ for case, _ in pairs(short_cases) do
 	table.insert(old_cases, case)
 end
 
+-- Forward references to functions
+local tracking_code
+local categorize
+local detect_stem_and_accent_type
+local construct_bare_and_short_stem
+local decline
+local handle_forms_and_overrides
+local decline_short
+
 --------------------------------------------------------------------------
 --                               Main code                              --
 --------------------------------------------------------------------------
@@ -464,7 +473,7 @@ end
 --                      Tracking and categorization                     --
 --------------------------------------------------------------------------
 
-function tracking_code(decl_class, args, orig_short_accent, short_accent,
+tracking_code = function(decl_class, args, orig_short_accent, short_accent,
 	short_stem)
 	local hint_types = com.get_stem_trailing_letter_type(args.stem)
 	local function dotrack(prefix)
@@ -518,7 +527,7 @@ local function insert_category(categories, cat)
 	table.insert(categories, "Russian " .. rsub(cat, "~", "adjectives"))
 end
 
-function categorize(decl_type, args, orig_short_accent, short_accent,
+categorize = function(decl_type, args, orig_short_accent, short_accent,
 	short_stem)
 	-- Insert category CAT into the list of categories in ARGS.
 	local function insert_cat(cat)
@@ -710,7 +719,7 @@ end
 -- SHORT_ACCENT (accent class of short adjective, or nil for no short
 -- adjectives other than specified through overrides), SHORT_STEM (special
 -- stem of short adjective, nil if same as long stem).
-function detect_stem_and_accent_type(lemma, decl)
+detect_stem_and_accent_type = function(lemma, decl)
 	if rfind(decl, "^[abc*(]") then
 		decl = ":" .. decl
 	end
@@ -827,7 +836,7 @@ end
 -- short accent spec, handling cases *, (1) and (2). Return canonicalized
 -- short accent and the short declension, which is usually the same as
 -- the corresponding long one.
-function construct_bare_and_short_stem(args, short_accent, short_stem,
+construct_bare_and_short_stem = function(args, short_accent, short_stem,
 	accented_stem, old, decl)
 	-- Check if short forms allowed; if not, no short-form params can be given.
 	-- Construct bare version of stem; used for cases where the ending
@@ -1414,7 +1423,7 @@ local function gen_form(args, decl, case, fun)
 		attach_with(args, decl[case], fun, args.stem, args.ustem))
 end
 
-function decline(args, decl, stressed)
+decline = function(args, decl, stressed)
 	local attacher = stressed and attach_stressed or attach_unstressed
 	for _, case in ipairs(args.old and old_long_cases or long_cases) do
 		gen_form(args, decl, case, attacher)
@@ -1426,7 +1435,7 @@ function decline(args, decl, stressed)
 	end
 end
 
-function handle_forms_and_overrides(args, short_forms_allowed)
+handle_forms_and_overrides = function(args, short_forms_allowed)
 	local function dosplit(val)
 		if not val then return nil end
 		return rsplit(val, "%s*,%s*")
@@ -1500,7 +1509,7 @@ local attachers = {
 	["-+"] = attach_both,
 }
 
-function decline_short(args, decl, stress_pattern)
+decline_short = function(args, decl, stress_pattern)
 	if stress_pattern then
 		for _, case in ipairs({"m", "f", "n", "p"}) do
 			gen_short_form(args, decl, case, attachers[stress_pattern[case]])
@@ -1546,7 +1555,7 @@ local function show_form(args, case)
 end
 
 -- Make the table
-function make_table(args)
+make_table = function(args)
 	local old = args.old
 	args.lemma, _ = m_links.remove_links(show_form(args, "nom_m"))
 	args.title = args.title or strutils.format(old and old_title_temp or title_temp, args)
@@ -1631,7 +1640,7 @@ notes_template = [===[
 -- Used for both new-style and old-style templates
 internal_notes_template = rsub(notes_template, "notes", "internal_notes")
 
-function template_prelude(min_width)
+local function template_prelude(min_width)
 	min_width = min_width or "70"
 	return rsub([===[
 <div>
@@ -1643,7 +1652,7 @@ function template_prelude(min_width)
 ]===], "MINWIDTH", min_width)
 end
 
-function template_postlude()
+local function template_postlude()
 	return [===[|-{short_clause}
 |{\cl}{internal_notes_clause}{notes_clause}</div></div></div>]===]
 end
