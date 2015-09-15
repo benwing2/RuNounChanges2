@@ -49,7 +49,8 @@
 		pltailall: Same as pltail= but added to added to all forms even if
 		   there's only one.
 		sgtail, sgtailall: Same as pltail=, pltailall= but for the singular.
-		CASE_NUM_tail: Similar to pltail but restricted to a single form.
+		CASE_NUM_tail: Similar to pltailall but restricted to a single form.
+		suffix: Add a suffix such as ся to all forms.
 
 	Case abbreviations:
 		nom: nominative
@@ -706,7 +707,7 @@ local function categorize(stress, decl_class, args)
 		end
 		insert_cat("~ with accent pattern " .. stress)
 	end
-	local sgsuffix = args.suffixes["nom_sg"]
+	local sgsuffix = args.suffixes.nom_sg
 	if sgsuffix then
 		assert(#sgsuffix == 1) -- If this ever fails, then implement a loop
 		sgsuffix = com.remove_accents(sgsuffix[1])
@@ -716,7 +717,7 @@ local function categorize(stress, decl_class, args)
 			sgsuffix = nil
 		end
 	end
-	local plsuffix = args.suffixes["nom_pl"]
+	local plsuffix = args.suffixes.nom_pl
 	if plsuffix then
 		assert(#plsuffix == 1) -- If this ever fails, then implement a loop
 		plsuffix = com.remove_accents(plsuffix[1])
@@ -801,6 +802,7 @@ end
 function export.do_generate_forms(args, old)
 	old = old or args.old
 	args.old = old
+	args.suffix = args.suffix or ""
 
 	-- Gather arguments into an array of ARG_SET objects, containing
 	-- (potentially) elements 1, 2, 3, 4, 5, corresponding to accent pattern,
@@ -2811,7 +2813,7 @@ local function attach_with(args, case, suf, fun)
 		return all_combineds, all_realsufs
 	else
 		local combined, realsuf = fun(args, case, suf)
-		return {combined}, {realsuf}
+		return {combined .. args.suffix}, {realsuf}
 	end
 end
 
