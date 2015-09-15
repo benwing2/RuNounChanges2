@@ -20,9 +20,9 @@
 		   stress; or the stem, if an explicit declension is specified
 		   (in this case, the declension usually looks like an ending, and
 		   the stem is the portion of the lemma minus the ending). Required in
-		   the first declension spec (i.e. first set of arguments separated
-		   by "or"), can be omitted in later declension specs to default to
-		   lemma of previous declension spec. A plural form can be given,
+		   the first argument set (i.e. first set of arguments separated
+		   by "or"), can be omitted in later argument sets to default to
+		   lemma of previous argument set. A plural form can be given,
 		   and causes argument n= to default to n=p (plurale tantum).
 		DECL: Declension field. Normally omitted to autodetect based on the
 		   lemma form; see below.
@@ -231,7 +231,7 @@ TODO:
    By default we assume masculine (or feminine for old-style -ія nouns) and
    currently this goes into the category, but shouldn't.
 7y. Consider renaming "stem set" to something else. I proposed
-   "arg set" but that's maybe too generic. I'm thinking "declension spec",
+   "arg set" but that's maybe too generic. I'm thinking "argument set",
    the specification of a declension. [IMPLEMENTED WITH "DECLENSION SPEC",
    ABBREVIATED TO "DECL SPEC".]
 7z. FIXME: Implement smart code to check properly whether an explicit bare is
@@ -267,10 +267,10 @@ TODO:
    overriding the ins_sg. I thought there would be complications with the
    nom_sg in multi-syllabic words but no.] [INSTEAD, DISTINGUISHED b from b',
    f' from f''. CAN USE PLAIN b.]
-18. Eliminate complicated defaulting code for second and further decl specs.
-   Should simply default to same values as the first decl spec does, without
-   the first decl spec serving as defaults for the remainder, except that
-   the stem itself can default to the previous decl spec. [IMPLEMENTED IN
+18. Eliminate complicated defaulting code for second and further arg sets.
+   Should simply default to same values as the first arg set does, without
+   the first arg set serving as defaults for the remainder, except that
+   the stem itself can default to the previous arg set. [IMPLEMENTED IN
    WIKTIONARY.]
 19. Fixes for stem-multi-syllabic words with ending stress in gen pl but
    non-syllabic gen pl, with stress transferring onto final syllable even if
@@ -802,12 +802,12 @@ function export.do_generate_forms(args, old)
 	old = old or args.old
 	args.old = old
 
-	-- Gather arguments into an array of DECL_SPEC objects, containing
+	-- Gather arguments into an array of ARG_SET objects, containing
 	-- (potentially) elements 1, 2, 3, 4, 5, corresponding to accent pattern,
 	-- stem, declension type, bare stem, pl stem and coming from consecutive
 	-- numbered parameters. Sets of declension parameters are separated by the
 	-- word "or".
-	local decl_specs = {}
+	local arg_sets = {}
 	-- Find maximum-numbered arg, allowing for holes
 	local max_arg = 0
 	for k, v in pairs(args) do
@@ -817,25 +817,25 @@ function export.do_generate_forms(args, old)
 	end
 	-- Now gather the arguments.
 	local offset = 0
-	local decl_spec = {}
+	local arg_set = {}
 	for i=1,(max_arg + 1) do
 		if args[i] == "or" or i == max_arg + 1 then
-			local setnum = #decl_specs + 1
-			table.insert(decl_specs, decl_spec)
-			decl_spec = {}
+			local setnum = #arg_sets + 1
+			table.insert(arg_sets, arg_set)
+			arg_set = {}
 			offset = i
 		else
 			-- If the first argument isn't stress, that means all arguments
 			-- have been shifted to the left one. We want to shift them
 			-- back to the right one, so we change the offset so that we
-			-- get the same effect of skipping a slot in the decl spec.
+			-- get the same effect of skipping a slot in the arg set.
 			if i - offset == 1 and not arg1_is_stress(args[i]) then
 				offset = offset - 1
 			end
 			if i - offset > 5 then
-				error("Too many arguments for declension spec: arg " .. i .. " = " .. (args[i] or "(blank)"))
+				error("Too many arguments for argument set: arg " .. i .. " = " .. (args[i] or "(blank)"))
 			end
-			decl_spec[i - offset] = args[i]
+			arg_set[i - offset] = args[i]
 		end
 	end
 
@@ -859,7 +859,7 @@ function export.do_generate_forms(args, old)
 	local decl_cats = old and declensions_old_cat or declensions_cat
 	local intable = old and internal_notes_table_old or internal_notes_table
 
-	if #decl_specs > 1 then
+	if #arg_sets > 1 then
 		track("multiple-stems")
 		insert_cat("~ with multiple stems")
 	end
@@ -867,16 +867,16 @@ function export.do_generate_forms(args, old)
 	-- Default lemma defaults to previous lemma.
 	local default_lemma = nil
 
-	for _, decl_spec in ipairs(decl_specs) do
-		local stress_arg = decl_spec[1]
-		local decl_class = decl_spec[3] or ""
-		local bare = decl_spec[4]
-		local pl = decl_spec[5]
+	for _, arg_set in ipairs(arg_sets) do
+		local stress_arg = arg_set[1]
+		local decl_class = arg_set[3] or ""
+		local bare = arg_set[4]
+		local pl = arg_set[5]
 		if decl_class == "manual" then
 			decl_class = "$"
 			args.manual = true
-			if #decl_specs > 1 then
-				error("Can't specify multiple declension specs when manual")
+			if #arg_sets > 1 then
+				error("Can't specify multiple argument sets when manual")
 			end
 			if bare or pl then
 				error("Can't specify optional stem parameters when manual")
@@ -890,9 +890,9 @@ function export.do_generate_forms(args, old)
 		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
 		decl_class, args.reducible = rsubb(decl_class, "%*", "")
 		decl_class = rsub(decl_class, ";", "")
-		local lemma = args.manual and "-" or decl_spec[2] or default_lemma
+		local lemma = args.manual and "-" or arg_set[2] or default_lemma
 		if not lemma then
-			error("Lemma in first declension spec must be specified")
+			error("Lemma in first argument set must be specified")
 		end
 		default_lemma = lemma
 		local stem, was_accented, was_plural, was_autodetected
