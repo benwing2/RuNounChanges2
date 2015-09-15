@@ -203,7 +203,7 @@ end
 --------------------------------------------------------------------------
 
 -- Implementation of main entry point
-local function generate_forms(args, old)
+local function generate_forms(args, old, manual)
 	PAGENAME = mw.title.getCurrentTitle().text
 	SUBPAGENAME = mw.title.getCurrentTitle().subpageText
 	NAMESPACE = mw.title.getCurrentTitle().nsText
@@ -221,7 +221,7 @@ local function generate_forms(args, old)
 	end
 
 	local overall_short_forms_allowed
-	local manual = args[2] == "manual"
+	manual = manual or args[2] == "manual"
 	local decl_types = manual and "$" or args[2] or ""
 	for _, decl_type in ipairs(rsplit(decl_types, ",")) do
 		local lemma
@@ -351,9 +351,9 @@ local function generate_forms(args, old)
 end
 
 -- Implementation of main entry point
-local function do_show(frame, old)
+local function do_show(frame, old, manual)
 	local args = clone_args(frame)
-	local args = generate_forms(args, old)
+	local args = generate_forms(args, old, manual)
 	return make_table(args) .. m_utilities.format_categories(args.categories, lang)
 end
 
@@ -365,6 +365,16 @@ end
 -- The main entry point for old declension tables.
 function export.show_old(frame)
 	return do_show(frame, true)
+end
+
+-- The main entry point for manual declension tables.
+function export.show_manual(frame)
+	return do_show(frame, false, "manual")
+end
+
+-- The main entry point for manual old declension tables.
+function export.show_manual_old(frame)
+	return do_show(frame, true, "manual")
 end
 
 -- Entry point for use in Module:ru-noun.
@@ -1581,8 +1591,8 @@ function make_table(args)
 		end
 	end
 
-	args.internal_notes_clause = #args.internal_notes > 0 and strutils.format(internal_notes_template, args) or ""
 	args.internal_notes = table.concat(args.internal_notes, "<br />")
+	args.internal_notes_clause = #args.internal_notes > 0 and strutils.format(internal_notes_template, args) or ""
 	args.notes_clause = args.notes and strutils.format(notes_template, args) or ""
 
 	return strutils.format(temp, args)
