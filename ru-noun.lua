@@ -636,8 +636,9 @@ end
 
 ----------------- Feminine soft -------------------
 
--- Normal soft-feminine declension in -я
-declensions_old["я-normal"] = {
+-- Normal soft-feminine declension in -я, unstressed gen pl or vowel stem
+-- (but not i-stem)
+declensions_old["я-normal-1"] = {
 	["nom_sg"] = "я́",
 	["gen_sg"] = "и́",
 	["dat_sg"] = "ѣ́",
@@ -652,9 +653,13 @@ declensions_old["я-normal"] = {
 	["pre_pl"] = "я́хъ",
 }
 
+-- Normal soft-feminine declension in -я, unstressed gen pl and not vowel-stem
+declensions_old["я-normal-2"] = mw.clone(declensions_old["я-normal-1"])
+declensions_old["я-normal-2"]["gen_pl"] = "е́й"
+
 -- Soft-feminine declension in -ия (old -ія):
 -- differs from normal in dat sg and prep sg
-declensions_old["(і)я"] = mw.clone(declensions_old["я-normal"])
+declensions_old["(і)я"] = mw.clone(declensions_old["я-normal-1"])
 declensions_old["(і)я"]["dat_sg"] = "и́"
 declensions_old["(і)я"]["pre_sg"] = "и́"
 
@@ -662,8 +667,10 @@ declensions_old["(і)я"]["pre_sg"] = "и́"
 detect_decl_old["я"] = function(stem, stress)
 	if rfind(stem, "[іи]" .. AC .. "?$") then
 		return "(і)я"
+	elif stressed_gen_pl_patterns[stress] and not rfind(stem, "[" .. com.vowel .. "]́?$") then
+		return "я-normal-2"
 	else
-		return "я-normal"
+		return "я-normal-1"
 	end
 end
 
