@@ -946,7 +946,7 @@ function export.do_generate_forms(args, old)
 			error("Lemma must have an accent in it: " .. lemma)
 		end
 		if not stress_arg then
-			stress_arg = {detect_stress_pattern(decl_class, was_accented)}
+			stress_arg = {detect_stress_pattern(stem, decl_class, args.reducible, was_accented)}
 		else
 			-- validate/canonicalize stress arg, override in certain cases
 			-- and convert to list
@@ -1888,7 +1888,7 @@ end
 -- resolution and accent removal of DECL; WAS_ACCENTED indicates whether
 -- the ending was originally stressed. FIXME: This is run before splitting
 -- slash patterns but should be run after.
-detect_stress_pattern = function(decl, was_accented)
+detect_stress_pattern = function(stem, decl, reducible, was_accented)
 	-- ёнок and ёночек always bear stress
 	if rfind(decl, "ёнокъ?") or rfind(decl, "ёночекъ?") then
 		return "b"
