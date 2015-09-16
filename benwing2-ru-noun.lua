@@ -19,11 +19,13 @@
 		LEMMA: Lemma form (i.e. nom sg or nom pl), with appropriately-placed
 		   stress; or the stem, if an explicit declension is specified
 		   (in this case, the declension usually looks like an ending, and
-		   the stem is the portion of the lemma minus the ending). Required in
-		   the first argument set (i.e. first set of arguments separated
-		   by "or"), can be omitted in later argument sets to default to
-		   lemma of previous argument set. A plural form can be given,
-		   and causes argument n= to default to n=p (plurale tantum).
+		   the stem is the portion of the lemma minus the ending). In the
+		   first argument set (i.e. first set of arguments separated
+		   by "or"), defaults to page name; in later sets, defaults to lemma
+		   of previous set. A plural form can be given, and causes argument
+		   n= to default to n=p (plurale tantum). Normally, an accent is
+		   required if multisyllabic, and unaccented monosyllables with
+		   automatically be stressed; prefix with * to override both behaviors.
 		DECL: Declension field. Normally omitted to autodetect based on the
 		   lemma form; see below.
 		BARE: Present for compatibility; don't use this in new template calls.
