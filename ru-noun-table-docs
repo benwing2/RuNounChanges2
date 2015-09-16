@@ -182,6 +182,16 @@ produces
 
 {{ru-noun-table|e|пло́щадь|f}}
 
+===Example 6: A form needing an auto-accent override===
+
+Unstressed suffixes need to be prefixed with <code>*</code> to indicate that they are unstressed; otherwise multisyllabic unstressed suffixes will trigger an error and monosyllabic unstressed suffixes will be auto-accented.
+
+<code><nowiki>{{ru-noun-table|a|*-ник}}</nowiki></code>
+
+produces
+
+{{ru-noun-table|a|*-ник}}
+
 ==Examples with extra case forms==
 
 ===Example 1: An animate noun with a vocative case form===
