@@ -154,7 +154,7 @@ TODO:
 5. Require stem to be specified instead of defaulting to page,
   and fix errors that result. [IMPLEMENTED IN WIKTIONARY. UNDID THIS AND
   IMPLEMENTED THE OPPOSITE, TO ALLOW FOR DEFAULTING IN CASE OF PAGES WITH
-  Ё IN THEM.]
+  Ё IN THEM AND MONOSYLLABLES.]
 6. Change '-' to mean invariable to '$' in ru-adjective.lua. Change
    the stem from empty to "-" and change the endings to be empty. Change any
    templates to use '$'. Test that omitting a manual form leaves the form
@@ -163,8 +163,7 @@ TODO:
 7. Add proper support for Zaliznyak b', f''. [IMPLEMENTED. NEED TO TEST.]
 7a. In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^
    and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,
-   U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED.
-   NEED TO TEST.]
+   U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
 7c. Mixed and proper-noun adjectives have built-in notes. We need to
@@ -178,7 +177,7 @@ TODO:
 7f. FIXME: Add words ребёночек, щеночек, сапожок, зубок. Fix decls of
    сяжок (3*b // 3*d(2)), глазок, рожок, знамя.
 7g. Change this module to use Zaliznyak-style accent patterns internally
-   instead of numbered ones. [IMPLEMENTED. NEED TO TEST.]
+   instead of numbered ones. [IMPLEMENTED.]
 7h. Change stress pattern categories to use Zaliznyak-style accent
    patterns. Do this when supporting b' and f'' and changing module
    internally to use Zaliznyak-style accent patterns. [IMPLEMENTED. NEED TO
@@ -201,9 +200,8 @@ TODO:
    [IMPLEMENTED REDUCTION OF PLURAL VARIANTS TO -ья; PLURAL-VARIANT CODE
    STILL COMPLEX, THOUGH. NEED TO TEST.]
 7k. Remove code that recognizes gender for adjectival nouns; not
-   needed. [IMPLEMENTED. NEED TO TEST.]
-7l. FIXME: Create categories for use with the category code (but first change
-   the stress categories to Zaliznyak-style).
+   needed. [IMPLEMENTED.]
+7l. FIXME: Create categories for use with the category code.
 7m. FIXME: Integrate stress categories with those in Vitalik's module.
 7n. FIXME: Remove boolean recognize_plurals; this should always be true.
    Do in conjunction with merging multiple-words/manual-translit branches.
@@ -236,9 +234,9 @@ TODO:
    in it, which should have triggered an error whenever there was a nom_sg or
    nom_pl override but didn't. Is there an error causing this never to be
    called? Check.
-7x. FIXME: With pluralia tantum adjectival nouns, we don't know the gender.
+7x. With pluralia tantum adjectival nouns, we don't know the gender.
    By default we assume masculine (or feminine for old-style -ія nouns) and
-   currently this goes into the category, but shouldn't.
+   currently this goes into the category, but shouldn't. [IMPLEMENTED.]
 7y. Consider renaming "stem set" to "arg set". I considered "decl spec/
    declension spec" but that proved too obscure. [IMPLEMENTED.]
 7z. FIXME: Implement smart code to check properly whether an explicit bare is
@@ -705,12 +703,19 @@ local function categorize(stress, decl_class, args)
 			sgdc.hard == "soft" and "soft-stem" or
 			"hard-stem"
 		if sgdc.adj then
+			-- Don't include gender for pluralia tantum because it's mostly
+			-- indeterminate (certainly when specified using a plural lemma,
+			-- which will be usually; technically it's partly or completely
+			-- determinate in certain old-style adjectives that distinguish
+			-- masculine from feminine/neuter, but this is too rare a case
+			-- to worry about)
+			local gendertext = args.n == "p" and "plural-only" or gender_to_full[sgdc.g]
 			if sgdc.possadj then
-				insert_cat(sgdc.decl .. " possessive " .. gender_to_full[sgdc.g] .. " adjectival ~")
+				insert_cat(sgdc.decl .. " possessive " .. gendertext .. " adjectival ~")
 			elseif stem_type == "soft-stem" or stem_type == "vowel-stem" then
-				insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. " adjectival ~")
+				insert_cat(stem_type .. " " .. gendertext .. " adjectival ~")
 			else
-				insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. " accent-" .. stress .. " adjectival ~")
+				insert_cat(stem_type .. " " .. gendertext .. " accent-" .. stress .. " adjectival ~")
 			end
 		else
 			-- NOTE: There are 8 Zaliznyak-style stem types and 3 genders, but
@@ -1083,7 +1088,7 @@ function export.do_generate_forms(args, old)
 						if not autostem then
 							track("error-reducible")
 						elseif autostem == stem then
-							track("explicit-bare/predictable-reducible")
+							track("predictable-reducible")
 						elseif com.make_unstressed(autostem) == com.make_unstressed(stem) then
 							track("predictable-reducible-but-for-stress")
 						else
