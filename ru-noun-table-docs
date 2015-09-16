@@ -259,6 +259,8 @@ In this case, distorting the stem won't work; using же́леза results in in
 
 ===Example 1: A noun with plural in irregular -а and partitive and locative case forms===
 
+{{m|ru|снег||snow}}:
+
 <code><nowiki>{{ru-noun-table|c|снег|(1)|par=+|loc=+}}</nowiki></code>
 
 produces
@@ -266,7 +268,7 @@ produces
 {{ru-noun-table|c|снег|(1)|par=+|loc=+}}
 
 ===Example 2: A noun with irregularly stressed alternative nominative and genitive singular===
-The irregularly stressed forms are found in technical usage. Includes a usage note to this effect.
+The noun {{m|ru|и́скра||spark}} has irregularly stressed forms in technical usage. Includes a usage note to this effect.
 
 <code><nowiki>{{ru-noun-table|и́скра|nom_sg=и́скра,искра́*|gen_sg=и́скры,искры́*|notes=* Asterisk marks technical usage.}}</nowiki></code>
 
@@ -275,7 +277,7 @@ produces
 {{ru-noun-table|и́скра|nom_sg=и́скра,искра́*|gen_sg=и́скры,искры́*|notes=* Asterisk marks technical usage.}}
 
 ===Example 3: A defective noun with a missing genitive plural===
-A defective noun with a missing genitive plural.
+A defective noun {{m|ru|хвала́|praise}} with a missing genitive plural.
 
 <code><nowiki>{{ru-noun-table|хвала́|gen_pl=-}}</nowiki></code>
 
@@ -284,7 +286,7 @@ produces
 {{ru-noun-table|хвала́|gen_pl=-}}
 
 ===Example 4: A noun with irregular plural stem===
-A noun with irregular plural stem, irregular plural ending in -ья, and a locative case form.
+A noun {{m|ru|по́вод||rein}} with irregularly-stressed plural stem пово́д-, irregular plural ending in -ья, and a locative case form.
 
 <code><nowiki>{{ru-noun-table|по́вод|-ья||пово́д|loc=+}}</nowiki></code>
 
@@ -295,7 +297,7 @@ produces
 ==Nouns with multiple and/or mixed declensions==
 
 ===Example 1: Multiple stress patterns===
-A noun with multiple stress patterns in the singular, except for the prepositional singular (as well as a locative case form). Implemented by placing it in two stress classes and overriding the prepositional singular. Note that when two forms from different stress patterns coincide, only one form is shown.
+The noun {{m|ru|мост|bridge}} has multiple stress patterns in the singular, except for the prepositional singular (as well as a locative case form). Implemented by placing it in two stress classes and overriding the prepositional singular. Note that when two forms from different stress patterns coincide, only one form is shown. The word is monosyllabic and doesn't need an accent mark, which will automatically be placed (but it wouldn't cause problems if the accent were added).
 
 <code><nowiki>{{ru-noun-table|b,c|мост|pre_sg=мо́сте|loc=+}}</nowiki></code>
 
@@ -304,6 +306,8 @@ produces
 {{ru-noun-table|b,c|мост|pre_sg=мо́сте|loc=+}}
 
 ===Example 2: Multiple stems===
+
+{{m|ru|фено́мен||phenomenon}}, also stressed as {{m|ru|феноме́н}}:
 
 <code><nowiki>{{ru-noun-table|феноме́н|or|фено́мен}}</nowiki></code>
 
@@ -351,16 +355,18 @@ produces
 * <code><nowiki>{{ru-noun-table|коле́но}}</nowiki></code> (bend, generation, tribe)
 * <code><nowiki>{{ru-noun-table|коле́но|-ья}}</nowiki></code> (joint)
 
-producing
+produces
 
 {{ru-noun-table|коле́н|о/ь-m}}
 {{ru-noun-table|коле́но}}
 {{ru-noun-table|коле́но|-ья}}
 
 ===Example 7: Multiple stems and mixed declensions===
+{{m|ru|ка́мень||stone}}:
+
 <code><nowiki>{{ru-noun-table|ка́мень|*m|or||*m-ья||каме́н|pltail=*|notes=* ''The plurals marked with an asterisk are antiquated forms.''}}</nowiki></code>
 
-producing
+produces
 
 {{ru-noun-table|ка́мень|*m|or||*m-ья||каме́н|pltail=*|notes=* ''The plurals marked with an asterisk are antiquated forms.''}}
 
@@ -372,10 +378,6 @@ Note the use of a plural stem in the second set of plural forms, the use of the 
 <code><nowiki>{{ru-noun-table|f|реб|ёнок/ь-m||дет|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}</nowiki></code>
 
 {{ru-noun-table|f|реб|ёнок/ь-m||дет|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
-
-===TODO===
-Expand table above of declension tables, adding й-я, maybe removing о-ья and
-fixing up the genitive plural in the descriptions.
 
 <includeonly>
 [[Category:Russian noun inflection-table templates]]
