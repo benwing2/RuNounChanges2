@@ -19,23 +19,27 @@ Parameters:
 ; {{para|title}}
 : Override the table title.
 ; {{para|nom_sg}}, {{para|gen_sg}}, {{para|dat_sg}}, {{para|acc_sg}}, {{para|ins_sg}}, {{para|pre_sg}}, {{para|nom_pl}}, {{para|gen_pl}}, {{para|dat_pl}}, {{para|acc_pl}}, {{para|ins_pl}}, {{para|pre_pl}}, {{para|par}}, {{para|loc}}, {{para|voc}}
-: Override one or more declensional forms (nominative, genitive, dative, accusative, instrumental, prepositional, partitive, locative, vocative; singular, plural). Alternatives may be separated by commas. You can include one or more <code>~</code> characters anywhere in the override, which will replaced by the singular or plural stem, appropriately; or you can use <code>~~</code>, which will be replaced by the unstressed version of the appropriate stem. You can also include <code>+</code> in {{para|par}} or {{para|loc}}, and if it is at the beginning of a word it will be replaced by the "expected" form for these cases (same as dative singular for the partitive, stress-shifted dative singular for the locative). Overridden forms, including comma-separated alternatives, will automatically be linked. The linking will happen automatically even if you put an asterisk, a number or certain other symbols after a form; but if you include a form in a more complex situation (e.g. in parens), you should manually insert a link (it is OK to just use brackets around the link, even with stress marks in the form).
-; {{para|notes}}
-: Note(s) to insert into the table.
-; {{para|pltail}}
-: Specify text to append directly to the end of plural entries with more than one form (except those with explicit overrides). Useful e.g. to put an asterisk at the end, to footnote the second plural form when two forms exist.
-; {{para|sgtail}}
-: Same but for singular entries.
-; {{para|pltailall}}
-: Like {{para|pltail}} but appends to all plural entries (except those with explicit overrides).
-; {{para|sgtailall}}
-: Same but for singular entries.
-; {{para|CASE_NUM_tail}}
-: Similar to {{para|pltailall}} but restricted to a single form.
+: Override one or more declensional forms (nominative, genitive, dative, accusative, instrumental, prepositional, partitive, locative, vocative; singular, plural). Alternatives may be separated by commas. You can include one or more <code>~</code> characters anywhere in the override, which will replaced by the singular or plural stem, appropriately; or you can use <code>~~</code>, which will be replaced by the unstressed version of the appropriate stem. You can also include <code>+</code> in {{para|par}} or {{para|loc}}, and if it is at the beginning of a word it will be replaced by the "expected" form for these cases (same as dative singular for the partitive, stress-shifted dative singular for the locative). Overridden forms, including comma-separated alternatives, will automatically be linked. Certain trailing symbols are recognized automatically; they will be superscripted and do not interfere with linking. See section below on usage notes. In more complex cases (e.g. with parens around a word), you should manually put brackets around a word to link it (stress marks in such words are handled correctly).
 ; {{para|suffix}}
 : Add a suffix such as ся to all forms.
 
 Multiple sets of arguments can be specified by separating them with an argument consisting solely of the word <code>or</code>. See the examples below.
+
+==Footnote symbols==
+A system is in place for inserting usage notes into declension tables, in the form of footnotes. Footnote symbols attached to the end of a manual override are recognized automatically; they are automatically superscripted and do not interfere with linking. Examples of such symbols are <code>*</code>, <code>@</code>, <code>~</code> and various other ASCII symbols; numbers; <code>_</code>, which is automatically converted to a space; and most Unicode symbols (<code>§</code>, <code>¤</code>, <code>†</code>, <code>‡</code>, <code>⁕</code>, etc.). You can also insert these symbols using parameters such as {{para|pltail}}. The usage note itself is inserted using {{para|notes}}.
+
+; {{para|notes}}
+: Usage note(s) to insert into the table. Footnote symbols at the beginning of the note are automatically superscripted.
+; {{para|pltail}}
+: Specify text to append directly to the end of plural entries with more than one form (except those with explicit overrides). Normally used to add a footnote symbol to those entries, to add a usage note to alternate plural forms.
+; {{para|sgtail}}
+: Same but for singular entries.
+; {{para|pltailall}}
+: Like {{para|pltail}} but appends to all plural entries (except those with explicit overrides). Normally used to add a footnote symbol, in order to add a usage note about the plural forms.
+; {{para|sgtailall}}
+: Same but for singular entries.
+; {{para|CASE_NUM_tail}}
+: Similar to {{para|pltailall}} but restricted to a single form.
 
 ==Declension field==
 
@@ -75,33 +79,37 @@ Special-case markers:
 |-
 | (blank), <code>#</code> || <code>ъ</code> || (none) || ы/и || ов, [шщчж]ей || 2nd || Masculine || Hard || заво́д, язы́к, ча́с || gen pl -ей after sibilants
 |-
-| <code>-а</code>, <<#-а>> || <code>ъ-а</code> || (none) || а || ов, [шщчж]ей || 2nd || Masculine || Hard || рука́в/рукава́, по́езд/поезда́ || gen pl -ей after sibilants
+| <code>-а</code>, <code>#-а</code> || <code>ъ-а</code> || (none) || а || ов, [шщчж]ей || 2nd || Masculine || Hard || рука́в/рукава́, по́езд/поезда́ || gen pl -ей after sibilants
 |-
-| <code>-ья</code>, <<#-ья>> || <code>ъ-ья</code> || (none) || ья || ьёв/ьев, [шщчж]ей || 2nd || Masculine || Hard || дру́г/друзья́ || gen pl -ей after sibilants
+| <code>-ья</code>, <code>#-ья</code> || <code>ъ-ья</code> || (none) || ья || ьёв/ьев || 2nd || Masculine || Hard || дру́г/друзья́ ||
 |-
 | <code>ин</code> || <code>инъ</code> || ин || е || (none) || 2nd || Masculine || Hard || англича́нин, христиани́н ||
 |-
-| <code>ёнок</code>, <code>онок</code>, <code>енок</code> || <code>ёнокъ</code>, <code>онокъ</code>, <code>енокъ</code> || ёнок/онок || ята/ата || ят/ат || 2nd || Masculine || Hard || телёнок, внучо́нок ||
+| <code>ёнок</code>, <code>онок</code>, <code>енок</code> || <code>ёнокъ</code>, <code>онокъ</code>, <code>енокъ</code> || ёнок/о́нок || я́та/а́та || я́т/а́т || 2nd || Masculine || Hard || телёнок, внучо́нок ||
+|-
+| <code>ёночек</code>, <code>оночек</code>, <code>еночек</code> || <code>ёночекъ</code>, <code>оночекъ</code>, <code>еночекъ</code> || ёночек/о́ночек || я́тки/а́тки || я́ток/а́ток || 2nd || Masculine || Hard || цыплёночек, мышо́ночек ||
 |-
 | colspan=2|<code>ь-m</code> || ь || и || ей || 2nd || Masculine || Soft || до́ждь, ру́бль, ка́мень ||
 |-
 | colspan=2|<code>ь-я</code> || ь || я || ей || 2nd || Masculine || Soft || кре́ндель/кренделя́ ||
 |-
 | colspan=2|<code>й</code> || й || и || ёв/ов || 2nd || Masculine || Palatal || ча́й, геро́й, ге́ний || includes -ий nouns (old-style -ій)
+|-
+| colspan=2|<code>й-я</code> || й || я || ёв/ов || 2nd || Masculine || Palatal || кра́й || includes -ий nouns (old-style -ій)
 |- style="border-top: 5px solid blue;"
 | colspan=2|<code>а</code> || а || ы/и || (none), [шщчж]е́й || 1st || Feminine || Hard || соба́ка, голова́ || gen pl -е́й after sibilants (stressed only)
 |-
-| colspan=2|<code>я</code> || я || и || й || 1st || Feminine || Soft || земля́, револю́ция || includes -ия nouns (old-style -ія)
+| colspan=2|<code>я</code> || я || и || ь/й, е́й || 1st || Feminine || Soft || земля́, револю́ция || stressed gen pl -е́й except with vowel stems, otherwise -ь/-й; includes -ия nouns (old-style -ія) but not -ья nouns
 |-
-| colspan=2|<code>ья</code> || ья || ьи || ий, е́й || 1st || Feminine || Soft || судья́ || stressed gen pl -е́й, unstressed -ий
+| colspan=2|<code>ья</code> || ья || ьи || ий, е́й || 1st || Feminine || Soft || судья́ || stressed gen pl -е́й (also patterns <code>d</code> and <code>d'</code>), unstressed -ий
 |- style="border-top: 5px solid blue;"
-| colspan=2|<code>о</code> || о || а || (none) || 2nd || Neuter || Hard || стекло́, со́лнце || includes unstressed -е nouns after цшщчж
+| colspan=2|<code>о</code> || о || а || (none), е́й || 2nd || Neuter || Hard || стекло́, со́лнце || includes unstressed -е nouns after цшщчж; gen pl -е́й after sibilants (stressed only)
 |-
-| colspan=2|<code>о-и</code>, <code>о-ы</code> || о || ы/и || (none) || 2nd || Neuter || Hard || я́блоко/я́блоки, у́хо/у́ши ||
+| colspan=2|<code>о-и</code>, <code>о-ы</code> || о || ы/и || (none) || 2nd || Neuter || Hard || я́блоко/я́блоки, у́хо/у́ши || same as previous
 |-
 | colspan=2|<code>о-ья</code> || о || ья || ьёв/ьев || 2nd || Neuter || Hard || перо́/пе́рья, ши́ло/ши́лья, дно́/до́нья ||
 |-
-| colspan=2|<code>е</code>, <code>ё</code> || е/ё || я/а || ей, [и]й || 2nd || Neuter || Soft || мо́ре, уче́ние || includes -ие/-иё nouns (old-style -іе/-іё), which have gen pl in -ий
+| colspan=2|<code>е</code>, <code>ё</code> || е/ё || я/а || ь/й, е́й || 2nd || Neuter || Soft || мо́ре, уче́ние || stressed gen pl -е́й except with vowel stems, otherwise -ь/-й; includes -ие/-иё nouns (old-style -іе/-іё) but not -ье/-ьё nouns
 |-
 | colspan=2|<code>е́</code> || е́ || я/а || ей, [и]й || 2nd || Neuter || Soft || бытие́, муде́ || nouns with stressed -е́ instead of -ё; includes nouns in -ие́ (old-style -іе́), which have gen pl in -ий
 |-
@@ -114,7 +122,7 @@ Special-case markers:
 
 ==Basic examples==
 ===Example 1: A basic noun===
-The noun {{m|ru|орео́л||halo}} belongs to accent pattern <<a>> (stem-stressed), which is the default, and hence does not need to be specified.
+The noun {{m|ru|орео́л||halo}} belongs to accent pattern <code>a</code> (stem-stressed), which is the default, and hence does not need to be specified.
 
 <code><nowiki>{{ru-noun-table|орео́л}}</nowiki></code>
 
@@ -123,7 +131,7 @@ produces
 {{ru-noun-table|орео́л}}
 
 ===Example 2: An ending-stressed noun===
-The noun {{m|ru|житие́||life}} belongs to accent pattern <<b>> (ending-stressed).  This is automatically recognized because of the ending stress in the lemma.  The accent shift onto the stem in the genitive plural жити́й is automatically handled.
+The noun {{m|ru|житие́||life}} belongs to accent pattern <code>b</code> (ending-stressed).  This is automatically recognized because of the ending stress in the lemma.  The accent shift onto the stem in the genitive plural жити́й is automatically handled.
 
 <code><nowiki>{{ru-noun-table|житие́}}</nowiki></code>
 
@@ -132,7 +140,7 @@ produces
 {{ru-noun-table|житие́}}
 
 ===Example 3: A noun with complex accent shifts===
-The noun {{m|ru|голова́|head}} belongs to accent pattern <<f>> and has a complex pattern of accent shifts, with stress on the ending in singular голова́, on the first stem syllable in nominative plural го́ловы and on the second stem syllable in genitive plural голо́в. The accent pattern needs to be given explicitly but the accent shifts are automatically handled.  In general the code is quite good about knowing how to automatically handle such cases.
+The noun {{m|ru|голова́|head}} belongs to accent pattern <code>f</code> and has a complex pattern of accent shifts, with stress on the ending in singular голова́, on the first stem syllable in nominative plural го́ловы and on the second stem syllable in genitive plural голо́в. The accent pattern needs to be given explicitly but the accent shifts are automatically handled.  In general the code is quite good about knowing how to automatically handle such cases.
 
 <code><nowiki>{{ru-noun-table|f|голова́}}</nowiki></code>
 
@@ -141,13 +149,23 @@ produces
 {{ru-noun-table|f|голова́}}
 
 ===Example 4: An animate noun needing an explicit declension class===
-The noun {{m|ru|бояа́рин||boyar}} belongs to the declension class <<ин>>, with a singular suffix -ин that is missing in the plural and with nominative plural -е. These nouns are only autodetected if they end in -анин or -янин and are animate, to avoid many false positives. Other -ин nouns that follow this declension need an explicit declension class.  The noun is also animate, which needs to be noted.
+The noun {{m|ru|бояа́рин||boyar}} belongs to the declension class <code>ин</code>, with a singular suffix -ин that is missing in the plural and with nominative plural -е. These nouns are only autodetected if they end in -анин or -янин and are animate, to avoid many false positives. Other -ин nouns that follow this declension need an explicit declension class.  The noun is also animate, which needs to be noted.
 
 <code><nowiki>{{ru-noun-table|боя́р|ин|a=an}}</nowiki></code>
 
 produces
 
 {{ru-noun-table|боя́р|ин|a=an}}
+
+===Example 5: A noun needing a gender hint===
+
+Nouns in -ь, e.g. {{m|ru|пло́щадь||square (open area in a city)}}, need a gender hint <code>m</code> or <code>f</code>, because the two genders correspond to different declensions and this can't be autodetected. 
+
+<code><nowiki>{{ru-noun-table|e|пло́щадь|f}}</nowiki></code>
+
+produces
+
+{{ru-noun-table|e|пло́щадь|f}}
 
 ==Examples with extra case forms==
 
@@ -195,13 +213,47 @@ produces
 
 ===Example 3: An adjectival noun===
 
-The noun {{m|ru|уча́щийся||student}} is an ''adjectival noun'', i.e. a noun declined like an adjective, indicated with the code <<+>> (it is based on the present active participle of the verb {{m|ru|учи́ть||to learn, to teach}}).  It has a reflexive suffix -ся added onto all forms, which is indicated with {{para|suffix|ся}}.
+The noun {{m|ru|уча́щийся||student}} is an ''adjectival noun'', i.e. a noun declined like an adjective, indicated with the code <code>+</code> (it is based on the present active participle of the verb {{m|ru|учи́ть||to learn, to teach}}).  It has a reflexive suffix -ся added onto all forms, which is indicated with {{para|suffix|ся}}.
 
 <code><nowiki>{{ru-noun-table|уча́щий|+|suffix=ся}}</nowiki></code>
 
 produces
 
 {{ru-noun-table|уча́щий|+|suffix=ся}}
+
+==Nouns with е/ё alternation==
+
+===Example 1===
+
+{{m|ru|озерцо́||lake}} is accent pattern <code>d</code> and has unpredictable ё in the plural stem озёрц- (dereducible genitive plural озёрец). One way to indicate that is to use the code <code>;ё</code>, which indicates that the last -e- changes to -ё- when stressed.
+
+<code><nowiki>{{ru-noun-table|d|озерцо́|*;ё}}</nowiki></code>
+
+produces
+
+{{ru-noun-table|d|озерцо́|*;ё}}
+
+Another way is to distort the lemma by including the stressed form of the stem:
+
+<code><nowiki>{{ru-noun-table|d|озёрце|*}}</nowiki></code>
+
+or
+
+<code><nowiki>{{ru-noun-table|d|озёрцо|*}}</nowiki></code>
+
+The module will automatically generate nominative singular озерцо́ from the stem озёрц-; it knows that accent pattern <code>d</code> calls for ending stress in the nominative singular and that the unstressed equivalent of озёрц- is озерц-. Note also that the alternation between unstressed -це and stressed -цо́ is normal in Russian; the module will accept forms both ways, and convert to the <code>о</code> declension internally.
+
+===Example 2===
+
+{{m|ru|железа́||gland}} has complex stress alternation, as with {{m|ru|голова́||head}} above, but with the additional complication that ё appears in the genitive plural: nom sg железа́, nom pl же́лезы, gen pl желёз. The <code>;ё</code> code will take care of this.
+
+<code><nowiki>{{ru-noun-table|f|железа́|;ё}}</nowiki></code>
+
+produces
+
+{{ru-noun-table|f|железа́|;ё}}
+
+In this case, distorting the stem won't work; using же́леза results in incorrect gen pl желе́з, and using желёза results in incorrect nom pl желёзы.
 
 ==Nouns with irregular forms==
 
@@ -242,7 +294,7 @@ produces
 
 ==Nouns with multiple and/or mixed declensions==
 
-===Example 1: A noun with multiple stress patterns in the singular===
+===Example 1: Multiple stress patterns===
 A noun with multiple stress patterns in the singular, except for the prepositional singular (as well as a locative case form). Implemented by placing it in two stress classes and overriding the prepositional singular. Note that when two forms from different stress patterns coincide, only one form is shown.
 
 <code><nowiki>{{ru-noun-table|b,c|мост|pre_sg=мо́сте|loc=+}}</nowiki></code>
@@ -259,9 +311,9 @@ produces
 
 {{ru-noun-table|феноме́н|or|фено́мен}}
 
-===Example 3: Multiple stems===
+===Example 3: Multiple plurals===
 
-{{m|ru|лоску́т||rag, scrap}} has two plurals from different declension classes and different stress patterns.
+{{m|ru|лоску́т||rag, scrap}} has two plurals from different declension classes and different stress patterns: лоску́ты and лоскутья́.
 
 <code><nowiki>{{ru-noun-table|лоску́т|or|d||-ья}}</nowiki></code>
 
@@ -269,9 +321,9 @@ produces
 
 {{ru-noun-table|лоску́т|or|d||-ья}}
 
-===Example 4: Multiple stems===
+===Example 4: Multiple plurals===
 
-{{m|ru|мальчо́нок||little boy}} has two very different plurals which behave as if they are from different declensions, one from the hard-consonant declension and one from the -ёнок declension.
+{{m|ru|мальчо́нок||little boy}} also has two plurals: мальчо́нки (hard-consonant declension) and мальча́та (<code>ёнок</code> declension).
 
 <code><nowiki>{{ru-noun-table|мальчо́нок|#*|or|a=an}}</nowiki></code>
 
@@ -279,7 +331,19 @@ produces
 
 {{ru-noun-table|мальчо́нок|#*|or|a=an}}
 
-===Example 5: Mixed declensions===
+Note the use of <code>#</code> to explicitly indicate the hard-consonant declension; without this, the lemma would be autodetected as belonging to the <code>ёнок</code> declension. Note also that in the second argument set, all arguments have been defaulted, with the lemma defaulting to the same as in the first argument set.
+
+===Example 5: Multiple plurals===
+
+{{m|ru|сапожо́к||boot}} has two plurals: сапо́жки (pattern <code>d</code>) and сапожки́ (pattern <code>b</code>). They cannot be combined into a stress pattern <code>d,b</code> because the former also has irregular endingless genitive plural сапо́жек, indicated by code <code>(2)</code>.
+
+<code><nowiki>{{ru-noun-table|d|сапожо́к|*(2)|or|b||*}}</nowiki></code>
+
+produces
+
+{{ru-noun-table|d|сапожо́к|*(2)|or|b||*}}
+
+===Example 6: Mixed declensions===
 
 {{m|ru|коле́но}} has three possible plurals depending on its meaning: a normal one in -а in the meaning "bend, generation, tribe"; an unusual one in -и (looking like the plural of masculine ь-m class) in the meaning "knee"; and one in -ья in the meaning "joint". These unusual plural can be expressed as a mixed declension:
 
@@ -293,7 +357,7 @@ producing
 {{ru-noun-table|коле́но}}
 {{ru-noun-table|коле́но|-ья}}
 
-===Example 6: Multiple stems and mixed declensions===
+===Example 7: Multiple stems and mixed declensions===
 <code><nowiki>{{ru-noun-table|ка́мень|*m|or||*m-ья||каме́н|pltail=*|notes=* ''The plurals marked with an asterisk are antiquated forms.''}}</nowiki></code>
 
 producing
@@ -302,18 +366,12 @@ producing
 
 Note the use of a plural stem in the second set of plural forms, the use of the masculine-gender hint, the plural variant <code>-ья</code> for these forms, and the use of {{para|pltail}} to add an asterisk to these forms, with a note indicating that they are antiquated.
 
-===Example 7: Multiple stems and mixed declensions, with plural suppletion===
-{{m|ru|ребёнок||child}} is a particularly complex case. It follows the <<ёнок>> declension (singular -ёнок, -ёнка; plural -я́та, -я́т), with two plurals, an expected secondary one ребя́та and an unexpected primary one де́ти with a completely different stem and declension. This form де́ти looks somewhat like the plural of an accent-class <<e>> or <<f>> noun of the <<ь-m>> declension (masculine soft-stem), but with further irregularities. The secondary plural tends to have a different meaning. To indicate all this, we use a mixed declension with a special plural stem to handle the primary plural, overrides to handle the irregularities, and {{para|pltail}} with {{para|notes}} to indicate the different meaning of the secondary plural. We choose accent class <<f>> in the primary plural so that the singular ending -ёнок gets the stress.
+===Example 8: Multiple stems and mixed declensions, with plural suppletion===
+{{m|ru|ребёнок||child}} is a particularly complex case. It follows the <code>ёнок</code> declension (singular -ёнок, -ёнка; plural -я́та, -я́т), with two plurals, an expected secondary one ребя́та and an unexpected primary one де́ти with a completely different stem and declension. This form де́ти looks somewhat like the plural of an accent-class <code>e</code> or <code>f</code> noun of the <code>ь-m</code> declension (masculine soft-stem), but with further irregularities. The secondary plural tends to have a different meaning. To indicate all this, we use a mixed declension with a special plural stem to handle the primary plural, overrides to handle the irregularities, and {{para|pltail}} with {{para|notes}} to indicate the different meaning of the secondary plural. We choose accent class <code>f</code> in the primary plural so that the singular ending -ёнок gets the stress.
 
 <code><nowiki>{{ru-noun-table|f|реб|ёнок/ь-m||дет|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}</nowiki></code>
 
 {{ru-noun-table|f|реб|ёнок/ь-m||дет|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
-
-===Examples to put somewhere: ===
-# a neuter end-stressed reducible noun in special case ;ё; comment about how you can distort the stem instead of using special case ;ё
-# железа, which requires special case ;ё because there's no way to distort the stem to get the proper result in both nom and gen pl
-# сапожок, with either 3*d(2) and 3*b declensions
-# Maybe a masculine neuter-form noun with both (1) and (2) special cases
 
 ===TODO===
 Expand table above of declension tables, adding й-я, maybe removing о-ья and
