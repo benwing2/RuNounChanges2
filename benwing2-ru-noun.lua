@@ -1906,15 +1906,16 @@ detect_stress_pattern = function(stem, decl, decl_cats, reducible,
 	-- Nonsyllabic stem means pattern b
 	elseif export.is_nonsyllabic(stem) then
 		return "b"
-	-- Accent on reducible vowel in masc nom sg (not plural) means pattern b
-	elseif reducible and not was_plural then
-		-- FIXME hack. Eliminate plural part of slash declension.
-		decl = rsub(decl, "/.*", "")
-		if decl_cats[decl] and decl_cats[decl].g == "m" then
-			if export.is_ending_stressed(stem) or export.is_monosyllabic(stem) then
-				return "b"
-			end
-		end
+	-- Accent on reducible vowel in masc nom sg (not plural) means pattern b.
+	-- Think about whether we want to enable this.
+--	elseif reducible and not was_plural then
+--		-- FIXME hack. Eliminate plural part of slash declension.
+--		decl = rsub(decl, "/.*", "")
+--		if decl_cats[decl] and decl_cats[decl].g == "m" then
+--			if export.is_ending_stressed(stem) or export.is_monosyllabic(stem) then
+--				return "b"
+--			end
+--		end
 	end
 	return "a"
 end
