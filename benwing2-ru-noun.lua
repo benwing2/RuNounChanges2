@@ -219,7 +219,7 @@ TODO:
 7r. Implement check for bare argument specified when neither nominative
    singular nor genitive plural makes use of bare. [IMPLEMENTED. TRACKING
    UNDER "pointless-bare". ELIMINATED MOST ADJECTIVES HERE, A COUPLE LEFT
-   ARE IN -Я AND WILL DISAPPEAR AS SOON AS WE PUSH THE NEW MODULE.
+   ARE IN -Я AND WILL DISAPPEAR AS SOON AS WE PUSH THE NEW MODULE.]
 7s. ADJECTIVE MODULE: Add categories for short-adjective accent
    patterns. [IMPLEMENTED.]
 7t. Rename "unreduce" to "dereduce". [IMPLEMENTED.]
@@ -946,7 +946,7 @@ function export.do_generate_forms(args, old)
 			error("Lemma must have an accent in it: " .. lemma)
 		end
 		if not stress_arg then
-			stress_arg = {detect_stress_pattern(stem, decl_class, args.reducible, was_accented)}
+			stress_arg = {detect_stress_pattern(stem, decl_class, decl_cats, args.reducible, was_plural, was_accented)}
 		else
 			-- validate/canonicalize stress arg, override in certain cases
 			-- and convert to list
@@ -1884,11 +1884,12 @@ detect_adj_type = function(lemma, decl, old)
 end
 
 -- If stress pattern omitted, detect it based on whether ending is stressed
--- or the decl class calls for inherent stress. This is run after alias
--- resolution and accent removal of DECL; WAS_ACCENTED indicates whether
--- the ending was originally stressed. FIXME: This is run before splitting
--- slash patterns but should be run after.
-detect_stress_pattern = function(stem, decl, reducible, was_accented)
+-- or the decl class or stem accent calls for inherent stress, defaulting to
+-- pattern a. This is run after alias resolution and accent removal of DECL;
+-- WAS_ACCENTED indicates whether the ending was originally stressed.
+-- FIXME: This is run before splitting slash patterns but should be run after.
+detect_stress_pattern = function(stem, decl, decl_cats, reducible,
+		was_plural, was_accented)
 	-- ёнок and ёночек always bear stress
 	if rfind(decl, "ёнокъ?") or rfind(decl, "ёночекъ?") then
 		return "b"
@@ -1899,12 +1900,23 @@ detect_stress_pattern = function(stem, decl, reducible, was_accented)
 	-- Adjectival -ой always bears the stress
 	elseif rfind(decl, "%+ой") then
 		return "b"
-	-- Finally, pattern b if ending was accented by user
+	-- Pattern b if ending was accented by user
 	elseif was_accented then
 		return "b"
-	else
-		return "a"
+	-- Nonsyllabic stem means pattern b
+	elseif export.is_nonsyllabic(stem) then
+		return "b"
+	-- Accent on reducible vowel in masc nom sg (not plural) means pattern b
+	elseif reducible and not was_plural then
+		-- FIXME hack. Eliminate plural part of slash declension.
+		decl = rsub(decl, "/.*", "")
+		if decl_cats[decl] and decl_cats[decl].g == "m" then
+			if export.is_ending_stressed(stem) or export.is_monosyllabic(stem) then
+				return "b"
+			end
+		end
 	end
+	return "a"
 end
 
 -- In certain special cases, depending on the declension, we override the
