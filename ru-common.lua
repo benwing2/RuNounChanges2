@@ -103,6 +103,16 @@ function export.is_unstressed(word)
 	return not export.is_stressed(word)
 end
 
+function export.is_ending_stressed(word)
+	return rfind(word, "[ёЁ][^" .. export.vowel .. "]*$") or
+		rfind(word, "[" .. export.vowel .. "][́̈][^" .. export.vowel .. "]*$")
+end
+
+function export.is_beginning_stressed(word)
+	return rfind(word, "^[^" .. export.vowel .. "]*[ёЁ]") or
+		rfind(word, "^[^" .. export.vowel .. "]*[" .. export.vowel .. "]́")
+end
+
 function export.is_nonsyllabic(word)
 	return not rfind(word, "[" .. export.vowel .. "]")
 end
@@ -170,8 +180,7 @@ end
 
 function export.make_ending_stressed(word)
 	-- If already ending stressed, just return word so we don't mess up ё 
-	if rfind(word, "[ёЁ][^" .. export.vowel .. "]*$") or
-		rfind(word, "[" .. export.vowel .. "][́̈][^" .. export.vowel .. "]*$") then
+	if export.is_ending_stressed(word) then
 		return word
 	end
 	word = export.make_unstressed_once(word)
@@ -182,8 +191,7 @@ end
 
 function export.make_beginning_stressed(word)
 	-- If already beginning stressed, just return word so we don't mess up ё 
-	if rfind(word, "^[^" .. export.vowel .. "]*[ёЁ]") or
-		rfind(word, "^[^" .. export.vowel .. "]*[" .. export.vowel .. "]́") then
+	if export.is_beginning_stressed(word) then
 		return word
 	end
 	word = export.make_unstressed_once_at_beginning(word)
