@@ -155,7 +155,7 @@ produces
 {{ru-noun-table|житие́}}
 
 ===Example 3: A noun with complex accent shifts===
-The noun {{m|ru|голова́|head}} belongs to accent pattern <code>f</code> and has a complex pattern of accent shifts, with stress on the ending in singular голова́, on the first stem syllable in nominative plural го́ловы and on the second stem syllable in genitive plural голо́в. The accent pattern needs to be given explicitly but the accent shifts are automatically handled.  In general the code is quite good about knowing how to automatically handle such cases.
+The noun {{m|ru|голова́||head}} belongs to accent pattern <code>f</code> and has a complex pattern of accent shifts, with stress on the ending in singular голова́, on the first stem syllable in nominative plural го́ловы and on the second stem syllable in genitive plural голо́в. The accent pattern needs to be given explicitly but the accent shifts are automatically handled.  In general the code is quite good about knowing how to automatically handle such cases.
 
 <code><nowiki>{{ru-noun-table|f|голова́}}</nowiki></code>
 
@@ -164,7 +164,7 @@ produces
 {{ru-noun-table|f|голова́}}
 
 ===Example 4: An animate noun needing an explicit declension class===
-The noun {{m|ru|бояа́рин||boyar}} belongs to the declension class <code>ин</code>, with a singular suffix -ин that is missing in the plural and with nominative plural -е. These nouns are only autodetected if they end in -анин or -янин and are animate, to avoid many false positives. Other -ин nouns that follow this declension need an explicit declension class.  The noun is also animate, which needs to be noted.
+The noun {{m|ru|боя́рин||boyar}} belongs to the declension class <code>ин</code>, with a singular suffix -ин that is missing in the plural and with nominative plural -е. These nouns are only autodetected if they end in -анин or -янин and are animate, to avoid many false positives. Other -ин nouns that follow this declension need an explicit declension class.  The noun is also animate, which needs to be noted.
 
 <code><nowiki>{{ru-noun-table|боя́р|ин|a=an}}</nowiki></code>
 
@@ -302,7 +302,7 @@ produces
 {{ru-noun-table|и́скра|nom_sg=и́скра,искра́*|gen_sg=и́скры,искры́*|notes=* Asterisk marks technical usage.}}
 
 ===Example 3: A defective noun with a missing genitive plural===
-A defective noun {{m|ru|хвала́|praise}} with a missing genitive plural.
+A defective noun {{m|ru|хвала́||praise}} with a missing genitive plural.
 
 <code><nowiki>{{ru-noun-table|хвала́|gen_pl=-}}</nowiki></code>
 
@@ -322,7 +322,7 @@ produces
 ==Nouns with multiple and/or mixed declensions==
 
 ===Example 1: Multiple stress patterns===
-The noun {{m|ru|мост|bridge}} has multiple stress patterns in the singular, except for the prepositional singular (as well as a locative case form). Implemented by placing it in two stress classes and overriding the prepositional singular. Note that when two forms from different stress patterns coincide, only one form is shown. The word is monosyllabic and doesn't need an accent mark, which will automatically be placed (but it wouldn't cause problems if the accent were added).
+The noun {{m|ru|мост||bridge}} has multiple stress patterns in the singular, except for the prepositional singular (as well as a locative case form). Implemented by placing it in two stress classes and overriding the prepositional singular. Note that when two forms from different stress patterns coincide, only one form is shown. The word is monosyllabic and doesn't need an accent mark, which will automatically be placed (but it wouldn't cause problems if the accent were added).
 
 <code><nowiki>{{ru-noun-table|b,c|мост|pre_sg=мо́сте|loc=+}}</nowiki></code>
 
@@ -401,6 +401,8 @@ Note the use of a plural stem in the second set of plural forms, the use of the 
 {{m|ru|ребёнок||child}} is a particularly complex case. It follows the <code>ёнок</code> declension (singular -ёнок, -ёнка; plural -я́та, -я́т), with two plurals, an expected secondary one ребя́та and an unexpected primary one де́ти with a completely different stem and declension. This form де́ти looks somewhat like the plural of an accent-class <code>e</code> or <code>f</code> noun of the <code>ь-m</code> declension (masculine soft-stem), but with further irregularities. The secondary plural tends to have a different meaning. To indicate all this, we use a mixed declension with a special plural stem to handle the primary plural, overrides to handle the irregularities, and {{para|pltail}} with {{para|notes}} to indicate the different meaning of the secondary plural. We choose accent class <code>f</code> in the primary plural so that the singular ending -ёнок gets the stress.
 
 <code><nowiki>{{ru-noun-table|f|реб|ёнок/ь-m||дет|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}</nowiki></code>
+
+produces
 
 {{ru-noun-table|f|реб|ёнок/ь-m||дет|or|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}
 
