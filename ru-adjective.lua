@@ -519,6 +519,8 @@ tracking_code = function(decl_class, args, orig_short_accent, short_accent,
 	end
 	if not short_accent and not short_stem and short_forms_allowed then
 		local deduced_short = deduce_short_accent(args)
+		--for testing output of deduce_short_accent(); remove me!!!
+		--error(rsub(deduced_short, "''", "' '"))
 		dotrack("explicit-short/" .. deduced_short)
 	end
 	for _, case in ipairs(old_cases) do
@@ -943,7 +945,7 @@ deduce_short_accent = function(args)
 		end
 		local stresses = {}
 		for _, x in ipairs(list) do
-			table.insert(stresses, com.is_ending_stressed(x) and "+" or "-")
+			table.insert(stresses, (com.is_ending_stressed(x) or com.is_monosyllabic(x)) and "+" or "-")
 		end
 		if #stresses == 1 then
 			return stresses[1]
@@ -952,7 +954,7 @@ deduce_short_accent = function(args)
 		local has_minus = ut.contains(stresses, "-")
 		if has_plus and has_minus then
 			return "-+"
-		else if has_plus then
+		elseif has_plus then
 			return "+"
 		else
 			assert(has_minus)
@@ -979,13 +981,14 @@ deduce_short_accent = function(args)
 	-- be end-stressed; otherwise it may or may not be end-stressed.
 	for pattern, stressvals in pairs(short_stress_patterns) do
 		if stressvals.f == fem and stressvals.n == neut and stressvals.p == pl
-			and (stressvals.m != "+" or stressvals.m == masc) then
+			and (stressvals.m ~= "+" or stressvals.m == masc) then
 			return pattern
 		end
 	end
 
 	return "unknown"
 end
+
 
 --------------------------------------------------------------------------
 --                                Declensions                           --
