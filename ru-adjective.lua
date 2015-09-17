@@ -253,9 +253,8 @@ function export.do_generate_forms(args, old, manual)
 			decl_type = "ый"
 		end
 
-		local allow_unaccented
-		stem, allow_unaccented = rsubb(stem, "^%*", "")
-		if not allow_unaccented and decl_type ~= "ой" and com.needs_accents(stem) then
+		stem, args.allow_unaccented = rsubb(stem, "^%*", "")
+		if not args.allow_unaccented and decl_type ~= "ой" and com.needs_accents(stem) then
 			error("Stem must have an accent in it: " .. stem)
 		end
 
@@ -949,10 +948,10 @@ end
 -- Deduce the short accent pattern given short masc, fem, neut and plural.
 -- Each value should be a list of strings.
 deduce_short_accent = function(args)
-	local masc = canonicalize_override(args.short_m or args[short_cases.short_m])
-	local fem = canonicalize_override(args.short_f or args[short_cases.short_f])
-	local neut = canonicalize_override(args.short_n or args[short_cases.short_n])
-	local pl = canonicalize_override(args.short_p or args[short_cases.short_p])
+	local masc = canonicalize_override(args, "short_m") or canonicalize_override(args, short_cases.short_m)
+	local fem = canonicalize_override(args, "short_f") or canonicalize_override(args, short_cases.short_f)
+	local neut = canonicalize_override(args, "short_n") or canonicalize_override(args, short_cases.short_n)
+	local pl = canonicalize_override(args, "short_p") or canonicalize_override(args, short_cases.short_p)
 
 	local function convert_to_plus_minus(list)
 		if not list then return "missing" end
@@ -1533,9 +1532,38 @@ decline = function(args, decl, stressed)
 	end
 end
 
-canonicalize_override = function(val)
-	if not val then return nil end
-	return rsplit(val, "%s*,%s*")
+-- CASE may be a number to refer to numbered short-form overrides
+canonicalize_override = function(args, case)
+	local val = args[case]
+	if not val then
+		return nil
+	end
+	if rfind(val, "/") then
+		track("slash-in-override")
+		track("slash-in-override/" .. case)
+	end
+	if rfind(val, " ") then
+		track("space-in-override")
+		track("space-in-override/" .. case)
+	end
+	val = rsplit(val, "%s*,%s*")
+
+	-- auto-accent/check for necessary accents
+	local newvals = {}
+	for _, v in ipairs(val) do
+		if not args.allow_unaccented then
+			-- it's safe to accent monosyllabic stems
+			if com.is_monosyllabic(v) then
+				v = com.make_ending_stressed(v)
+			elseif com.needs_accents(v) then
+				error("Override " .. case .. "=" .. v .. " requires an accent")
+			end
+		end
+		table.insert(newvals, v)
+	end
+	val = newvals
+
+	return val
 end
 
 handle_forms_and_overrides = function(args, short_forms_allowed)
@@ -1546,7 +1574,7 @@ handle_forms_and_overrides = function(args, short_forms_allowed)
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args[case .. "_tail"]
 			end
 		end
-		args[case] = canonicalize_override(args[case]) or args.forms[case]
+		args[case] = canonicalize_override(args, case) or args.forms[case]
 	end
 	for case, argnum in pairs(short_cases) do
 		if short_forms_allowed then
@@ -1562,7 +1590,7 @@ handle_forms_and_overrides = function(args, short_forms_allowed)
 					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.shorttail
 				end
 			end
-			args[case] = canonicalize_override(args[case] or args[argnum]) or args.forms[case]
+			args[case] = canonicalize_override(args, case) or canonicalize_override(args, argnum) or args.forms[case]
 		else
 			args[case] = nil
 		end
