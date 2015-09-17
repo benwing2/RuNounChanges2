@@ -14,6 +14,7 @@
 		4 or short_n: neuter singular short form (if exists)
 		5 or short_f: feminine singular short form (if exists)
 		6 or short_p: plural short form (if exists)
+		CASE_NUMGEN: Override a given form; see abbreviations below
 		suffix: any suffix to attach unchanged to the end of each form
 		notes: Notes to add to the end of the table
 		title: Override the title
@@ -21,7 +22,7 @@
 		   there's more than one; automatically superscripted
 		shorttailall: Same as shorttail= but applies to all short forms even
 		   if there's only one
-		CASE_NUMGEN: Override a given form; see abbreviations below
+		CASE_NUMGEN_tail: Like shorttailall but only for a specific form
 
 	Case abbreviations:
 		nom: nominative
@@ -956,15 +957,23 @@ deduce_short_accent = function(args)
 	local function convert_to_plus_minus(list)
 		if not list then return "missing" end
 		assert(type(list) == "table")
-		if #list == 0 then
+		if #list == 0 or #list == 1 and list[1] == "-" then
 			return "missing"
 		end
 		local stresses = {}
 		for _, x in ipairs(list) do
-			table.insert(stresses, (com.is_ending_stressed(x) or com.is_monosyllabic(x)) and "+" or "-")
+			local endstr = com.is_ending_stressed(x)
+			local multistr = endstr and com.is_multi_stressed(x)
+			if multistr then
+				track("short-multistress")
+			end
+			table.insert(stresses, multistr and "-+" or (endstr or com.is_monosyllabic(x)) and "+" or "-")
 		end
 		if #stresses == 1 then
 			return stresses[1]
+		end
+		if ut.contains(stresses, "-+") then
+			return "-+"
 		end
 		local has_plus = ut.contains(stresses, "+")
 		local has_minus = ut.contains(stresses, "-")
@@ -1531,12 +1540,21 @@ end
 
 handle_forms_and_overrides = function(args, short_forms_allowed)
 	for _, case in ipairs(args.old and old_long_cases or long_cases) do
+		if args.forms[case] then
+			local lastarg = #(args.forms[case])
+			if lastarg > 0 and args[case .. "_tail"] then
+				args.forms[case][lastarg] = args.forms[case][lastarg] .. args[case .. "_tail"]
+			end
+		end
 		args[case] = canonicalize_override(args[case]) or args.forms[case]
 	end
 	for case, argnum in pairs(short_cases) do
 		if short_forms_allowed then
 			if args.forms[case] then
 				local lastarg = #(args.forms[case])
+				if lastarg > 0 and args[case .. "_tail"] then
+					args.forms[case][lastarg] = args.forms[case][lastarg] .. args[case .. "_tail"]
+				end
 				if lastarg > 0 and args.shorttailall then
 					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.shorttailall
 				end
