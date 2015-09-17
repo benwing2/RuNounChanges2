@@ -1004,21 +1004,25 @@ function export.do_generate_forms(args, old)
 				-- FIXME: Tracking code eventually to remove; track cases
 				-- where bare is explicitly specified to see how many could
 				-- be predicted
+				local nomsg
+				if rfind(decl_class, "^ь%-") then
+					nomsg = stem .. "ь"
+				elseif rfind(decl_class, "^й") then
+					nomsg = stem .. "й"
+				elseif rfind(decl_class, "^ъ") then
+					nomsg = stem .. "ъ"
+				end
 				if stem == bare then
 					track("explicit-bare-same-as-stem")
 				elseif com.make_unstressed(stem) == com.make_unstressed(bare) then
 					track("explicit-bare-different-stress")
 					track("explicit-bare-different-stress-from-stem")
-				elseif rfind(decl_class, "^ь%-") and (stem .. "ь") == bare then
+				elseif nomsg and nomsg == bare then
 					track("explicit-bare-same-as-nom-sg")
-				elseif rfind(decl_class, "^ь%-") and com.make_unstressed(stem .. "ь") == com.make_unstressed(bare) then
+				elseif nomsg and com.make_unstressed(nomsg) == com.make_unstressed(bare) then
 					track("explicit-bare-different-stress")
 					track("explicit-bare-different-stress-from-nom-sg")
 				else
-					local function same_but_for_monosyllabic_stress(x, y)
-						return com.is_monosyllabic(x) and com.is_monosyllabic(y)
-							and com.remove_accents(x) == com.remove_accents(y)
-					end
 					if is_reducible(sgdc) then
 						local barestem, baredecl = rmatch(bare, "^(.-)([ьйъ]?)$")
 						assert(barestem)
@@ -1028,11 +1032,14 @@ function export.do_generate_forms(args, old)
 						elseif autostem == stem then
 							track("predictable-reducible")
 						elseif com.make_unstressed(autostem) == com.make_unstressed(stem) then
-							if same_but_for_monosyllabic_stress(autostem, stem) then
-								track("predictable-reducible-but-for-monosyllabic-accent")
+							if com.remove_accents(autostem) ~= com.remove_accents(stem) then
+								--error("autostem=" .. autostem .. ", stem=" .. stem)
+								track("predictable-reducible-but-jo-differences")
+							elseif is_unstressed(autostem) and com.is_ending_stressed(stem) then
+								track("predictable-reducible-but-extra-ending-stress")
 							else
 								--error("autostem=" .. autostem .. ", stem=" .. stem)
-								track("predictable-reducible-but-for-stress")
+								track("predictable-reducible-but-different-stress")
 							end
 						else
 							--error("autostem=" .. autostem .. ", stem=" .. stem)
@@ -1045,8 +1052,17 @@ function export.do_generate_forms(args, old)
 						elseif autobare == bare then
 							track("predictable-dereducible")
 						elseif com.make_unstressed(autobare) == com.make_unstressed(bare) then
-							track("predictable-dereducible-but-for-stress")
+							if com.remove_accents(autobare) ~= com.remove_accents(bare) then
+								--error("autobare=" .. autobare .. ", bare=" .. bare)
+								track("predictable-dereducible-but-jo-differences")
+							elseif is_unstressed(autobare) and com.is_ending_stressed(bare) then
+								track("predictable-dereducible-but-extra-ending-stress")
+							else
+								--error("autobare=" .. autobare .. ", bare=" .. bare)
+								track("predictable-dereducible-but-different-stress")
+							end
 						else
+							--error("autobare=" .. autobare .. ", bare=" .. bare)
 							track("unpredictable-dereducible")
 						end
 					else
