@@ -1421,9 +1421,7 @@ local unstressed_rules = {
 	["х"] = velar_rules,
 }
 
-local consonantal_suffixes = ut.list_to_set({"", "ь", "й"})
-
-local old_consonantal_suffixes = ut.list_to_set({"ъ", "ь", "й"})
+local nonsyllabic_suffixes = ut.list_to_set({"", "ъ", "ь", "й"})
 
 --------------------------------------------------------------------------
 --                           Declension functions                       --
@@ -1449,13 +1447,12 @@ local function combine_stem_and_suffix(stem, suf, rules, old)
 end
 
 local function attach_unstressed(args, suf, stem, ustem)
-	local old = args.old
 	if suf == nil then
 		return nil
-	elseif old and old_consonantal_suffixes[suf] or not old and consonantal_suffixes[suf] then
+	elseif nonsyllabic_suffixes[suf] then
 		if not args.bare then
 			return nil
-		elseif rfind(args.bare, old and "[йьъ]$" or "[йь]$") then
+		elseif rfind(args.bare, "[йьъ]$") then
 			return args.bare
 		elseif suf == "ъ" then
 			return args.bare .. suf
@@ -1465,18 +1462,17 @@ local function attach_unstressed(args, suf, stem, ustem)
 	end
 	suf = com.make_unstressed(suf)
 	local rules = unstressed_rules[ulower(usub(stem, -1))]
-	return combine_stem_and_suffix(stem, suf, rules, old)
+	return combine_stem_and_suffix(stem, suf, rules, args.old)
 end
 
 local function attach_stressed(args, suf, stem, ustem)
-	local old = args.old
 	if suf == nil then
 		return nil
 	elseif not rfind(suf, "[ё́]") then -- if suf has no "ё" or accent marks
 		return attach_unstressed(args, suf, stem, ustem)
 	end
 	local rules = stressed_rules[ulower(usub(ustem, -1))]
-	return combine_stem_and_suffix(ustem, suf, rules, old)
+	return combine_stem_and_suffix(ustem, suf, rules, args.old)
 end
 
 local function attach_both(args, suf, stem, ustem)

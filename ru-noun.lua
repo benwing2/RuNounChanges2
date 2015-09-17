@@ -2718,7 +2718,6 @@ local function attach_unstressed(args, case, suf, was_stressed)
 	elseif rfind(suf, CFLEX) then -- if suf has circumflex accent, it forces stressed
 		return attach_stressed(args, case, suf)
 	end
-	local old = args.old
 	local stem = rfind(case, "_pl") and args.pl or case == "ins_sg" and args.ins_sg_stem or args.stem
 	if nonsyllabic_suffixes[suf] then
 		-- If gen_pl, use special args.gen_pl_bare if given, else regular
@@ -2755,7 +2754,7 @@ local function attach_unstressed(args, case, suf, was_stressed)
 				if barearg and case == "gen_pl" then
 					-- FIXME: temporary tracking code
 					track("explicit-bare-no-suffix")
-					if old then
+					if args.old then
 						track("explicit-bare-old-no-suffix")
 					end
 					-- explicit bare or reducible, don't add -ь
@@ -2772,7 +2771,7 @@ local function attach_unstressed(args, case, suf, was_stressed)
 	end
 	suf = com.make_unstressed(suf)
 	local rules = unstressed_rules[ulower(usub(stem, -1))]
-	return combine_stem_and_suffix(stem, suf, rules, old)
+	return combine_stem_and_suffix(stem, suf, rules, args.old)
 end
 
 -- Analogous to attach_unstressed() but for the unstressed stem and a
@@ -2786,10 +2785,9 @@ attach_stressed = function(args, case, suf)
 	if not rfind(suf, "[ё́]") then -- if suf has no "ё" or accent marks
 		return attach_unstressed(args, case, suf, "was stressed")
 	end
-	local old = args.old
 	local stem = rfind(case, "_pl") and args.upl or args.ustem
 	local rules = stressed_rules[ulower(usub(stem, -1))]
-	return combine_stem_and_suffix(stem, suf, rules, old)
+	return combine_stem_and_suffix(stem, suf, rules, args.old)
 end
 
 -- Attach the appropriate stressed or unstressed stem (or plural stem as
