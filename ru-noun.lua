@@ -3004,29 +3004,25 @@ end
 
 handle_forms_and_overrides = function(args)
 	for _, case in ipairs(cases) do
-		local ispl = rfind(case, "_pl")
-		if args[case .. "_tail"] and args.forms[case] then
+		if args.forms[case] then
 			local lastarg = #(args.forms[case])
-			if lastarg > 0 then
+			if lastarg > 0 and args[case .. "_tail"] then
 				args.forms[case][lastarg] = args.forms[case][lastarg] .. args[case .. "_tail"]
 			end
-		end
-		if not ispl and args.forms[case] then
-			local lastarg = #(args.forms[case])
-			if lastarg > 0 and args.sgtailall then
-				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.sgtailall
-			end
-			if lastarg > 1 and args.sgtail then
-				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.sgtail
-			end
-		end
-		if ispl and args.forms[case] then
-			local lastarg = #(args.forms[case])
-			if lastarg > 0 and args.pltailall then
-				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltailall
-			end
-			if lastarg > 1 and args.pltail then
-				args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltail
+			if not rfind(case, "_pl") then
+				if lastarg > 0 and args.sgtailall then
+					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.sgtailall
+				end
+				if lastarg > 1 and args.sgtail then
+					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.sgtail
+				end
+			else
+				if lastarg > 0 and args.pltailall then
+					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltailall
+				end
+				if lastarg > 1 and args.pltail then
+					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.pltail
+				end
 			end
 		end
 	end
