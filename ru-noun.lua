@@ -140,30 +140,15 @@
 
 TODO:
 
-1. Change {{temp|ru-decl-noun-pl}} and {{temp|ru-decl-noun-unc}} to use
-   'manual' instead of '*' as the decl class.
-   [IMPLEMENTED IN WIKTIONARY.]
-2. Find places with '-' as the decl class and remove or change to #.
-  [IMPLEMENTED IN WIKTIONARY.]
 3. Find places with '*' as the decl class and change to $. There is at
   least one. [IMPLEMENTED IN WIKTIONARY; NEED TO REMOVE * AS ALIAS.
   NEED TO TEST THAT OMITTING A MANUAL FORM LEAVES THE FORM AS A BIG DASH.]
-4. Implement skipping entirely an empty first stress argument in master,
-  and fix cases that use it, in preparation for switching. [IMPLEMENTED IN
-  WIKTIONARY.]
-5. Require stem to be specified instead of defaulting to page,
-  and fix errors that result. [IMPLEMENTED IN WIKTIONARY. UNDID THIS AND
-  IMPLEMENTED THE OPPOSITE, TO ALLOW FOR DEFAULTING IN CASE OF PAGES WITH
-  Ё IN THEM AND MONOSYLLABLES.]
 6. Change '-' to mean invariable to '$' in ru-adjective.lua. Change
    the stem from empty to "-" and change the endings to be empty. Change any
    templates to use '$'. Test that omitting a manual form leaves the form
    as a big dash. [IMPLEMENTED. DON'T THINK THERE ARE ANY TEMPLATES USING IT.
    NEED TO TEST OMITTING A FORM.]
 7. Add proper support for Zaliznyak b', f''. [IMPLEMENTED. NEED TO TEST.]
-7a. In Module:table-tools, support + as a footnote along with §¶ªº†‡°№!@#$%^
-   and anything in the range U+00A1-U+00BF,U+00D7,U+00F7,U+2010-U+2027,
-   U+2030-U+205E,U+2070-U+20CF,U+2100-U+2B5F,U+2E00-U+2E3F [IMPLEMENTED.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
 7c. Mixed and proper-noun adjectives have built-in notes. We need to
@@ -174,10 +159,7 @@ TODO:
    mixed, proper, stressed-proper. [IMPLEMENTED. NEED TO TEST.]
 7e. FIXME: Change calls to ru-adj11 to use the new proper name support in
    ru-adjective.
-7f. FIXME: Add words ребёночек, щеночек, сапожок, зубок. Fix decls of
-   сяжок (3*b // 3*d(2)), глазок, рожок, знамя.
-7g. Change this module to use Zaliznyak-style accent patterns internally
-   instead of numbered ones. [IMPLEMENTED.]
+7f. FIXME: Fix decls of сяжок (3*b // 3*d(2)), глазок, рожок, знамя.
 7h. Change stress pattern categories to use Zaliznyak-style accent
    patterns. Do this when supporting b' and f'' and changing module
    internally to use Zaliznyak-style accent patterns. [IMPLEMENTED. NEED TO
@@ -199,8 +181,6 @@ TODO:
    plural variant [and maybe even change that to be something like (1')].
    [IMPLEMENTED REDUCTION OF PLURAL VARIANTS TO -ья; PLURAL-VARIANT CODE
    STILL COMPLEX, THOUGH. NEED TO TEST.]
-7k. Remove code that recognizes gender for adjectival nouns; not
-   needed. [IMPLEMENTED.]
 7l. FIXME: Create categories for use with the category code.
 7m. FIXME: Integrate stress categories with those in Vitalik's module.
 7n. FIXME: Remove boolean recognize_plurals; this should always be true.
@@ -208,9 +188,6 @@ TODO:
 7o. Automatically superscript *, numbers and similar things at the
    beginning of a note. Also do this in adjective module. [IMPLEMENTED.
    NEED TO TEST.]
-7p. Eliminate мя-1; it's only one noun, and can use slash declension +
-   plural stem. [IMPLEMENTED. REPLACED ENTRY FOR знамя AS FOLLOWS:
-   {{ru-noun-table|зна́|мя/о||знамён}}]
 7q. Consider eliminating о-ья and replacing it with slash declension
    о/-ья like we do for feminine, masculine soft, etc. nouns. [IMPLEMENTED.
    NEED TO TEST.]
@@ -218,9 +195,6 @@ TODO:
    singular nor genitive plural makes use of bare. [IMPLEMENTED. TRACKING
    UNDER "pointless-bare". ELIMINATED MOST ADJECTIVES HERE, A COUPLE LEFT
    ARE IN -Я AND WILL DISAPPEAR AS SOON AS WE PUSH THE NEW MODULE.]
-7s. ADJECTIVE MODULE: Add categories for short-adjective accent
-   patterns. [IMPLEMENTED.]
-7t. Rename "unreduce" to "dereduce". [IMPLEMENTED.]
 7u. FIXME: Change stress-pattern detection and overriding to happen inside of
    looping over the two parts of a slash decl. Requires that the loop over
    the two parts happen outside of the loop over stress patterns. Requires
@@ -237,46 +211,25 @@ TODO:
 7x. With pluralia tantum adjectival nouns, we don't know the gender.
    By default we assume masculine (or feminine for old-style -ія nouns) and
    currently this goes into the category, but shouldn't. [IMPLEMENTED.]
-7y. Consider renaming "stem set" to "arg set". I considered "decl spec/
-   declension spec" but that proved too obscure. [IMPLEMENTED.]
 7z. FIXME: Implement smart code to check properly whether an explicit bare is
    a reducible by looking to see if it's one more syllable than the stem.
    We should probably do this test only when args.reducible not set, otherwise
    assume reducible.
 8. [Get error "Unable to dereduce" with strange noun ва́йя, what should
   happen?] [WILL NOT FIX; USE AN OVERRIDE]
-9. Implement ins_sg stem for 8* feminine words like люво́вь with reducible
-  stem любв- in gen/dat/pre sg and throughout the plural (I think),
-  but ins sg любо́вью. [IMPLEMENTED. TESTED. CHANGE NOUNS OF THIS
-  SORT TO USE THE NEW WAY. любо́вь, нелюбо́вь, вошь, це́рковь, ложь, рожь.]
-10. pltailall/sgtailall. [IMPLEMENTED. PLTAILALL IMPLEMENTED IN WIKTIONARY.]
+9. FIXME: Change 8* fem nouns to use the features of the new template; no more
+   ins_sg override. любо́вь, нелюбо́вь, вошь, це́рковь, ложь, рожь.]
 11. More sophisticated handling of user-requested plural variant vs. special
   case (1) vs. plural-detected variant. [IMPLEMENTED. NEED TO TEST FURTHER.]
-12. Dereducing masculine plural. [IMPLEMENTED. TESTED.]
 13. Solution to ambiguous plural involving gender spec "3f". [IMPLEMENTED;
    NEED TO TEST.]
-14. N*d(2) in masc nouns will have different dereduced form in
-   nom sg vs. gen pl, e.g. nom sg рожо́к vs. gen pl ро́жек; essentially, need
-   to reduce then dereduce again, and store a separate nom_sg bare and
-   gen_pl bare. With saпожо́к, the pl stem is probably сапо́ж-; this implies
-   we need to restress an unstressed reduced stem according to the way we
-   do it for the normal stem with b/d(')/f(') stress patterns. The nouns
-   that appear to work this way are all 3*d(2): зубо́к, сапожо́к (3*d(2) // 3*b),
-   рожо́к, сяжо́к (3*b // 3*d(2)), глазо́к. [IMPLEMENTED. TESTED. NEED TO CHANGE
-   THE WIKTIONARY NOUNS TO INCORPORATE THESE AND ADD сапожо́к.]
 15. Bug in -я nouns with bare specified; gen pl should not have -ь ending. Old
    templates did not add this ending when bare occurred. [IMPLEMENTED IN
    WIKTIONARY. SHOULD REMOVE THE TRACKING CODE.]
-16. Remove barepl, make pl= be 5th argument. [IMPLEMENTED IN WIKTIONARY.]
 17. [Add accent pattern for ь-stem numbers. Wikitiki handled that through
    overriding the ins_sg. I thought there would be complications with the
    nom_sg in multi-syllabic words but no.] [INSTEAD, DISTINGUISHED b from b',
    f' from f''. CAN USE PLAIN b.]
-18. Eliminate complicated defaulting code for second and further arg sets.
-   Should simply default to same values as the first arg set does, without
-   the first arg set serving as defaults for the remainder, except that
-   the stem itself can default to the previous arg set. [IMPLEMENTED IN
-   WIKTIONARY.]
 19. Fixes for stem-multi-syllabic words with ending stress in gen pl but
    non-syllabic gen pl, with stress transferring onto final syllable even if
    stem is otherwise stressed on an earlier syllable (e.g. голова́ in
@@ -284,12 +237,6 @@ TODO:
    by overriding "bare" but I want to make bare predictable mostly, just
    specifying that the noun is reducible should be enough. [IMPLEMENTED
    IN WIKTIONARY. SHOULD REMOVE THE TRACKING CODE.]
-20. If stress omitted, it should default to a or b depending on whether accent
-   is on stem or ending, not always a. [IMPLEMENTED. TESTED.]
-21. Should recognize plural in the auto-detection code when the gender is set.
-   [IMPLEMENTED. TESTED.]
-22. Issue an error unless allow_unaccented is given (using a * at the beginning
-   of the stem). [IMPLEMENTED. FIXED WIKTIONARY ENTRIES.]
 23. Make it so that the plural-specifying decl classes -а, -ья, and new -ы, -и
    still auto-detect the class and convert the resulting auto-detected class
    to one with the plural variant. It's useful then to have explicit names for
@@ -311,15 +258,6 @@ TODO:
   (1) AND (2). NEED TO TEST -ья, ALTHOUGH PRESUMABLY THEY GOT TESTEED
   THROUGH THE TEST PAGES AND THROUGH BEING RUN ON ALL THE EXISTING DECLED
   RUSSIAN NOUNS IN WIKTIONARY.]
-24. Support adjective declensions. Autodetection should happen by putting +
-   in decl field to indicate it's an adjective. Adjective decl types should
-   begin with a +. (Formerly a * but that is used for reducibles.)]
-   [IMPLEMENTED. TESTED.]
-24a. Implement autodetection of plural adjective declensions given gender,
-   and conversion to singular declension, with n=pl set. [IMPLEMENTED. TESTED.]
-25. Implement (1) as an alias for certain irregular plurals, for
-    compatibility with Zaliznyak. [IMPLEMENTED. APPEARS TO WORK BUT SHOULD
-    CHECK.]
 26. Add ability to specify manual translation. [IMPLEMENTED IN GITHUB
    MANUAL-TRANSLIT BRANCH FOR NOUNS, NOT YET FOR ADJECTIVES, NOT TESTED,
    ALMOST CERTAINLY HAS ERRORS]
