@@ -140,14 +140,9 @@
 
 TODO:
 
-3. Find places with '*' as the decl class and change to $. There is at
-  least one. [IMPLEMENTED IN WIKTIONARY; NEED TO REMOVE * AS ALIAS.
-  NEED TO TEST THAT OMITTING A MANUAL FORM LEAVES THE FORM AS A BIG DASH.]
-6. Change '-' to mean invariable to '$' in ru-adjective.lua. Change
-   the stem from empty to "-" and change the endings to be empty. Change any
-   templates to use '$'. Test that omitting a manual form leaves the form
-   as a big dash. [IMPLEMENTED. DON'T THINK THERE ARE ANY TEMPLATES USING IT.
-   NEED TO TEST OMITTING A FORM.]
+3. FIXME: Test that omitting a manual form leaves the form as a big dash.
+6. FIXME: Test that omitting a manual form in ru-adjective leaves the form as
+   a big dash.
 7. Add proper support for Zaliznyak b', f''. [IMPLEMENTED. NEED TO TEST.]
 7b. FIXME: Consider putting a triangle △ (U+25B3) or the smaller variant
    ▵ (U+25B5) next to each irregular form.
@@ -159,7 +154,6 @@ TODO:
    mixed, proper, stressed-proper. [IMPLEMENTED. NEED TO TEST.]
 7e. FIXME: Change calls to ru-adj11 to use the new proper name support in
    ru-adjective.
-7f. FIXME: Fix decls of сяжок (3*b // 3*d(2)), глазок, рожок, знамя.
 7h. Change stress pattern categories to use Zaliznyak-style accent
    patterns. Do this when supporting b' and f'' and changing module
    internally to use Zaliznyak-style accent patterns. [IMPLEMENTED. NEED TO
