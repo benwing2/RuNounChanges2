@@ -31,7 +31,7 @@
 		ins: instrumental
 		pre: prepositional
 		short: short form
-		
+
 	Number/gender abbreviations:
 		m: masculine singular
 		n: neuter singular
@@ -205,6 +205,7 @@ local detect_stem_and_accent_type
 local construct_bare_and_short_stem
 local deduce_short_accent
 local decline
+local canonicalize_override
 local handle_forms_and_overrides
 local decline_short
 
@@ -297,15 +298,17 @@ local function generate_forms(args, old, manual)
 			accented_stem = com.make_ending_stressed(accented_stem)
 		end
 
-		local short_forms_allowed = manual and true or
-			decl_type == "ый" or decl_type == "ой" or decl_type == (old and "ій" or "ий")
-		overall_short_forms_allowed = overall_short_forms_allowed or short_forms_allowed
+		local short_forms_allowed = manual and true or decl_type == "ый" or
+			decl_type == "ой" or decl_type == (old and "ій" or "ий")
+		overall_short_forms_allowed = overall_short_forms_allowed or
+			short_forms_allowed
 		if not short_forms_allowed then
-			-- FIXME: We might want to allow this in case we have a reducible
-			-- short, mixed or proper possessive adjective. But in that case
-			-- we need to reduce rather than dereduce to get the stem.
+			-- FIXME: We might want to allow this in case we have a
+			-- reducible short, mixed or proper possessive adjective. But
+			-- in that case we need to reduce rather than dereduce to get
+			-- the stem.
 			if short_accent or short_stem then
-				error("Cannot specify short accent or short stem with declension type " .. decl_type .. ", as short forms aren't allowed")
+				error("Cannot specify short accent or short stem with declension type " .. decl_type ..  ", as short forms aren't allowed")
 			end
 			if args[3] or args[4] or args[5] or args[6] or args.short_m or
 				args.short_f or args.short_n or args.short_p then
@@ -334,7 +337,7 @@ local function generate_forms(args, old, manual)
 		end
 
 		tracking_code(decl_type, args, orig_short_accent, short_accent,
-			short_stem)
+			short_stem, short_forms_allowed)
 		if not manual and enable_categories then
 			categorize(decl_type, args, orig_short_accent, short_stem,
 				short_stem)
@@ -475,7 +478,7 @@ end
 --------------------------------------------------------------------------
 
 tracking_code = function(decl_class, args, orig_short_accent, short_accent,
-	short_stem)
+	short_stem, short_forms_allowed)
 	local hint_types = com.get_stem_trailing_letter_type(args.stem)
 	local function dotrack(prefix)
 		if prefix ~= "" then
@@ -489,7 +492,8 @@ tracking_code = function(decl_class, args, orig_short_accent, short_accent,
 		end
 	end
 	dotrack("")
-	if args[3] or args[4] or args[5] or args[6] or short_accent then
+	if args[3] or args[4] or args[5] or args[6] or args.short_m or
+		args.short_f or args.short_n or args.short_p then
 		dotrack("short")
 	end
 	if orig_short_accent then
@@ -512,6 +516,10 @@ tracking_code = function(decl_class, args, orig_short_accent, short_accent,
 	if short_stem then
 		dotrack("explicit-short-stem")
 		dotrack("explicit-short-stem/" .. short_accent)
+	end
+	if not short_accent and not short_stem and short_forms_allowed then
+		local deduced_short = deduce_short_accent(args)
+		dotrack("explicit-short/" .. deduced_short)
 	end
 	for _, case in ipairs(old_cases) do
 		if args[case] then
@@ -921,8 +929,14 @@ end
 
 -- Deduce the short accent pattern given short masc, fem, neut and plural.
 -- Each value should be a list of strings.
-deduce_short_accent = function(masc, fem, neut, pl)
+deduce_short_accent = function(args)
+	local masc = canonicalize_override(args.short_m or args[short_cases.short_m])
+	local fem = canonicalize_override(args.short_f or args[short_cases.short_f])
+	local neut = canonicalize_override(args.short_n or args[short_cases.short_n])
+	local pl = canonicalize_override(args.short_p or args[short_cases.short_p])
+
 	local function convert_to_plus_minus(list)
+		if not list then return "missing" end
 		assert(type(list) == "table")
 		if #list == 0 then
 			return "missing"
@@ -951,6 +965,16 @@ deduce_short_accent = function(masc, fem, neut, pl)
 	neut = convert_to_plus_minus(neut)
 	pl = convert_to_plus_minus(pl)
 
+	if masc == "missing" and fem == "missing" and neut == "missing" and
+			pl == "missing" then
+		return "missing"
+	elseif masc == "missing" and fem ~= "missing" and neut ~= "missing" and
+			pl ~= "missing" then
+		return "masc-missing"
+	elseif masc == "missing" or fem == "missing" or neut == "missing" or
+			pl == "missing" then
+		return "part-missing"
+	end
 	-- If the pattern calls for end stress in the masc, then masc should
 	-- be end-stressed; otherwise it may or may not be end-stressed.
 	for pattern, stressvals in pairs(short_stress_patterns) do
@@ -1480,14 +1504,14 @@ decline = function(args, decl, stressed)
 	end
 end
 
-handle_forms_and_overrides = function(args, short_forms_allowed)
-	local function dosplit(val)
-		if not val then return nil end
-		return rsplit(val, "%s*,%s*")
-	end
+canonicalize_override = function(val)
+	if not val then return nil end
+	return rsplit(val, "%s*,%s*")
+end
 
+handle_forms_and_overrides = function(args, short_forms_allowed)
 	for _, case in ipairs(args.old and old_long_cases or long_cases) do
-		args[case] = dosplit(args[case]) or args.forms[case]
+		args[case] = canonicalize_override(args[case]) or args.forms[case]
 	end
 	for case, argnum in pairs(short_cases) do
 		if short_forms_allowed then
@@ -1500,7 +1524,7 @@ handle_forms_and_overrides = function(args, short_forms_allowed)
 					args.forms[case][lastarg] = args.forms[case][lastarg] .. args.shorttail
 				end
 			end
-			args[case] = dosplit(args[case] or args[argnum]) or args.forms[case]
+			args[case] = canonicalize_override(args[case] or args[argnum]) or args.forms[case]
 		else
 			args[case] = nil
 		end
