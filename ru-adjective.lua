@@ -293,8 +293,10 @@ function export.do_generate_forms(args, old, manual)
 		args.stem = stem
 		args.ustem = com.make_unstressed_once(stem)
 		local accented_stem = stem
-		if com.is_unstressed(accented_stem) then
-			accented_stem = com.make_ending_stressed(accented_stem)
+		if not args.allow_unaccented then
+			if com.is_unstressed(accented_stem) then
+				accented_stem = com.make_ending_stressed(accented_stem)
+			end
 		end
 
 		local short_forms_allowed = manual and true or decl_type == "ый" or
@@ -898,8 +900,12 @@ construct_bare_and_short_stem = function(args, short_accent, short_stem,
 	-- but be conservative -- only if monosyllabic, since otherwise we have
 	-- no idea where stress should end up; after all, the explicit short stem
 	-- is for exceptional cases.
-	if com.is_unstressed(short_stem) and com.is_monosyllabic(short_stem) then
-		short_stem = com.make_ending_stressed(short_stem)
+	if not args.allow_unaccented then
+		if com.is_monosyllabic(short_stem) then
+			short_stem = com.make_ending_stressed(short_stem)
+		elseif com.need_accents(short_stem) then
+			error("Explicit short stem " .. short_stem .. " needs an accent")
+		end
 	end
 
 	if sc2 then
