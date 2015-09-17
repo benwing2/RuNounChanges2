@@ -203,6 +203,7 @@ local tracking_code
 local categorize
 local detect_stem_and_accent_type
 local construct_bare_and_short_stem
+local deduce_short_accent
 local decline
 local handle_forms_and_overrides
 local decline_short
@@ -916,6 +917,50 @@ construct_bare_and_short_stem = function(args, short_accent, short_stem,
 	args.bare = bare
 
 	return short_accent, short_decl
+end
+
+-- Deduce the short accent pattern given short masc, fem, neut and plural.
+-- Each value should be a list of strings.
+deduce_short_accent = function(masc, fem, neut, pl)
+	local function convert_to_plus_minus(list)
+		assert(type(list) == "table")
+		if #list == 0 then
+			return "missing"
+		end
+		local stresses = {}
+		for _, x in ipairs(list) do
+			table.insert(stresses, com.is_ending_stressed(x) and "+" or "-")
+		end
+		if #stresses == 1 then
+			return stresses[1]
+		end
+		local has_plus = ut.contains(stresses, "+")
+		local has_minus = ut.contains(stresses, "-")
+		if has_plus and has_minus then
+			return "-+"
+		else if has_plus then
+			return "+"
+		else
+			assert(has_minus)
+			return "-"
+		end
+	end
+
+	masc = convert_to_plus_minus(masc)
+	fem = convert_to_plus_minus(fem)
+	neut = convert_to_plus_minus(neut)
+	pl = convert_to_plus_minus(pl)
+
+	-- If the pattern calls for end stress in the masc, then masc should
+	-- be end-stressed; otherwise it may or may not be end-stressed.
+	for pattern, stressvals in pairs(short_stress_patterns) do
+		if stressvals.f == fem and stressvals.n == neut and stressvals.p == pl
+			and (stressvals.m != "+" or stressvals.m == masc) then
+			return pattern
+		end
+	end
+
+	return "unknown"
 end
 
 --------------------------------------------------------------------------
