@@ -6,7 +6,7 @@
 * {{ru-IPA|воро́тца}}
 
 ===Noun===
-{{ru-noun|воро́тца|n-in-p|воро́тец}}
+{{ru-noun*|воро́тца|*n}}
 
 # {{rfdef|lang=ru}}
 
@@ -21,26 +21,12 @@
 * {{ru-IPA|пери́льца}}
 
 ===Noun===
-{{ru-noun|пери́льца|n-in-p|пери́лец}}
+{{ru-noun*|пери́льца|*n}}
 
 # {{rfdef|lang=ru}}
 
 ====Declension====
 {{ru-noun-table|пери́льца|*n}}
-
-
-==Russian==
-
-===Pronunciation===
-* {{ru-IPA|воро́тца}}
-
-===Noun===
-{{ru-noun|воро́тца|n-in-pl|воро́тец}}
-
-# {{rfdef|lang=ru}}
-
-====Declension====
-{{ru-noun-table|воро́тца|*n}}
 
 корча
 
@@ -50,7 +36,7 @@
 * {{ru-IPA|ко́рча}}
 
 ===Noun===
-{{ru-noun|ко́рча|f-in|ко́рчи|ко́рчи}}
+{{ru-noun*|ко́рча}}
 
 # {{rfdef|lang=ru}}
 
@@ -65,7 +51,7 @@
 * {{ru-IPA|ве́рша}}
 
 ===Noun===
-{{ru-noun|ве́рша|f-in|ве́рши|ве́рши}}
+{{ru-noun*|ве́рша}}
 
 # {{rfdef|lang=ru}}
 
@@ -104,15 +90,15 @@
 куб
 
 ===Noun===
-{{ru-noun|куб|m-in|ку́ба|ку́бы|pl2=кубы́}}
+{{ru-noun*|c,a}}
 
 # [[cube]] (''plural:'' {{lang|ru|кубы́}} ''or'' {{lang|ru|ку́бы}})
 
 ====Declension====
-{{ru-noun-table|c,a|кув}}
+{{ru-noun-table|c,a}}
 
 ===Noun===
-{{ru-noun|куб|m-in|ку́ба|ку́бы}}
+{{ru-noun*}}
 
 # {{context|mathematics|lang=ru}} cubed, a number raised to the third power (''p
 lural:'' {{lang|ru|ку́бы}})
@@ -121,15 +107,15 @@ lural:'' {{lang|ru|ку́бы}})
 адцать |двадцати́]] [[семь|семи́]]}} — ''<sup>3</sup>√27 (cube root of 27)''
 
 ====Declension====
-{{ru-noun-table|кув}}
+{{ru-noun-table}}
 
 ===Noun===
-{{ru-noun|куб|m-in|ку́ба|ку́бы|pl2=кубы́}}
+{{ru-noun*|c,a}}
 
 # [[boiler]], [[still]] (''plural:'' {{lang|ru|кубы́}} ''or'' {{lang|ru|ку́бы}})
 
 ====Declension====
-{{ru-noun-table|c,a|кув}}
+{{ru-noun-table|c,a}}
 
 луб
 
@@ -141,7 +127,7 @@ lural:'' {{lang|ru|ку́бы}})
 Defn #1:
 
 =====Declension=====
-{{ru-noun-table|c,a|клуб}}
+{{ru-noun-table|c,a}}
 
 стега
 
@@ -151,7 +137,7 @@ Defn #1:
 * {{ru-IPA|стега́}}
 
 ===Noun===
-{{ru-noun|стега́|f-in|стеги́|стеги́}}
+{{ru-noun*|стега́}}
 
 # {{rfdef|lang=ru}}
 
@@ -168,12 +154,12 @@ Defn #1:
 * {{ru-IPA|при́став}}
 
 ====Noun====
-{{ru-noun|при́став|m-an|при́став|при́ставы|pl2=при́ставы}}
+{{ru-noun*|c|при́став|(1)|or|a=an}}
 
 # {{rfdef|lang=ru}}
 
 =====Declension=====
-{{ru-noun-table|c|при́став|(1)|or}}
+{{ru-noun-table|c|при́став|(1)|or|a=an}}
 
 ===Etymology 2===
 
@@ -181,7 +167,7 @@ Defn #1:
 * {{ru-IPA|приста́в}}
 
 ====Noun====
-{{ru-noun|приста́в|m-in|приста́в|приста́вы|pl2=приста́вы}}
+{{ru-noun*|приста́в}}
 
 # {{rfdef|lang=ru}}
 
@@ -196,7 +182,7 @@ Defn #1:
 * {{ru-IPA|поста́в}}
 
 ===Noun===
-{{ru-noun|поста́в|m-in|поста́ва|постaвы́}}
+{{ru-noun*|c|поста́в|(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -211,7 +197,7 @@ Defn #1:
 * {{ru-IPA}}
 
 ===Noun===
-{{ru-noun||m-in|шки́ва|шкивы́|pl2=шки́вы}}
+{{ru-noun*|c,b}}
 
 # {{rfdef|lang=ru}}
 
@@ -232,7 +218,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*xlěvъ||stall}}.
 * {{ru-IPA}}
 
 ===Noun===
-{{ru-noun|хле́в|m-in|хле́ва|хлева́}}
+{{ru-noun*|c}}
 
 # [[stable]], [[stall]], [[cowshed]]
 # sheep [[cote]]
@@ -257,7 +243,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA|бо́ров}}
 
 ===Noun===
-{{ru-noun|бо́ров|m-an|бо́рова|бо́ровы}}
+{{ru-noun*|e|бо́ров|m-an}}
 
 # castrated male [[pig]] (usually fattened)
 # {{lb|ru|colloquial}} [[obese]] man
@@ -266,7 +252,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 {{ru-decl-noun-z|бо́ров|m-an|e}}
 
 ===Noun===
-{{ru-noun|бо́ров|m-an|бо́рова|бо́ровы}}
+{{ru-noun*|c|бо́ров|(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -281,7 +267,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA|обшла́г}}
 
 ===Noun===
-{{ru-noun|обшла́г|m-in|обшлага́|обшлагы́}}
+{{ru-noun*|обшла́г|(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -298,7 +284,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA|про́лог}}
 
 ====Noun====
-{{ru-noun|про́лог|про́лога|пролога́|pl2=про́логы}}
+{{ru-noun*|c|про́лог|(1)|or}}
 
 # {{rfdef|lang=ru}}
 
@@ -311,7 +297,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 ===Etymology 2===
 
 ====Noun====
-{{ru-noun|проло́г|m-in}}
+{{ru-noun*|проло́г}}
 
 # [[prologue]]
 
@@ -338,7 +324,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA}}
 
 ===Noun===
-{{ru-noun||m-in|е́рга|е́ргы}}
+{{ru-noun*}}
 
 # [[erg]]
 
@@ -353,7 +339,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA|мегаэ́рг}}
 
 ===Noun===
-{{ru-noun|мегаэ́рг|m-in|мегаэ́рга|мегаэ́ргы}}
+{{ru-noun*|мегаэ́рг}}
 
 # [[megaerg]]
 
@@ -371,7 +357,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 ===Etymology 2===
 
 ====Noun====
-{{ru-noun|рад|m-in|ра́да|ра́ды}}
+{{ru-noun*}}
 
 # [[rad]] {{gloss|non-systematic unit of absorbed radiation dose}}
 # abbreviation of [[радиан]]
@@ -428,7 +414,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA|до́ведь}}
 
 ===Noun===
-{{ru-noun|до́ведь|f-in|до́веди|до́веди}}
+{{ru-noun*|a,e|до́ведь|f}}
 
 # {{rfdef|lang=ru}}
 
@@ -446,13 +432,13 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA}}
 
 ===Noun===
-{{ru-noun||f-in|гро́зди|гро́здья|pl2=гро́зди}}
+{{ru-noun*||f-ья|or|e||f}}
 
 # [[bunch]], [[cluster]] {{gloss|a group of a number of similar things}}
 #: {{ux|ru|inline=y|'''гро́здья''' виногра́да|'''bunches''' of grapes}}
 
 ====Declension====
-{{ru-noun-table|гро́здь|f-ья|or|e||f}}
+{{ru-noun-table||f-ья|or|e||f}}
 
 груздь
 
@@ -462,7 +448,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 * {{ru-IPA}}
 
 ===Noun===
-{{ru-noun||m-in|груздя́|гру́зди}}
+{{ru-noun*|f||m}}
 
 # {{rfdef|lang=ru}}
 
@@ -502,8 +488,8 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|перка́ль}}
 
 ===Noun===
-{{ru-noun|перка́ль|m-in|перка́ля|перка́ли}} <br />
-{{ru-noun|перка́ль|f-in|перка́ли|перка́ли}}
+{{ru-noun*|перка́ль|f}} <br />
+{{ru-noun*|перка́ль|m}}
 
 # [[chintz]]? {{rfdef|lang=ru}}
 
@@ -528,7 +514,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|та́бель}}
 
 ===Noun===
-{{ru-noun|та́бель|m-in|та́беля|та́бели|pl2=табеля́}}
+{{ru-noun*|та́бель|m|or|c||m(1)}}
 
 # [[timesheet]], [[table]]? {{rfdef|lang=ru}}
 
@@ -536,7 +522,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 {{ru-noun-table|та́бель|m|or|c||m(1)}}
 
 ===Noun===
-{{ru-noun|та́бель|f-in|та́бели|та́бели}}
+{{ru-noun*|та́бель|f}}
 
 # [[table]] (in the expression {{m|ru||[[та́бель]] о [[ра́нгах]]|table of ranks}})
 
@@ -561,7 +547,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|ско́бель}}
 
 ===Noun===
-{{ru-noun|ско́бель|m-in|ско́беля|ско́бели|pl2=скобеля́}}
+{{ru-noun*|ско́бель|m|or|c||m(1)}}
 
 # [[scraper]]? [[drawing knife]]? [[adze]]? {{rfdef|lang=ru}}
 
@@ -576,7 +562,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|дю́бель}}
 
 ===Noun===
-{{ru-noun|дю́бель|m-in|дю́беля|дю́бели|pl2=дюбеля́}}
+{{ru-noun*|дю́бель|m|or|c||m(1)}}
 
 # [[dowel]]? {{rfdef|lang=ru}}
 
@@ -591,7 +577,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|на́гель}}
 
 ===Noun===
-{{ru-noun|на́гель|m-in|на́геля|на́гели|pl2=нагеля́}}
+{{ru-noun*|на́гель|m|or|c||m(1)}}
 
 # [[nog]]? {{rfdef|lang=ru}}
 
@@ -606,7 +592,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|ри́гель}}
 
 ===Noun===
-{{ru-noun|ри́гель|m-in|ри́геля|ри́гели|pl2=ригеля́}}
+{{ru-noun*|ри́гель|m|or|c||m(1)}}
 
 # [[bolt]]? [[girth rail]]? [[yoke]]? [[dwang]]? {{rfdef|lang=ru}}
 
@@ -621,7 +607,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|ме́ргель}}
 
 ===Noun===
-{{ru-noun|ме́ргель|m-in|ме́ргеля|ме́ргели|pl2=мергеля́}}
+{{ru-noun*|ме́ргель|m|or|c||m(1)}}
 
 # [[marl]]? [[malm]]? {{rfdef|lang=ru}}
 
@@ -636,7 +622,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|бу́гель}}
 
 ===Noun===
-{{ru-noun|бу́гель|m-in|бу́геля|бу́гели|pl2=бугеля́}}
+{{ru-noun*|бу́гель|m|or|c||m(1)}}
 
 # [[yoke]]? {{rfdef|lang=ru}}
 
@@ -656,12 +642,12 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 * {{ru-IPA|пе́дель}}
 
 ===Noun===
-{{ru-noun|пе́дель|m-in|пе́деля|пе́дели|pl2=педеля́}}
+{{ru-noun*|пе́дель|m|or|c||m(1)|a=an}}
 
 # [[bulldog]]? {{rfdef|lang=ru}}
 
 ====Declension====
-{{ru-noun-table|пе́дeль|m|or|c||m(1)|pltail=*|notes=* Archaic.}}
+{{ru-noun-table|пе́дeль|m|or|c||m(1)|pltail=*|notes=* Archaic.|a=an}}
 
 шпиндель
 
@@ -675,7 +661,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 
 ===Noun===
-{{ru-noun|шпи́ндель|m-in|шпи́нделя|шпи́ндели|pl2=шпинделя́}}
+{{ru-noun*|шпи́ндель|m|or|c||m(1)}}
 
 # [[spindle]] (of a [[machine tool]])
 
@@ -694,7 +680,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ве́нзель}}
 
 ===Noun===
-{{ru-noun|ве́нзель|m-in|ве́нзеля|вензеля́}}
+{{ru-noun*|c|ве́нзель|m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -709,7 +695,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|тре́нзель}}
 
 ===Noun===
-{{ru-noun|тре́нзель|m-in|тре́нзеля|трензеля́|pl2=тре́нзели}}
+{{ru-noun*|c|тре́нзель|m(1)|or||m}}
 
 # {{rfdef|lang=ru}}
 
@@ -724,7 +710,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ше́нкель}}
 
 ===Noun===
-{{ru-noun|ше́нкель|m-in|ше́нкеля|шенкеля́}}
+{{ru-noun*|c|ше́нкель|m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -739,7 +725,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ста́пель}}
 
 ===Noun===
-{{ru-noun|ста́пель|m-in|ста́пеля|стапеля́|pl2=ста́пели}}
+{{ru-noun*|c|ста́пель|m(1)|or||m}}
 
 # {{rfdef|lang=ru}}
 
@@ -754,7 +740,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ште́мпель}}
 
 ===Noun===
-{{ru-noun|ште́мпель|m-in|ште́мпеля|штемпеля́|pl2=ште́мпели}}
+{{ru-noun*|c|ште́мпель|m(1)|or||m}}
 
 # {{rfdef|lang=ru}}
 
@@ -769,7 +755,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ду́пель}}
 
 ===Noun===
-{{ru-noun|ду́пель|m-an|ду́пеля|дупеля́}}
+{{ru-noun*|c|ду́пель|m(1)|a=an}}
 
 # (kind of bird) {{rfdef|lang=ru}}
 
@@ -784,7 +770,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ште́псель}}
 
 ===Noun===
-{{ru-noun|ште́псель|m-in|ште́пселя|штепселя́}}
+{{ru-noun*|c|ште́псель|m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -799,7 +785,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ве́ксель}}
 
 ===Noun===
-{{ru-noun|ве́ксель|m-in|ве́кселя|векселя́}}
+{{ru-noun*|c|ве́ксель|m(1)}}
 
 # {rfdef|lang=ru}}
 
@@ -814,7 +800,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|фу́хтель}}
 
 ===Noun===
-{{ru-noun|фу́хтель|m-in|фу́хтеля|фу́хтели|pl2=фухтеля́}}
+{{ru-noun*|фу́хтель|m|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -829,7 +815,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|гри́фель}}
 
 ===Noun===
-{{ru-noun|гри́фель|m-in|гри́феля|гри́фели|pl2=грифеля́}}
+{{ru-noun*|гри́фель|m|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -844,7 +830,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|трю́фель}}
 
 ===Noun===
-{{ru-noun|трю́фель|m-in|трю́феля|трюфеля́|pl2=трю́фели}}
+{{ru-noun*|c|трю́фель|m(1)|or||m}}
 
 # {{rfdef|lang=ru}}
 
@@ -859,7 +845,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ше́ншель}}
 
 ===Noun===
-{{ru-noun|ше́ншель|m-in|ше́ншеля|шеншеля́}}
+{{ru-noun*|c|ше́ншель|m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -874,7 +860,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|коки́ль}}
 
 ===Noun===
-{{ru-noun|коки́ль|m-in|коки́ля|кокиля́}}
+{{ru-noun*|c|коки́ль|m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -889,7 +875,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ди́зель}}
 
 ===Noun===
-{{ru-noun|ди́зель|m-in|ди́зеля|ди́зели|pl2=дизеля́}}
+{{ru-noun*|ди́зель|m|or|c||m(1)}}
 
 # [[diesel]]? {{rfdef|lang=ru}}
 # [[diesel engine]]? {{rfdef|lang=ru}}
@@ -907,7 +893,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|чи́зель}}
 
 ===Noun===
-{{ru-noun|чи́зель|m-in|чи́зеля|чи́зели|pl2=чизеля́}}
+{{ru-noun*|чи́зель|m|or|c||m(1)}}
 
 # [[chisel]]? {{rfdef|lang=ru}}
 
@@ -923,7 +909,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|бе́нзель}}
 
 ===Noun===
-{{ru-noun|бе́нзель|m-in|бе́нзеля|бе́нзели|pl2=бензеля́}}
+{{ru-noun*|бе́нзель|m|or|c||m(1)}}
 
 # [[seizing]]? {{rfdef|lang=ru}}
 
@@ -939,7 +925,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ра́кель}}
 
 ===Noun===
-{{ru-noun|ра́кель|m-in|ра́келя|ра́кели|pl2=ракеля́}}
+{{ru-noun*|ра́кель|m|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -955,7 +941,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|де́кель}}
 
 ===Noun===
-{{ru-noun|де́кель|m-in|де́келя|де́кели|pl2=декеля́}}
+{{ru-noun*|де́кель|m|or|c||m(1)}}
 
 # [[deckle]]? {{rfdef|lang=ru}}
 
@@ -971,7 +957,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ви́нкель}}
 
 ===Noun===
-{{ru-noun|ви́нкель|m-in|ви́нкеля|ви́нкели|pl2=винкеля́}}
+{{ru-noun*|ви́нкель|m|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -987,7 +973,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|му́шкель}}
 
 ===Noun===
-{{ru-noun|му́шкель|m-in|му́шкеля|му́шкели|pl2=мушкеля́}}
+{{ru-noun*|му́шкель|m|or|c||m(1)}}
 
 # [[mallet]]? {{rfdef|lang=ru}}
 
@@ -1003,7 +989,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ру́мпель}}
 
 ===Noun===
-{{ru-noun|ру́мпель|m-in|ру́мпеля|ру́мпели|pl2=румпеля́}}
+{{ru-noun*|ру́мпель|m|or|c||m(1)}}
 
 # [[tiller]]? {{rfdef|lang=ru}}
 
@@ -1019,7 +1005,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ни́ппель}}
 
 ===Noun===
-{{ru-noun|ни́ппель|m-in|ни́ппеля|ни́ппели|pl2=ниппеля́}}
+{{ru-noun*|ни́ппель|m|or|c||m(1)}}
 
 # [[nipple]]? {{rfdef|lang=ru}}
 
@@ -1035,7 +1021,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ли́сель}}
 
 ===Noun===
-{{ru-noun|ли́сель|m-in|ли́селя|ли́сели|pl2=лиселя́}}
+{{ru-noun*|ли́сель|or|c||m(1)}}
 
 # [[studdingsail]]? {{rfdef|lang=ru}}
 
@@ -1051,7 +1037,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|три́сель}}
 
 ===Noun===
-{{ru-noun|три́сель|m-in|три́селя|три́сели|pl2=триселя́}}
+{{ru-noun*|три́сель|or|c||m(1)}}
 
 # [[trysail]]? {{rfdef|lang=ru}}
 
@@ -1067,7 +1053,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ста́ксель}}
 
 ===Noun===
-{{ru-noun|ста́ксель|m-in|ста́кселя|ста́ксели|pl2=стакселя́}}
+{{ru-noun*|ста́ксель|or|c||m(1)}}
 
 # [[staysail]]? {{rfdef|lang=ru}}
 
@@ -1083,7 +1069,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|бра́мсель}}
 
 ===Noun===
-{{ru-noun|бра́мсель|m-in|бра́мселя|бра́мсели|pl2=брамселя́}}
+{{ru-noun*|бра́мсель|or|c||m(1)}}
 
 # [[bramsail]]? {{rfdef|lang=ru}}
 
@@ -1099,7 +1085,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|трю́мсель}}
 
 ===Noun===
-{{ru-noun|трю́мсель|m-in|трю́мселя|трю́мсели|pl2=трюмселя́}}
+{{ru-noun*|трю́мсель|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -1115,7 +1101,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|а́псель}}
 
 ===Noun===
-{{ru-noun|а́псель|m-in|а́пселя|а́псели|pl2=апселя́}}
+{{ru-noun*|а́псель|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -1131,7 +1117,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ка́псель}}
 
 ===Noun===
-{{ru-noun|ка́псель|m-in|ка́пселя|ка́псели|pl2=капселя́}}
+{{ru-noun*|ка́псель|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -1147,7 +1133,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|то́псель}}
 
 ===Noun===
-{{ru-noun|то́псель|m-in|то́пселя|то́псели|pl2=топселя́}}
+{{ru-noun*|то́псель|or|c||m(1)}}
 
 # [[topsail]]? {{rfdef|lang=ru}}
 
@@ -1163,7 +1149,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ма́рсель}}
 
 ===Noun===
-{{ru-noun|ма́рсель|m-in|ма́рселя|ма́рсели|pl2=марселя́}}
+{{ru-noun*|ма́рсель|or|c||m(1)}}
 
 # [[topsail]]? {{rfdef|lang=ru}}
 
@@ -1179,7 +1165,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|дро́ссель}}
 
 ===Noun===
-{{ru-noun|дро́ссель|m-in|дро́сселя|дро́ссели|pl2=дросселя́}}
+{{ru-noun*|дро́ссель|or|c||m(1)}}
 
 # [[throttle]]? {{rfdef|lang=ru}}
 
@@ -1195,7 +1181,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|шпа́тель}}
 
 ===Noun===
-{{ru-noun|шпа́тель|m-in|шпа́теля|шпа́тели|pl2=шпателя́}}
+{{ru-noun*|шпа́тель|or|c||m(1)}}
 
 # [[spatula]]? {{rfdef|lang=ru}}
 
@@ -1211,7 +1197,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|шпа́хтель}}
 
 ===Noun===
-{{ru-noun|шпа́хтель|m-in|шпа́хтеля|шпа́хтели|pl2=шпахтеля́}}
+{{ru-noun*|шпа́хтель|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -1227,7 +1213,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|га́фель}}
 
 ===Noun===
-{{ru-noun|га́фель|m-in|га́феля|га́фели|pl2=гафеля́}}
+{{ru-noun*|га́фель|or|c||m(1)}}
 
 # [[gaff]] [[hook]]? {{rfdef|lang=ru}}
 
@@ -1243,7 +1229,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|му́фель}}
 
 ===Noun===
-{{ru-noun|му́фель|m-in|му́феля|му́фели|pl2=муфеля́}}
+{{ru-noun*|му́фель|or|c||m(1)}}
 
 # [[muffle]]? {{rfdef|lang=ru}}
 
@@ -1259,7 +1245,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|шти́хель}}
 
 ===Noun===
-{{ru-noun|шти́хель|m-in|шти́хеля|шти́хели|pl2=штихеля́}}
+{{ru-noun*|шти́хель|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -1275,7 +1261,7 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 {{ru-IPA|ве́нтерь}}
 
 ===Noun===
-{{ru-noun|ве́нтерь|m-in|ве́нтеря|ве́нтери|pl2=вентеря́}}
+{{ru-noun*|ве́нтерь|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
@@ -1295,7 +1281,7 @@ mwl|tr=*samōr}}.
 * {{ru-IPA|со́боль}}
 
 ===Noun===
-{{ru-noun|со́боль|m-an|со́боля|соболя́|pl2=со́боли}}
+{{ru-noun*|c|со́боль|m(1)|or|e||m|a=an}}
 
 # [[sable]] (a small carnivorous mammal)
 
@@ -1306,7 +1292,7 @@ mwl|tr=*samōr}}.
 * {{l|ru|соболи́ный}}
 
 ===Noun===
-{{ru-noun|со́боль|m-an|g2=m-in|со́боля|соболя́}}
+{{ru-noun*|c|со́боль|m(1)|a=both}}
 
 # [[sable]] (the fur of this animal)
 
@@ -1325,7 +1311,7 @@ mwl|tr=*samōr}}.
 * {{ru-IPA|то́поль}}
 
 ===Noun===
-{{ru-noun|то́поль|m-in|то́поля|тополя́|pl2=то́поли}}
+{{ru-noun*|c|то́поль|m(1)|or}}
 
 # [[poplar]] (any of various deciduous trees of the genus Populus)
 # [[cottonwood]]
@@ -1354,7 +1340,7 @@ mwl|tr=*samōr}}.
 * {{audio|Ru-пристань.ogg|lang=ru}}
 
 ====Noun====
-{{ru-noun|при́стань|f-in|при́стани|при́стани}}
+{{ru-noun*|e,a|при́стань|f}}
 
 # [[wharf]], [[pier]]
 
@@ -1384,7 +1370,7 @@ mwl|tr=*samōr}}.
 {{ru-IPA|ро́сстань}}
 
 ===Noun===
-{{ru-noun|ро́сстань|f-in|ро́сстани|ро́сстани}}
+{{ru-noun*|a,e|ро́сстань|f}}
 
 # {{rfdef|lang=ru}}
 
@@ -1406,7 +1392,7 @@ mwl|tr=*samōr}}.
 * {{ru-IPA}}
 
 ===Noun===
-{{ru-noun||f-in|те́ни|те́ни}}
+{{ru-noun*|e||f}}
 
 # [[shade]]
 # [[shadow]]
@@ -1414,7 +1400,7 @@ mwl|tr=*samōr}}.
 # [[eye shadow]]
 
 ====Declension====
-{{ru-noun-table|e|те́нь|f|loc=в +}}
+{{ru-noun-table|e||f|loc=в +}}
 
 ====Related terms====
 * [[затенять]], [[затенить]]
@@ -1423,12 +1409,12 @@ mwl|tr=*samōr}}.
 * [[тенистый]]
 
 ===Noun===
-{{ru-noun||f-an|g2=f-in|те́ни|те́ни}}
+{{ru-noun*|a,e||f|a=both}}
 
 # [[apparition]], [[phantom]], [[ghost]]
 
 ====Declension====
-{{ru-noun-table|a,e|те́нь|f|a=both|ins_sg=те́нью,те́нию}}
+{{ru-noun-table|a,e||f|a=both|ins_sg=те́нью,те́нию}}
 
 [[Category:ru:Cosmetics]]
 
@@ -1440,7 +1426,7 @@ mwl|tr=*samōr}}.
 * {{ru-IPA|полуте́нь}}
 
 ===Noun===
-{{ru-noun|полуте́нь|f-in|полуте́ни|полуте́ни}}
+{{ru-noun*|a,e|полуте́нь|f}}
 
 # {{rfdef|lang=ru}}
 
@@ -1465,7 +1451,7 @@ mwl|tr=*samōr}}.
 * {{ru-IPA|пя́день}}
 
 ===Noun===
-{{ru-noun|пяде́нь|head2=пя́день|f-in|пяде́ня|g2=пя́деня||пяде́ни|pl2=пя́дени}}
+{{ru-noun*|пяде́нь|f|or|e|пя́день|f}}
 
 # {{rfdef|lang=ru}}
 
@@ -1484,7 +1470,7 @@ F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-
 * {{ru-IPA|са́жень}}
 
 ===Noun===
-{{ru-noun|саже́нь|head2=са́жень|f-in|саже́ня|g2=са́женя||саже́ни|pl2=са́жени}}
+{{ru-noun*|саже́нь|f|or|e|са́жень|f}}
 
 # [[sazhen]], old [[Russian]] [[unit]] of length equal to 3 [[arshin]]s or 2.134 [[meter]]s or 7 [[feet]]
 
@@ -1517,7 +1503,7 @@ F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-
 * {{ru-IPA|гра́барь}}
 
 ===Noun===
-{{ru-noun|граба́рь|head2=гра́барь|m-an|грабаря́|гра́баря|грабари́|гра́бари}}
+{{ru-noun*|b|граба́рь|m|or|гра́барь|m|a=an}}
 
 # {{rfdef|lang=ru}}
 
@@ -1533,7 +1519,7 @@ F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-
 * {{ru-IPA|ры́барь}}
 
 ===Noun===
-{{ru-noun|рыба́рь|head2=ры́барь|m-an|рыбаря́|ры́баря|рыбари́|ры́бари}}
+{{ru-noun*|b|рыба́рь|m|or|ры́барь|m|a=an}}
 
 # {{rfdef|lang=ru}}
 
@@ -1546,10 +1532,10 @@ F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-
 ==Russian==
 
 ===Pronunciation===
-* {{ru-IPA|сазандарь}}
+* {{ru-IPA|сазанда́рь}}
 
 ===Noun===
-{{ru-noun|сазанда́рь|m-an|сазанда́ря|сазанда́ри}}
+{{ru-noun*|a,b|сазанда́рь|m|a=an}}
 
 # {{rfdef|lang=ru}}
 
@@ -1565,7 +1551,7 @@ F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-
 * {{ru-IPA|бонда́рь}}
 
 ===Noun===
-{{ru-noun|бо́ндарь|head2=бонда́рь|m-an|бо́ндаря|бондаря́|бо́ндари|бондари́}}
+{{ru-noun*|бо́ндарь|m|or|b|бонда́рь|m|a=an}}
 
 # {{rfdef|lang=ru}}
 
@@ -1583,12 +1569,12 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 * {{ru-IPA|ле́карь}}
 
 ===Noun===
-{{ru-noun|ле́карь|m-an|ле́каря|ле́кари|pl2=лекаря́|f=ле́карша}}
+{{ru-noun*|ле́карь|m|or|c||m(1)|a=an|f=ле́карша}}
 
 # [[doctor]], [[medico]], [[physician]] (feminine form "ле́карша" is usually considered colloquial)
 
 ====Declension====
-{{ru-noun-table|a|ле́карь|m|or|c||m(1)|pltail=*|notes=* Archaic.|a=a}}
+{{ru-noun-table|ле́карь|m|or|c||m(1)|pltail=*|notes=* Archaic.|a=an}}
 
 ====Synonyms====
 * {{l|ru|врач}}, {{l|ru|до́ктор}}, {{l|ru|ме́дик}}, {{l|ru|эскула́п}}
@@ -1606,7 +1592,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 * {{ru-IPA|пе́карь}}
 
 ===Noun===
-{{ru-noun|пе́карь|m-an|пе́каря|пе́кари|pl2=пекаря́}}
+{{ru-noun*|пе́карь|m|or|c||m(1)|a=an}}
 
 # [[baker]]
 
@@ -1636,12 +1622,12 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 * {{ru-IPA|ло́парь}}
 
 ====Noun====
-{{ru-noun|ло́парь|m-in|ло́паря|ло́пари|pl2=лопаря́}}
+{{ru-noun*|ло́парь|m|or|c||m(1)}}
 
 # {{rfdef|lang=ru}}
 
 =====Declension=====
-{{ru-noun-table|a|ло́парь|m|or|c||m(1)}}
+{{ru-noun-table|ло́парь|m|or|c||m(1)}}
 
 ===Etymology 2===
 
@@ -1649,7 +1635,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 * {{ru-IPA|лопа́рь}}
 
 ====Noun====
-{{ru-noun|лопа́рь|m-an|лопаря́|лопари́}}
+{{ru-noun*|b|лопа́рь|m|a=an}}
 
 # {{rfdef|lang=ru}}
 
@@ -1664,12 +1650,12 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 * {{ru-IPA|сле́парь}}
 
 ===Noun===
-{{ru-noun|сле́парь|m-an|сле́паря|сле́пари|pl2=слепаря́}}
+{{ru-noun*|сле́парь|m|or|c||m(1)|a=an}}
 
 # {{rfdef|lang=ru}}
 
 ====Declension====
-{{ru-noun-table|a|сле́парь|m|or|c||m(1)|a=an}}
+{{ru-noun-table|сле́парь|m|or|c||m(1)|a=an}}
 
 писарь
 
@@ -1679,7 +1665,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 * {{ru-IPA|пи́сарь}}
 
 ===Noun===
-{{ru-noun|пи́сарь|m-an|пи́саря|пи́сари|pl2=писаря́}}
+{{ru-noun*|a|пи́сарь|m|or|c||m(1)|a=an}}
 
 # [[clerk]]; [[scribe]], [[scrivener]]
 
@@ -1703,7 +1689,7 @@ Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 * {{audio|Ru-лагерь.ogg|Audio|lang=ru}}
 
 ===Noun===
-{{ru-noun|ла́герь|m-in|ла́геря|лагеря́}}
+{{ru-noun*|c|ла́герь|m(1)}}
 
 # [[camp]]
 
@@ -1723,7 +1709,7 @@ Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 * {{R:ru:Vasmer|лагерь}}
 
 ===Noun===
-{{ru-noun|ла́герь|m-in|ла́геря|ла́гери}}
+{{ru-noun*|ла́герь|m}}
 
 # (type of group?) {{rfdef|lang=ru}}
 
@@ -1746,7 +1732,7 @@ Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 * {{ru-IPA|пехте́рь}}
 
 ===Noun===
-{{ru-noun|пе́хтерь|head2=пехте́рь|m-in|пе́хтеря|пeхтеря́|пе́хтери|пeхтери́}}
+{{ru-noun*|пе́хтерь|m|or|b|пехте́рь|m}}
 
 # (корзина) {{rfdef|lang=ru}}
 
@@ -1754,7 +1740,7 @@ Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 {{ru-noun-table|пе́хтерь|m|or|b|пехте́рь|m}}
 
 ===Noun===
-{{ru-noun|пе́хтерь|head2=пехте́рь|m-an|пе́хтеря|пeхтеря́|пе́хтери|пeхтери́}}
+{{ru-noun*|пе́хтерь|m|or|b|пехте́рь|m|a=an}}
 
 # (неловкий человек) {{rfdef|lang=ru}}
 
@@ -1775,14 +1761,14 @@ Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 * {{ru-IPA}}
 
 ===Noun===
-{{ru-noun||head2=ви́хорь|m-in|ви́рхя|ви́хри}}
+{{ru-noun*|m|or|ви́хорь|*m}}
 
 # [[whirlwind]]
 # [[vortex]], [[swirl]]
 # [[eddy]], [[twirl]]
 
 ====Declension====
-{{ru-noun-table|ви́хрь|m|or||*m|nom_sg_tail=*|notes=* Poetic.}}
+{{ru-noun-table||m|or|ви́хорь|*m|nom_sg_tail=*|notes=* Poetic.}}
 
 ====Related terms====
 * [[вихревой]]
@@ -1801,7 +1787,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*netopyrjь}}, a compound which first part 
 * {{ru-IPA|нетопы́рь}}
 
 ===Noun===
-{{ru-noun|нетопы́рь|m-an|нетопыря́|нетопыри́}}
+{{ru-noun*|b|нетопы́рь|m|or|не́топырь|a=an}}
 
 # {{context|zoology|lang=ru}} [[bat]], [[noctule]], [[pipistrelle]]
 
@@ -1819,7 +1805,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*netopyrjь}}, a compound which first part 
 * {{ru-IPA|псалты́рь}}
 
 ===Noun===
-{{ru-noun|псалты́рь|f-in|g2=m-in|псалты́ри|gen2=псалтыря́|псалтыри́|pl2=псалты́ри}}
+{{ru-noun*|псалты́рь|f|or|b|псалты́рь|m}}
 
 # ([[psalter]]?) {{rfdef|lang=ru}}
 
@@ -1862,7 +1848,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*netopyrjь}}, a compound which first part 
 * {{ru-IPA|полкиломе́тра}}
 
 ===Noun===
-{{ru-noun|полкиломе́тра|m-in|полукиломе́тра|полукиломе́тры}}
+{{ru-noun*|полукиломе́тр|nom_sg=полкиломе́тра}}
 
 # [[half]] a [[kilometer]]
 
