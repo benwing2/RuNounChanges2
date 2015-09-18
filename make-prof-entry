@@ -1,0 +1,31 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import re
+
+words = [u"ди́зель", u"чи́зель", u"бе́нзель", u"ра́кель", u"де́кель", u"ви́нкель", u"му́шкель", u"ру́мпель", u"ни́ппель", u"ли́сель", u"три́сель", u"ста́ксель", u"бра́мсель", u"трю́мсель", u"а́псель", u"ка́псель", u"то́псель", u"ма́рсель", u"дро́ссель", u"шпа́тель", u"шпа́хтель", u"га́фель", u"му́фель", u"шти́хель", u"ве́нтерь"]
+
+def msg(txt):
+  print txt.encode("utf-8")
+
+AC = u"\u0301"
+for word in words:
+  gen = re.sub(u"ь$", u"я", word)
+  pl1 = re.sub(u"ь$", u"и", word)
+  pl2 = re.sub(u"ь$", u"я́", word.replace(AC, ""))
+  msg(word.replace(AC, ""))
+  msg("")
+  msg("""==Russian==
+
+===Pronunciation===
+{{ru-IPA|%s}}
+
+===Noun===
+{{ru-noun|%s|m-in|%s|%s|pl2=%s}}
+
+# {{rfdef|lang=ru}}
+
+====Declension====
+{{ru-noun-table|%s|m|or|c||m(1)|pltail=*|notes=* Professional usage.}}
+""" % (word, word, gen, pl1, pl2, word))
+  msg("")
