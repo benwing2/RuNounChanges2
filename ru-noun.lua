@@ -171,7 +171,10 @@ TODO:
    declensions and special plural stems and rewrite them internally to
    separate stems with 'sg' and 'pl' declension flags; but there are still
    the two coding issues mentioned above.]
-7j. Consider simplifying plural-variant code to only allow -ья as a
+7j. [FIXME: Consider redoing slash patterns so they operate at the outer
+   level, i.e. things like special cases apply separately in the singular
+   and plural part of the slash pattern.]
+7k. Consider simplifying plural-variant code to only allow -ья as a
    plural variant [and maybe even change that to be something like (1')].
    [IMPLEMENTED REDUCTION OF PLURAL VARIANTS TO -ья; PLURAL-VARIANT CODE
    STILL COMPLEX, THOUGH. NEED TO TEST.]
@@ -185,19 +188,21 @@ TODO:
 7q. Consider eliminating о-ья and replacing it with slash declension
    о/-ья like we do for feminine, masculine soft, etc. nouns. [IMPLEMENTED.
    NEED TO TEST.]
-7r. Implement check for bare argument specified when neither nominative
+7r. FIXME: Eliminate uses of о-ья, converting them to use -ья special case.
+7t. Implement check for bare argument specified when neither nominative
    singular nor genitive plural makes use of bare. [IMPLEMENTED. TRACKING
-   UNDER "pointless-bare". ELIMINATED MOST ADJECTIVES HERE, A COUPLE LEFT
-   ARE IN -Я AND WILL DISAPPEAR AS SOON AS WE PUSH THE NEW MODULE.]
+   UNDER "pointless-bare". CONSIDER REMOVING AFTER WE ELIMINATE ALL ENTRIES
+   FROM THE CATEGORY.]
 7u. FIXME: Change stress-pattern detection and overriding to happen inside of
    looping over the two parts of a slash decl. Requires that the loop over
    the two parts happen outside of the loop over stress patterns. Requires
    that the category code get split into two parts, one to handle combined
    singular/plural categories that goes outside the two loops, and one to
    handle everything else that goes inside the two loops.
-7v. FIXME: Make the check for multiple stress patterns (categorizing/tracking)
+7v. Make the check for multiple stress patterns (categorizing/tracking)
    smarter, to keep a list of them and check at the end, so we handle
    multiple stress patterns specified through different arg sets.
+   [IMPLEMENTED; NEED TO TEST.]
 7w. FIXME: override_matches_suffix() had a free variable reference to ARGS
    in it, which should have triggered an error whenever there was a nom_sg or
    nom_pl override but didn't. Is there an error causing this never to be
@@ -832,11 +837,16 @@ function export.do_generate_forms(args, old)
 	-- Default lemma defaults to previous lemma, first one to page name.
 	local default_lemma = SUBPAGENAME
 
+	local all_stresses_seen = {}
+
+	-- Loop over all arg sets.
 	for _, arg_set in ipairs(arg_sets) do
 		local stress_arg = arg_set[1]
 		local decl_class = arg_set[3] or ""
 		local bare = arg_set[4]
 		local pl = arg_set[5]
+
+		-- Extract special markers from declension class.
 		if decl_class == "manual" then
 			decl_class = "$"
 			args.manual = true
@@ -855,11 +865,17 @@ function export.do_generate_forms(args, old)
 		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
 		decl_class, args.reducible = rsubb(decl_class, "%*", "")
 		decl_class = rsub(decl_class, ";", "")
+
+		-- Get the lemma.
 		local lemma = args.manual and "-" or arg_set[2] or default_lemma
 		if not lemma then
 			error("Lemma in first argument set must be specified")
 		end
 		default_lemma = lemma
+
+		-- Convert lemma and decl arg into stem and canonicalized decl.
+		-- This will autodetect the declension from the lemma if an explicit
+		-- decl isn't given.
 		local stem, was_accented, was_plural, was_autodetected
 		if rfind(decl_class, "^%+") then
 			stem, decl_class, was_accented, was_plural, was_autodetected =
@@ -871,6 +887,9 @@ function export.do_generate_forms(args, old)
 		if was_plural then
 			args.n = args.n or "p"
 		end
+
+		-- Check for explicit allow-unaccented indication; if not given,
+		-- maybe check for missing accents.
 		stem, args.allow_unaccented = rsubb(stem, "^%*", "")
 		if not args.allow_unaccented and not stress_arg and was_autodetected and com.needs_accents(lemma) then
 			-- If user gave the full word and expects us to determine the
@@ -882,11 +901,12 @@ function export.do_generate_forms(args, old)
 			-- stressed, as would otherwise happen.
 			error("Lemma must have an accent in it: " .. lemma)
 		end
+
+		-- If stress not given, auto-determine; else validate/canonicalize
+		-- stress arg, override in certain cases and convert to list.
 		if not stress_arg then
 			stress_arg = {detect_stress_pattern(stem, decl_class, decl_cats, args.reducible, was_plural, was_accented)}
 		else
-			-- validate/canonicalize stress arg, override in certain cases
-			-- and convert to list
 			stress_arg = rsplit(stress_arg, ",")
 			for i=1,#stress_arg do
 				local stress = stress_arg[i]
@@ -899,7 +919,7 @@ function export.do_generate_forms(args, old)
 			end
 		end
 
-		-- convert decl type to list
+		-- parse slash decl to list
 		local sub_decl_classes
 		if rfind(decl_class, "/") then
 			track("mixed-decl")
@@ -910,11 +930,6 @@ function export.do_generate_forms(args, old)
 			sub_decl_classes = {{indiv_decl_classes[1], "sg"}, {indiv_decl_classes[2], "pl"}}
 		else
 			sub_decl_classes = {{decl_class}}
-		end
-
-		if #stress_arg > 1 then
-			track("multiple-accent-patterns")
-			insert_cat("~ with multiple accent patterns")
 		end
 
 		local original_stem = stem
@@ -930,8 +945,14 @@ function export.do_generate_forms(args, old)
 			local stem_for_bare
 			pl = original_pl
 
+			ut.insert_if_not(all_stresses_seen, stress)
+
 			local stem_was_unstressed = com.is_unstressed(stem)
 
+			-- If special case ;ё was given and stem is unstressed,
+			-- add ё to the stem now; but don't let this interfere with
+			-- restressing, to handle cases like железа́ with gen pl желёз
+			-- but nom pl же́лезы.
 			if stem_was_unstressed and args.jo_special then
 				stem = rsub(stem, "([еЕ])([^еЕ]*)$",
 					function(e, rest)
@@ -941,6 +962,22 @@ function export.do_generate_forms(args, old)
 				stem_for_bare = stem
 			end
 
+			-- Maybe add stress to the stem, depending on whether the
+			-- stem was unstressed and the stress pattern. Stem pattern f
+			-- and variants call for initial stress (голова́ -> го́ловы);
+			-- stem pattern d and variants call for stem-final stress
+			-- (сапожо́к -> сапо́жки). Stem patterns b and b' apparently
+			-- call for stem-final stress as well but it's unlikely to
+			-- make much of a difference (pattern b' only occurs in 3rd-decl
+			-- feminines, which should already have stress in the stem,
+			-- and the only place pattern b gets stem stress is in bare
+			-- forms, i.e. nom sg and/or gen pl depending on the decl type,
+			-- and nom sg stress should already be in the lemma while
+			-- gen pl stress is handled by a different ending-stressing
+			-- mechanism in attach_unstressed(); however, the user is
+			-- free to leave a masc or 3rd-decl fem lemma completely
+			-- unstressed with pattern b, and then the stem-final stress
+			-- *will* make a difference).
 			local function restress_stem(stem, stress, stem_unstressed)
 				-- If the user has indicated they purposely are leaving the
 				-- word unstressed by putting a * at the beginning of the main
@@ -1150,7 +1187,10 @@ function export.do_generate_forms(args, old)
 				end
 			end
 
-			-- check for pointless bare (4th argument)
+			-- Check for pointless bare (4th argument), i.e. not usable
+			-- anywhere in the declension. Often indicates a bug in the
+			-- decl, and bare should be handled otherwise (e.g. through a
+			-- gen_pl override).
 			local function is_nonsyllabic(suff)
 				return suff and #suff == 1 and nonsyllabic_suffixes[suff[1]]
 			end
@@ -1161,6 +1201,11 @@ function export.do_generate_forms(args, old)
 
 			categorize(stress, decl_class, args)
 		end
+	end
+
+	if #all_stresses_seen > 1 then
+		track("multiple-accent-patterns")
+		insert_cat("~ with multiple accent patterns")
 	end
 
 	handle_forms_and_overrides(args)
@@ -1576,6 +1621,7 @@ end
 local function canonicalize_decl(decl, old)
 	-- FIXME: For compatibility; remove it after changing uses of о-ья
 	if com.remove_accents(decl) == "о-ья" then
+		track("о-ья")
 		decl = "о/-ья"
 	end
 	local function do_canon(decl)
