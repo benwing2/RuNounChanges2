@@ -472,7 +472,7 @@ Note the stress in the expression {{m|ru||[[назва́лся]] [[гру́зд�
 ====Declension====
 {{ru-noun-table|f||m}}
 
-грудь
+грудь [does устар. better translate as "Obsolete" or "Archaic"?]
 
 ====Declension====
 {{ru-noun-table|f'',e||f||loc=+|pltail=*|notes=* Archaic.}}
@@ -1282,6 +1282,67 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 ====Declension====
 {{ru-noun-table|ве́нтерь|m|or|c||m(1)|pltail=*|notes=* Professional usage.}}
 
+соболь [is the "fur" meaning really bi-animate?]
+
+==Russian==
+{{wikipedia|lang=ru}}
+
+===Etymology===
+From {{etyl|orv|ru}} {{m|orv|соболь}}. Further, compare {{etyl|pal|-}} {{m|pal|s
+mwl|tr=*samōr}}.
+
+===Pronunciation===
+* {{ru-IPA|со́боль}}
+
+===Noun===
+{{ru-noun|со́боль|m-an|со́боля|соболя́|pl2=со́боли}}
+
+# [[sable]] (a small carnivorous mammal)
+
+====Declension====
+{{ru-noun-table|c|со́боль|m(1)|or|e||m|a=an}}
+
+====Derived terms====
+* {{l|ru|соболи́ный}}
+
+===Noun===
+{{ru-noun|со́боль|m-an|g2=m-in|со́боля|соболя́}}
+
+# [[sable]] (the fur of this animal)
+
+====Declension====
+{{ru-noun-table|c|со́боль|m(1)|a=both}}
+
+тополь
+
+==Russian==
+{{wikipedia|lang=ru}}
+[[Image:Biei-tree2 2003.jpg|thumb|тополь]]
+
+===Pronunciation===
+* {{audio|Ru-тополь.ogg|тополь|lang=ru}}
+
+* {{ru-IPA|то́поль}}
+
+===Noun===
+{{ru-noun|то́поль|m-in|то́поля|тополя́|pl2=то́поли}}
+
+# [[poplar]] (any of various deciduous trees of the genus Populus)
+# [[cottonwood]]
+
+====Declension====
+{{ru-noun-table|c|то́поль|m(1)|or|pltail=*|notes=* Poetic.}}
+
+====Related terms====
+*[[тополёк]]
+*[[тополевый]], [[тополиный]]
+
+[[Category:ru:Trees]]
+
+о́трасль
+
+{{ru-noun-table|a,e|о́трасль|f}}
+
 пристань
 
 ==Russian==
@@ -1395,6 +1456,53 @@ From {{etyl|de|ru}} {{term|Spindel|lang=de}}.
 ====Declension====
 {{ru-noun-table|a,e|по́ршень|m*}}
 
+пядень
+
+==Russian==
+
+===Pronunciation===
+* {{ru-IPA|пяде́нь}}
+* {{ru-IPA|пя́день}}
+
+===Noun===
+{{ru-noun|пяде́нь|head2=пя́день|f-in|пяде́ня|g2=пя́деня||пяде́ни|pl2=пя́дени}}
+
+# {{rfdef|lang=ru}}
+
+====Declension====
+{{ru-noun-table|пяде́нь|f|or|e|пя́день|f|gen_pl=пяде́ней,пядене́й,пяде́нь}}
+
+сажень
+
+==Russian==
+
+===Etymology===
+F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-pro|*sęženь}}, from {{etyl|ine-pro|-}} {{m|ine-pro|*se(n)g-}}.
+
+===Pronunciation===
+* {{ru-IPA|саже́нь}}
+* {{ru-IPA|са́жень}}
+
+===Noun===
+{{ru-noun|саже́нь|head2=са́жень|f-in|саже́ня|g2=са́женя||саже́ни|pl2=са́жени}}
+
+# [[sazhen]], old [[Russian]] [[unit]] of length equal to 3 [[arshin]]s or 2.134 [[meter]]s or 7 [[feet]]
+
+====Declension====
+{{ru-noun-table|саже́нь|f|or|e|са́жень|f|gen_pl=саже́ней,сажене́й,са́жен}}
+
+====Derived terms====
+* [[саженный]]
+
+====Related terms====
+* [[сигать]], [[сягать]]
+* [[досуг]]
+
+====See also====
+* [[аршин]]
+
+[[Category:ru:Units of measure]]
+
 степь
 
 {{ru-noun-table|e,f''||f}}
@@ -1480,7 +1588,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 # [[doctor]], [[medico]], [[physician]] (feminine form "ле́карша" is usually considered colloquial)
 
 ====Declension====
-{{ru-noun-table|a|ле́карь|m|or|c||m(1)|pltail=*|notes=* Obsolete.|a=a}}
+{{ru-noun-table|a|ле́карь|m|or|c||m(1)|pltail=*|notes=* Archaic.|a=a}}
 
 ====Synonyms====
 * {{l|ru|врач}}, {{l|ru|до́ктор}}, {{l|ru|ме́дик}}, {{l|ru|эскула́п}}
@@ -1576,115 +1684,147 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 # [[clerk]]; [[scribe]], [[scrivener]]
 
 ====Declension====
-{{ru-noun-table|пи́сарь|m|or|c||m(1)|pltail=*|notes=* Obsolete.|a=an}}
+{{ru-noun-table|пи́сарь|m|or|c||m(1)|pltail=*|notes=* Archaic.|a=an}}
 
-соболь [is the "fur" meaning really bi-animate?]
+дверь
+
+{{ru-noun-table|e|две́рь|f|ins_pl=дверя́ми,дверьми́|loc=+}}
+
+лагерь
 
 ==Russian==
 {{wikipedia|lang=ru}}
 
 ===Etymology===
-From {{etyl|orv|ru}} {{m|orv|соболь}}. Further, compare {{etyl|pal|-}} {{m|pal|s
-mwl|tr=*samōr}}.
+Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 
 ===Pronunciation===
-* {{ru-IPA|со́боль}}
+* {{ru-IPA|ла́герь}}
+* {{audio|Ru-лагерь.ogg|Audio|lang=ru}}
 
 ===Noun===
-{{ru-noun|со́боль|m-an|со́боля|соболя́|pl2=со́боли}}
+{{ru-noun|ла́герь|m-in|ла́геря|лагеря́}}
 
-# [[sable]] (a small carnivorous mammal)
+# [[camp]]
 
 ====Declension====
-{{ru-noun-table|c|со́боль|m(1)|or|e||m|a=an}}
+{{ru-noun-table|c|ла́герь|m(1)}}
 
-====Derived terms====
-* {{l|ru|соболи́ный}}
+====Synonyms====
+*[[стоянка]]
+*[[каторга]]
+*[[союз]], [[коалиция]]
+
+====Related terms====
+*[[концлагерь]]
+*[[лагерный]]
+
+===References===
+* {{R:ru:Vasmer|лагерь}}
 
 ===Noun===
-{{ru-noun|со́боль|m-an|g2=m-in|со́боля|соболя́}}
+{{ru-noun|ла́герь|m-in|ла́геря|ла́гери}}
 
-# [[sable]] (the fur of this animal)
+# (type of group?) {{rfdef|lang=ru}}
 
 ====Declension====
-{{ru-noun-table|c|со́боль|m(1)|a=both}}
+{{ru-noun-table|ла́герь|m}}
 
-тополь
+{{catlangcode|ru|Military}}
+
+егерь
+
+====Declension====
+{{ru-noun-table|c|е́герь|m(1)}}
+
+пехтерь
+
+==Russian==
+
+===Pronunciation===
+* {{ru-IPA|пе́хтерь}}
+* {{ru-IPA|пехте́рь}}
+
+===Noun===
+{{ru-noun|пе́хтерь|head2=пехте́рь|m-in|пе́хтеря|пeхтеря́|пе́хтери|пeхтери́}}
+
+# (корзина) {{rfdef|lang=ru}}
+
+====Declension====
+{{ru-noun-table|пе́хтерь|m|or|b|пехте́рь|m}}
+
+===Noun===
+{{ru-noun|пе́хтерь|head2=пехте́рь|m-an|пе́хтеря|пeхтеря́|пе́хтери|пeхтери́}}
+
+# (неловкий человек) {{rfdef|lang=ru}}
+
+====Declension====
+{{ru-noun-table|пе́хтерь|m|or|b|пехте́рь|m|a=an}}
+
+якорь
+
+====Declension====
+{{ru-noun-table|c|я́корь|m(1)}}
+
+вихрь
+
+==Russian==
+[[Image:A whirlpool in a glass of water.jpg|thumb|вихрь]]
+
+===Pronunciation===
+* {{ru-IPA}}
+
+===Noun===
+{{ru-noun||head2=ви́хорь|m-in|ви́рхя|ви́хри}}
+
+# [[whirlwind]]
+# [[vortex]], [[swirl]]
+# [[eddy]], [[twirl]]
+
+====Declension====
+{{ru-noun-table|ви́хрь|m|or||*m|nom_sg_tail=*|notes=* Poetic.}}
+
+====Related terms====
+* [[вихревой]]
+* [[вихрить]]
+* [[вихриться]]
+* [[завихрение]]
+
+нетопырь [should I include archaic forms in the headword?]
 
 ==Russian==
 {{wikipedia|lang=ru}}
-[[Image:Biei-tree2 2003.jpg|thumb|тополь]]
-
-===Pronunciation===
-* {{audio|Ru-тополь.ogg|тополь|lang=ru}}
-
-* {{ru-IPA|то́поль}}
-
-===Noun===
-{{ru-noun|то́поль|m-in|то́поля|тополя́|pl2=то́поли}}
-
-# [[poplar]] (any of various deciduous trees of the genus Populus)
-# [[cottonwood]]
-
-====Declension====
-{{ru-noun-table|c|то́поль|m(1)|or|pltail=*|notes=* Poetic.}}
-
-====Related terms====
-*[[тополёк]]
-*[[тополевый]], [[тополиный]]
-
-[[Category:ru:Trees]]
-
-о́трасль
-
-{{ru-noun-table|a,e|о́трасль|f}}
-
-пядень
-
-==Russian==
-
-===Pronunciation===
-* {{ru-IPA|пяде́нь}}
-* {{ru-IPA|пя́день}}
-
-===Noun===
-{{ru-noun|пяде́нь|head2=пя́день|f-in|пяде́ня|g2=пя́деня||пяде́ни|pl2=пя́дени}}
-
-# {{rfdef|lang=ru}}
-
-====Declension====
-{{ru-noun-table|пяде́нь|f|or|e|пя́день|f|gen_pl=пяде́ней,пядене́й,пяде́нь}}
-
-сажень
-
-==Russian==
-
 ===Etymology===
-F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-pro|*sęženь}}, from {{etyl|ine-pro|-}} {{m|ine-pro|*se(n)g-}}.
+From {{etyl|sla-pro|ru}} {{m|sla-pro|*netopyrjь}}, a compound which first part ''nekto-'' ([[e-grade]]) is cognate to {{etyl|ine-pro|ru}} {{m|ine-pro|*nókʷts}} ([[o-grade]]).
 
 ===Pronunciation===
-* {{ru-IPA|саже́нь}}
-* {{ru-IPA|са́жень}}
+* {{ru-IPA|нетопы́рь}}
 
 ===Noun===
-{{ru-noun|саже́нь|head2=са́жень|f-in|саже́ня|g2=са́женя||саже́ни|pl2=са́жени}}
+{{ru-noun|нетопы́рь|m-an|нетопыря́|нетопыри́}}
 
-# [[sazhen]], old [[Russian]] [[unit]] of length equal to 3 [[arshin]]s or 2.134 [[meter]]s or 7 [[feet]]
+# {{context|zoology|lang=ru}} [[bat]], [[noctule]], [[pipistrelle]]
 
 ====Declension====
-{{ru-noun-table|саже́нь|f|or|e|са́жень|f|gen_pl=саже́ней,сажене́й,са́жен}}
+{{ru-noun-table|b|нетопы́рь|m|or|не́топырь|sgtail=*|pltail=*|notes=* Archaic.|a=an}}
 
-====Derived terms====
-* [[саженный]]
+====Synonyms====
+* [[летучая мышь]]
 
-====Related terms====
-* [[сигать]], [[сягать]]
-* [[досуг]]
+псалтырь
 
-====See also====
-* [[аршин]]
+==Russian==
 
-[[Category:ru:Units of measure]]
+===Pronunciation===
+* {{ru-IPA|псалты́рь}}
+
+===Noun===
+{{ru-noun|псалты́рь|f-in|g2=m-in|псалты́ри|gen2=псалтыря́|псалтыри́|pl2=псалты́ри}}
+
+# ([[psalter]]?) {{rfdef|lang=ru}}
+
+====Declension====
+{{ru-noun-table|псалты́рь|f|or|b|псалты́рь|m}}
 
 ось
 
@@ -1708,14 +1848,6 @@ F..rom {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-
 
 ====Declension====
 {{ru-noun-table|e||f|loc=+}}
-
-дочь
-
-{{ru-noun-table|e|до́черь|f|nom_sg=до́чь|ins_pl=~~ьми́,~~я́ми|a=a}}
-
-мать
-
-{{ru-noun-table|e|ма́терь|f|nom_sg=ма́ть|ins_pl=~~я́ми,~~ьми́|a=an}}
 
 полметра
 
