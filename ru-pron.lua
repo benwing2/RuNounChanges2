@@ -1,9 +1,12 @@
 local export = {}
 local gsub = mw.ustring.gsub
-local sub = mw.ustring.sub
+local usub = mw.ustring.sub
 local find = mw.ustring.find
-local len = mw.ustring.len
+local ulen = mw.ustring.len
 local match = mw.ustring.match
+local rsplit = mw.text.split
+
+local function ine(x) return x ~= "" and x; end
 
 local translit_tab = {
 	['а']='a', ['б']='b', ['в']='v', ['г']='g', ['д']='d', ['е']='e', ['ё']='jó', ['ж']='ž', ['з']='z', ['и']='i', ['й']='j',
@@ -20,29 +23,29 @@ local function translit_replace_e(pre, e)
 	if pre == "" or find(pre, "[АОУҮЫЭЯЁЮИЕЪЬІѢѴаоуүыэяёюиеъьіѣѵ%AEIOUYĚaeiouyě]") then
 		return pre .. e
 	else
-		return pre .. sub(e, 2)
+		return pre .. usub(e, 2)
 	end
 end
- 
+
 -- Transliterates text, which should be a single word or phrase. It should
 -- include stress marks, which are then preserved in the transliteration.
 local function translit(text, lang, sc)
 	-- Remove word-final hard sign
 	text = gsub(text, "[Ъъ]$", "")
 	text = gsub(text, "[Ъъ]([- ])", "%1")
- 
+
 	-- Ё needs converting if is decomposed
 	text = text:gsub("ё","ё"):gsub("Ё","Ё")
- 
+
 	-- ё after a "hushing" consonant becomes ó (ё is mostly stressed)
 	text = gsub(text, "([жшчщЖШЧЩ])ё","%1ó")
 	-- ю after ж and ш becomes u (e.g. брошюра, жюри)
 	text = gsub(text, "([жшЖШ])ю","%1u")
- 
+
 	-- е after a vowel or at the beginning of a word becomes je
 	text = gsub(text, "^([ЕеѢѣ]+)", translit_replace_e)
 	text = gsub(text, "(.)([ЕеѢѣ]+)",translit_replace_e)
- 
+
 	return (gsub(text,'.',translit_tab))
 end
 
@@ -80,7 +83,7 @@ local devoicing = {
 	['b'] = 'p', ['d'] = 't', ['g'] = 'k',
 	['z'] = 's', ['v'] = 'f',
 	['ž'] = 'š', ['χ'] = 'x',
-	
+
 	['bʲ'] = 'pʲ', ['dʲ'] = 'tʲ',
 	['zʲ'] = 'sʲ', ['vʲ'] = 'fʲ',
 	['žʲ'] = 'šʲ'
@@ -111,16 +114,16 @@ local phon_respellings = {
 				return 'ц' .. a .. b
 			end
 		end end,
-	
+
 	['[дт]з' .. cyr_vowels_c] = 'ĵз%1', ['^о[дт]с'] = 'оцс',
 	['([щч])о'] = '%1ё', ['([щч])а'] = '%1я', ['([щч])у'] = '%1ю',
-	
+
 	['([^рн])[дт]ц'] = '%1цц', ['[тд]ч'] = 'чч',
 	['йо́'] = 'ё',
 	['стг'] = 'сг',
 
 	['([шжщч])ь$'] = '%1',
-	
+
 	['сверхи'] = 'сверхы',
 	['стьд'] = 'зд',
 	['тьд'] = 'дд',
@@ -133,7 +136,7 @@ local phon_respellings = {
 	['[зс]ш'] = 'шш', ['[зс]ж'] = 'жж',
 	['н[ндт]ск'] = 'нск',
 	['[сз]ск'] = 'ск',
-	['с[дт]ск'] = 'ск',	
+	['с[дт]ск'] = 'ск',
 	['гк'] = 'хк',
 	['н[дт]ш'] = 'нш',
 	['н[дт]г'] = 'нг',
@@ -145,7 +148,7 @@ local cons_assim_palatal = {
 		['stʲ'] = true, ['zdʲ'] = true,
 		['nč'] = true,  ['nǯ'] = true
 	},
-	
+
 	['optional'] = {
 		['slʲ'] = true, ['zlʲ'] = true, ['snʲ'] = true, ['znʲ'] = true, 
 		['tnʲ'] = true, ['dnʲ'] = true,
@@ -173,7 +176,7 @@ local accentless = {
 		['у'] = true,
 		['не'] = true
 	},
-	
+
 	['post'] = {
 		['то'] = true, ['либо'] = true, ['нибудь'] = true,
 		['бы'] = true, ['б'] = true,
@@ -185,25 +188,23 @@ local accentless = {
 
 function export.ipa(text, adj, gem, pal)
 	if type(text) == 'table' then
-		text, adj, gem, pal = (text.args.phon or text.args[1] or ""), ((text.args.adj or "") ~= ""), (text.args["gem"] or ""), (text.args["pal"] or "")
-		if text == "" then
-			text = mw.title.getCurrentTitle().text
+		text, adj, gem, pal = (ine(text.args.phon) or ine(text.args[1])), ine(text.args.adj), ine(text.args.gem), ine(text.args.pal)
+		text = text or mw.title.getCurrentTitle().text
 		end
 	end
-if adj then adj = 'y' end
-	gem = mw.ustring.sub(gem or '', 1, 1)
+	gem = usub(gem or '', 1, 1)
 	text = gsub(mw.ustring.lower(text), '-', ' ')
 
 	text = gsub(text, 'ѐ', 'е' .. '̀')
-	
+
 	--phonetic respellings
 	for a, b in pairs(phon_respellings) do
 		text = gsub(text, a, b)
 	end
-    text = adj and gsub(text, '(.[ое]́?)го(\204\129?)$', '%1во%2') or text
+	text = adj and gsub(text, '(.[ое]́?)го(\204\129?)$', '%1во%2') or text
 
 	--make monosyllabic prepositions liaise with the following word
-	local word = mw.text.split(text, " ", true)
+	local word = rsplit(text, " ", true)
 	for i = 1, #word do
 		if accentless['prep'][word[i]] and i ~= #word then
 			word[i+1] = word[i] .. '‿' .. word[i+1]
@@ -224,7 +225,7 @@ if adj then adj = 'y' end
 	text = translit(text)
 	text = gsub(text, 'šč', 'ǯː')
 	text = gsub(text, 'ó', 'o' .. '́')
-	
+
 	--rewrite iotated vowels
 	text = gsub(text, 'j[aeou]', {
 		['ja'] = 'ä',
@@ -241,7 +242,7 @@ if adj then adj = 'y' end
 	--re-notate orthographic geminate consonants
 	text = gsub(text, (non_vowels_c) .. '%1', '%1ː')
 
-	word = mw.text.split(text, " ", true)
+	word = rsplit(text, " ", true)
 	for i = 1, #word do
 		local syllable, syl_conv, pos, stress = {}, {}, {}, {}
 		local count = 0
@@ -254,9 +255,9 @@ if adj then adj = 'y' end
 		pron = gsub(pron, non_vowels_c .. 'ä$', '%1ʲə')
 		pron = gsub(pron, '%(j%)jə', 'jə')
 
- 		--syllabify
- 		pron = gsub(pron, 'ʹ([äëöü])', 'ʹ/%1')
- 		pron = gsub(pron, 'ʹi', 'ʹji')
+		--syllabify
+		pron = gsub(pron, 'ʹ([äëöü])', 'ʹ/%1')
+		pron = gsub(pron, 'ʹi', 'ʹji')
 		pron = gsub(pron, '([aäeëɛəiyoöuü]́?)', '%1/')
 		pron = gsub(pron, '/+$', '')
 		pron = gsub(pron, '/([^‿/aäeëɛəiyoöuü]*)([^‿/aäeëɛəiyoöuüʹːʲ])(ʹ?ʲ?ː?[aäeëɛəiyoöuü])', '%1/%2%3')
@@ -270,27 +271,27 @@ if adj then adj = 'y' end
 		pron = gsub(pron, '/‿', '‿/')
 
 		--remove accent marks from monosyllables
-		if len(gsub(pron, non_vowels_c, '')) == 1 and match(pron, 'o' .. '́') then
+		if len(gsub(pron, non_vowels_c, '')) == 1 and find(pron, 'o' .. '́') then
 			pron = gsub(pron, '\204\129', '')
 		end
-		
+
 		--write syllable indexes of stressed syllables to a table
 		trimmed_pron = pron
-		while match(trimmed_pron, '[́̀]') do -- U+0301 COMBINING ACUTE ACCENT
+		while find(trimmed_pron, '[́̀]') do -- U+0301 COMBINING ACUTE ACCENT
 			accent_pos = find(trimmed_pron, '[́̀]')
-			count = count + len(gsub(sub(trimmed_pron, 1, accent_pos - 1), '[^%/]', ''))
+			count = count + len(gsub(usub(trimmed_pron, 1, accent_pos - 1), '[^%/]', ''))
 			table.insert(pos, count + 1)
-			trimmed_pron = sub(trimmed_pron, accent_pos + 1, -1)
+			trimmed_pron = usub(trimmed_pron, accent_pos + 1, -1)
 		end
-		
+
 		--treated monosyllabic non-prepositions as if accented
 		pron = gsub(pron, '(.*)' .. vowels_c .. '(.*)', function(a, b, c)
-			if not match(a .. c, vowels) then
+			if not find(a .. c, vowels) then
 				table.insert(pos, 1)
 			end end)
 
 		--split by syllable
-		syllable = mw.text.split(pron, '/', true)
+		syllable = rsplit(pron, '/', true)
 		if #syllable == 1 then
 			table.insert(pos, 1)
 		end
@@ -304,14 +305,14 @@ if adj then adj = 'y' end
 			local syl = syllable[j]
 
 			--remove consonant geminacy if non-initial and non-post-tonic
-			if match(syl, 'ː') and gem ~= 'y' then
+			if find(syl, 'ː') and gem ~= 'y' then
 				no_replace = false
-				if (j == 1 and not match(syl, 'ː$')) or stress[j-1] then
+				if (j == 1 and not find(syl, 'ː$')) or stress[j-1] then
 					no_replace = true
 				else
 					de_accent = gsub(word[i], '[̀́]', '')
 					for i = 1, #geminate_pref do
-						if not no_replace and match(de_accent, geminate_pref[i]) then
+						if not no_replace and find(de_accent, geminate_pref[i]) then
 							no_replace = true
 						end
 					end
@@ -325,15 +326,15 @@ if adj then adj = 'y' end
 						syl = gsub(syl, 'nː', 'n')
 					end
 				end
-				if match(word[i], '[^̀́]nːyj$') then
+				if find(word[i], '[^̀́]nːyj$') then
 					syl = gsub(syl, 'nːyj', 'n(ː)yj')
 				end
 			end
-		
+
 			--assimilative palatalisation of consonants when followed by front vowels
-			if pal == 'y' or match(syl, '^[^cĵšžaäeëɛiyoöuü]*[eiəäëöüʹ]') or match(syl, '^[cĵšž][^cĵšžaäeëɛiyoöuüː]+[eiəäëöüʹ]') or match(syl, '^[cĵ][äëü]') then
+			if pal == 'y' or find(syl, '^[^cĵšžaäeëɛiyoöuü]*[eiəäëöüʹ]') or find(syl, '^[cĵšž][^cĵšžaäeëɛiyoöuüː]+[eiəäëöüʹ]') or find(syl, '^[cĵ][äëü]') then
 				syl = gsub(syl, '^([ʺʹ]?)([äëöü])', '%1j%2')
-				if not match(syl, 'ʺ') and not match(syl, 'ʹ' .. non_vowels) then
+				if not find(syl, 'ʺ') and not find(syl, 'ʹ' .. non_vowels) then
 					syl = gsub(syl, non_vowels_c .. '([ʹːj]?[aäeëɛəiyoöuüʹ])', function(a, b)
 						set = '[mnpbtdkgcfvszxrl]'
 						if pal == 'y' then
@@ -347,21 +348,21 @@ if adj then adj = 'y' end
 			syl = gsub(syl, 'ʺj', 'j')
 			syl = gsub(syl, 'ʺ([aɛiouy])', 'ʔ%1')
 			syl = gsub(syl, '(.?ː?)ʹ', function(a)
-				if match(a, '[čǰšǯ]') then
+				if find(a, '[čǰšǯ]') then
 					return a
 				elseif a ~= 'ʲ' then
 					return a .. 'ʲ'
 				else
 					return 'ʲ'
 				end end)
-			
+
 			--retraction of front vowels in syllables blocking assimilative palatalisation
-			if not match(syl, 'ʲː?' .. vowels) and not match(syl, '[čǰǯӂ]ː?[ei]') and not match(syl, '^j?i') then
+			if not find(syl, 'ʲː?' .. vowels) and not find(syl, '[čǰǯӂ]ː?[ei]') and not find(syl, '^j?i') then
 				syl = gsub(syl, '[ei]', {['e'] = 'ɛ', ['i'] = 'y'})
 			end
-			
+
 			--vowel allophony
-			if stress[j] or (j == #syllable and match(syllable[j-1] .. syllable[j], '[aieäëü]́?o')) or match(syllable[j], '̀') then
+			if stress[j] or (j == #syllable and find(syllable[j-1] .. syllable[j], '[aieäëü]́?o')) or find(syllable[j], '̀') then
 				syl = gsub(syl, '(.*)́', 'ˈ%1')
 				syl = gsub(syl, '(.*)̀', 'ˌ%1')
 				syl = gsub(syl, '([ʲčǰǯ]ː?)o', '%1ö')
@@ -369,17 +370,17 @@ if adj then adj = 'y' end
 					if a ~= '' then
 						return allophones[a][1]
 					end end)
-			
+
 			else
-				if not match((syllable[j-1] or '') .. syllable[j], '[ʺʹ]') and (j ~= #syllable or (j == #syllable and not match(syl, 'jə$'))) then
+				if not find((syllable[j-1] or '') .. syllable[j], '[ʺʹ]') and (j ~= #syllable or (j == #syllable and not find(syl, 'jə$'))) then
 					syl = gsub(syl, 'j' .. gsub(vowels_c, 'ü', ''), '(j)%1')
 				end
-				if stress[j+1] or (j == 1 and match(syl, '^' .. vowels)) then
+				if stress[j+1] or (j == 1 and find(syl, '^' .. vowels)) then
 					syl = gsub(syl, vowels_c, function(a)
 						if a ~= '' then
 							return allophones[a][2]
 						end end)
-				
+
 				else
 					syl = gsub(syl, vowels_c, function(a)
 						if a ~= '' then
@@ -391,7 +392,7 @@ if adj then adj = 'y' end
 		end
 
 		pron = table.concat(syl_conv, "")
-	
+
 		--consonant assimilative palatalisation
 		pron = gsub(pron, '([szntd])(ˈ?)([tdčǰǯlnsz]ʲ?)', function(a, b, c)
 			if cons_assim_palatal['compulsory'][a..c] then
@@ -399,37 +400,40 @@ if adj then adj = 'y' end
 			elseif cons_assim_palatal['optional'][a..c] then
 				return a .. '⁽ʲ⁾' .. b .. c
 			end end)
-		
+
 		--fronting of stressed 'a' between soft consonants
 		pron = gsub(pron, 'ˈ(..?.?)a(.?.?.?)', function(a, b)
-			if match(a, '[ʲčǰǯӂ]') and (b == '' or match(b, '[ʲčǰǯӂ]')) then
+			if find(a, '[ʲčǰǯӂ]') and (b == '' or find(b, '[ʲčǰǯӂ]')) then
 				return 'ˈ' .. a .. 'æ' .. b
 			end end)
 
 		--final devoicing and devoicing assimilation
 		pron = gsub(pron, '([bdgzvžχ]ʲ?)$', function(a)
-			if not match(word[i+1] or '', '^[bdgzvžn]') then
+			if not find(word[i+1] or '', '^[bdgzvžn]') then
 				return devoicing[a]
 			end end)
-		
+
 		pron = gsub(pron, '([bdgzvž])([ %-%‿]?[ptksčšǯcx])', function(a, b)
 			return devoicing[a] .. b end)
 
-		if match(word[i], 'sä$') then
+		if find(word[i], 'sä$') then
 			pron = gsub(pron, 'sʲə$', 's⁽ʲ⁾ə')
 		end
 
 		pron = gsub(pron, '[cčgĵǰšžǯӂχ]', translit_conv)
 		word[i] = pron
 	end
-	
+
 	text = table.concat(word, " ")
 
 	--long vowels
 	text = gsub(text, '[ɐə]([ ]?)ɐ(%l?)ˈ', '%1ɐː%2ˈ')
 	text = gsub(text, 'ə([ ]?)[ɐə]', '%1əː')
-	
+
 	return text
 end
 
 return export
+
+-- For Vim, so we get 4-space tabs
+-- vim: set ts=4 sw=4 noet:
