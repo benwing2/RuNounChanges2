@@ -1,12 +1,26 @@
+--[=[
+	This module implements the templates {{ru-noun}}, {{ru-adj}}, {{ru-adv}},
+	{{ru-noun*}}, etc.
+]=]--
+
 local m_common = require("Module:ru-common")
+local m_links = require("Module:links")
+local m_headword = require("Module:headword")
+local m_utilities = require("Module:utilities")
+local m_table_tools = require("Module:table tools")
 
 local export = {}
 local pos_functions = {}
 
 local lang = require("Module:languages").getByCode("ru")
 
+-- Forward references
+local do_noun
+
 local rfind = mw.ustring.find
 local rsubn = mw.ustring.gsub
+
+local function ine(x) return x ~= "" and x; end
 
 -- version of rsubn() that discards all but the first return value
 local function rsub(term, foo, bar)
@@ -25,13 +39,29 @@ local function clone_args(frame)
 	return args
 end
 
+-- Iterate over a chain of parameters, FIRST then PREF2, PREF3, ...,
+-- inserting into LIST (newly created if omitted). Return LIST.
+local function process_arg_chain(args, first, pref, list)
+	if not list then
+		list = {}
+	end
+	local val = args[first]
+	local i = 2
+
+	while val do
+		table.insert(list, val)
+		val = args[pref .. i]
+		i = i + 1
+	end
+	return list
+end
+
 -- The main entry point.
--- This is the only function that can be invoked from a template.
 function export.show(frame)
 	local args = clone_args(frame)
 	PAGENAME = mw.title.getCurrentTitle().text
 
-	local poscat = frame.args[1] or error("Part of speech has not been specified. Please pass parameter 1 to the module invocation.")
+	local poscat = ine(frame.args[1]) or error("Part of speech has not been specified. Please pass parameter 1 to the module invocation.")
 
 	local genders = {}
 	local inflections = {}
@@ -61,7 +91,7 @@ function export.show(frame)
 	end
 
 	-- Get transliteration
-	local head = heads[1] and require("Module:links").remove_links(heads[1]) or PAGENAME
+	local head = heads[1] and m_links.remove_links(heads[1]) or PAGENAME
 	local head_noaccents = rsub(head, "\204\129", "")
 	local tr_gen = mw.ustring.toNFC(lang:transliterate(head, nil))
 	local tr_gen_noaccents = mw.ustring.toNFC(lang:transliterate(head_noaccents, nil))
@@ -101,8 +131,65 @@ function export.show(frame)
 		pos_functions[poscat](args, heads, genders, inflections, categories)
 	end
 
-	return require("Module:headword").full_headword(lang, nil, heads, tr, genders, inflections, categories, nil) ..
-		require("Module:utilities").format_categories(tracking_categories, lang, nil)
+	return m_headword.full_headword(lang, nil, heads, tr, genders, inflections, categories, nil) ..
+		m_utilities.format_categories(tracking_categories, lang, nil)
+end
+
+-- External entry point; implementation of {{ru-noun*}}.
+function export.noun_star(frame)
+	local args = clone_args(frame)
+	PAGENAME = mw.title.getCurrentTitle().text
+
+	local poscat = ine(frame.args[1]) or error("Part of speech has not been specified. Please pass parameter 1 to the module invocation.")
+	local old = ine(frame.args.old)
+
+	local args = require("Module:ru-noun").do_generate_forms(args, old)
+	local genders = mw.clone(args.genders)
+	local inflections = {}
+	local categories = {"Russian " .. poscat}
+
+	local function remove_notes(list)
+		if not list then
+			return {"-"}
+		end
+		local newlist = {}
+		for _, x in ipairs(list) do
+			-- NOTE: <adj> is a sign to transliterate a word adjectivally
+			-- (-ovo/-evo instead of -ogo/-ego). But it only occurs in
+			-- gen and acc sgs, and the transliteration below is of nom sgs,
+			-- so it won't apply; just remove it.
+			x = rsub(x, "<adj>", "")
+			local entry, notes = m_table_tools.get_notes(x)
+			table.insert(newlist, x)
+		end
+		return newlist
+	end
+
+	local heads, genitives, plurals
+	if args.n == "p" then
+		heads = remove_notes(args.nom_pl)
+		genitives = remove_notes(args.gen_pl)
+		plurals = {"-"}
+	else
+		heads = remove_notes(args.nom_sg)
+		genitives = remove_notes(args.gen_sg)
+		plurals = args.n == "s" and {"-"} or remove_notes(args.nom_pl)
+	end
+
+	local feminines = process_arg_chain(args, "f", "f") -- do feminines
+	local masculines = process_arg_chain(args, "m", "m") -- do masculines
+
+	-- FIXME, handle manual transliteration; has to wait until Module:ru-noun
+	-- supports manual translit
+	local trs = {}
+	for _, head in ipairs(heads) do
+		table.insert(trs, lang:transliterate(m_links.remove_links(head)))
+	end
+
+	do_noun(genders, inflections, categories, args.n == "s",
+		genitives, plurals, feminines, masculines)
+
+	return m_headword.full_headword(lang, nil, heads, trs, genders, inflections, categories, nil)
 end
 
 pos_functions["proper nouns"] = function(args, heads, genders, inflections, categories)
@@ -111,29 +198,18 @@ end
 
 -- Display additional inflection information for a noun
 pos_functions["nouns"] = function(args, heads, genders, inflections, categories, no_plural)
-	-- Iterate over a chain of parameters, FIRST then PREF2, PREF3, ...,
-	-- inserting into LIST (newly created if omitted). Return LIST.
-	local function process_arg_chain(list, first, pref)
-		if not list then
-			list = {}
-		end
-		local val = args[first]
-		local i = 2
+	process_arg_chain(args, 2, "g", genders) -- do genders
+	local genitives = process_arg_chain(args, 3, "gen") -- do genitives
+	local plurals = process_arg_chain(args, 4, "pl") -- do plurals
+	local feminines = process_arg_chain(args, "f", "f") -- do feminines
+	local masculines = process_arg_chain(args, "m", "m") -- do masculines
 
-		while val do
-			table.insert(list, val)
-			val = args[pref .. i]
-			i = i + 1
-		end
-		return list
-	end
+	do_noun(genders, inflections, categories, no_plural,
+		genitives, plurals, feminines, masculines)
+end
 
-	process_arg_chain(genders, 2, "g") -- do genders
-	local genitives = process_arg_chain(genitives, 3, "gen") -- do genitives
-	local plurals = process_arg_chain(plurals, 4, "pl") -- do plurals
-	local feminines = process_arg_chain(feminines, "f", "f") -- do feminines
-	local masculines = process_arg_chain(masculines, "m", "m") -- do masculines
-
+do_noun = function(genders, inflections, categories, no_plural,
+	        genitives, plurals, feminines, masculines)
 	if #genders == 0 then
 		table.insert(genders, "?")
 	elseif #genders > 1 then
