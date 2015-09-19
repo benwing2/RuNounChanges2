@@ -369,6 +369,9 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 
 ==Russian==
 
+===Pronunciation===
+* {{ru-IPA}}
+
 ===Noun===
 {{ru-noun*}}
 
@@ -380,6 +383,9 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 перёд
 
 ==Russian==
+
+===Pronunciation===
+* {{ru-IPA|перёд}}
 
 ===Noun===
 {{ru-noun*|c|пе́ред|;ё(1)|nom_sg=перёд}}
@@ -393,6 +399,9 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 
 ==Russian==
 
+===Pronunciation===
+* {{ru-IPA|эрсте́д}}
+
 ===Noun===
 {{ru-noun*|эрсте́д}}
 
@@ -401,10 +410,401 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*borv..ъ}}.
 ====Declension====
 {{ru-noun-table|эрсте́д|or||(2)}}
 
-пруд
+невод
+
+==Russian==
+===Pronunciation===
+* {{ru-IPA|не́вод}}
+
+===Noun===
+{{ru-noun*|c|не́вод|(1)|or}}
+
+# [[seine]]
+# {{context|criminal|_|slang|lang=ru}} window [[grate]]
 
 ====Declension====
-{{ru-noun-table|b,c}}
+{{ru-noun-table|c|не́вод|(1)|or}}
+
+овод
+
+==Russian==
+{{wikipedia|lang=ru}}
+[[Image:Gadfly ovod.jpg|thumb|овод]]
+
+===Pronunciation===
+* {{IPA|/ˈovət/|lang=ru}}
+* {{audio|Ru-овод.ogg|овод|lang=ru}}
+
+===Noun===
+{{ru-noun*|c|о́вод|(1)|or|a=an}}
+
+# {{context|zoology|lang=ru}} [[gadfly]], [[botfly]] (an insect of genus ''Oestrus'')
+
+====Declension====
+{{ru-noun-table|c|о́вод|(1)|or|a=an}}
+
+провод
+
+==Russian==
+
+===Etymology 1===
+[[Image:Luidsprekerkabel.jpg|thumb|провод]]
+
+====Pronunciation====
+* {{audio|Ru-провод.ogg|провод|lang=ru}}
+* {{ru-IPA|про́вод}}
+
+====Noun====
+{{ru-noun*|c|про́вод|(1)}}
+
+# [[wire]], [[lead]], [[conductor]]
+
+=====Declension=====
+{{ru-noun-table|c|про́вод|(1)}}
+
+=====Synonyms=====
+*[[проволока]]
+*[[шнур]]
+
+=====Related terms=====
+*[[проводок]]
+*[[проводка]], [[проводник]]
+*[[проводной]], [[беспроводной]]
+*[[проводить]], [[провести]], [[водить]], [[вести]]
+
+====Pronunciation====
+* {{ru-IPA|прово́д}}
+
+====Noun===
+{{ru-noun*|прово́д}}
+
+# (проведение) {{rfdef|lang=ru}}
+
+====Declension===
+{{ru-noun-table|прово́д}}
+
+год
+
+====Declension====
+{{ru-noun-table|е|or|c||(1)|or|c||(1)(2)||лет}}
+
+холод
+
+==Russian==
+
+===Etymology===
+From {{etyl|sla-pro|ru}} {{m|sla-pro|*xoldъ||coolness, cold}}.
+
+===Pronunciation===
+* {{ru-IPA|хо́лод}}
+* {{audio|Ru-холод.ogg|Audio|lang=ru}}
+
+===Noun===
+{{ru-noun*|c|хо́лод|(1)}}
+
+# [[cold]] {{gloss|low temperature}}
+
+====Declension====
+{{ru-noun-table|c|хо́лод|(1)}}
+
+====Synonyms====
+* {{l|ru|моро́з}}
+* {{l|ru|сту́жа}}
+* {{l|ru|прохла́да}}
+* {{l|ru|све́жесть}}
+
+====Related terms====
+{{rel3|{{l|ru|охлади́ть}}
+|{{l|ru|прохладно}}
+|{{l|ru|прохла́да}}
+|{{l|ru|расхолаживать}}
+|{{l|ru|холоди́льник}}
+|{{l|ru|холодить}}
+|{{l|ru|хо́лодно}}
+|{{l|ru|холо́дный}}}}
+
+род
+
+==Russian==
+
+===Etymology===
+From {{etyl|sla-pro|ru}} {{m|sla-pro|*rodъ}}.
+
+===Pronunciation===
+* {{ru-IPA}}
+* {{audio|Ru-рот.ogg|audio|lang=ru}}
+* {{homophones|рот|lang=ru}}
+
+===Noun===
+{{ru-noun*|c}}
+
+# [[generation]], [[birth]], [[origin]], [[stock]], [[family]]
+
+====Declension====
+{{ru-noun-table|c|par=+|loc=в +}}
+
+===Noun===
+{{ru-noun*|c||(1)}}
+
+# [[genus]]
+# [[sort]], [[kind]], [[genre]], [[style]], [[branch]]
+
+====Declension====
+{{ru-noun-table|c||(1)}}
+
+===Noun===
+{{ru-noun*|e}}
+
+# {{context|grammar|lang=ru}} [[gender]], [[class]] (''plural:'' {{lang|ru|ро́ды}})
+#: {{usex|[[мужской род|мужско́й род]]|t=[[masculine]] [[gender]]|inline=1|lang=ru}}
+#: {{usex|[[женский род|же́нский род]]|t=[[feminine]] [[gender]]|inline=1|lang=ru}}
+#: {{usex|[[средний род|сре́дний род]]|t=[[neuter]] [[gender]]|inline=1|lang=ru}}
+#: {{usex|[[общий род|о́бщий род]]|t=[[common]] [[gender]]|inline=1|lang=ru}}
+
+====Declension====
+{{ru-noun-table|e}}
+
+город
+
+==Russian==
+
+===Etymology===
+{{PIE root|ru|gʰerdʰ}}
+From {{etyl|sla-pro|ru}} {{m|sla-pro|*gordъ}}, from {{etyl|ine-bsl-pro|ru}} {{m|ine-bsl-pro|*gordos}}, from {{etyl|ine-pro|ru}} {{m|ine-pro|*gʰordʰos}}, from base {{etyl|ine-pro|ru}} {{m|ine-pro|*gʰerdʰ-||to enclose, to grasp}}, either directly or possibly via {{etyl|gem-pro|ru}} {{m|gem-pro|*gardaz}}. Cognate with Dutch {{term|gaard|lang=nl}}, {{term|gaarde|lang=nl}}.
+
+===Pronunciation===
+* {{ru-IPA|го́род}}
+* {{audio|Ru-город.ogg|Audio|lang=ru}}
+
+===Noun===
+{{ru-noun*|c|го́род|(1)}}
+
+# [[city]], [[town]]
+# [[downtown]]
+
+====Declension====
+{{ru-noun-table|c|го́род|(1)}}
+
+====Derived terms====
+* {{l|ru|городо́к}}
+* {{l|ru|городско́й}}
+* {{l|ru|горожа́нин}}, {{l|ru|горожа́нка}}
+* {{l|ru|городово́й}}
+* {{l|ru|городни́чий}}
+
+===See also===
+* {{l|ru|град|g=m}}
+
+ход
+
+==Russian==
+
+===Etymology===
+{{PIE root|ru|sed}}
+From {{etyl|sla-pro|ru}} {{m|sla-pro|*xodъ}}, from {{etyl|ine-pro|ru}} {{m|ine-p
+ro|*sod-}}.
+
+===Pronunciation===
+* {{ru-IPA}}
+* {{audio|Ru-ход.ogg|Audio|lang=ru}}
+
+===Noun===
+{{ru-noun*|c|n=sg}}
+
+# [[motion]], [[movement]], [[travel]], [[progress]], [[locomotion]], [[headway]
+]
+# [[course]], [[path]], [[way]], [[run]]
+# [[speed]], [[rate]], [[gait]], [[pace]]
+# [[stroke]] ''(of a piston)''
+# [[functioning]], [[working]], [[process]], [[action]]
+# [[gear]], [[thread]], [[pitch]]
+# [[shape]], [[trend]], [[dependence]] ''(of a curve)''
+# [[range]] ''(of a magnet)''
+
+====Declension====
+{{ru-noun-table|c|n=sg|par=+|loc=в +,на +}}
+
+===Noun===
+{{ru-noun*|c}}
+
+# [[entrance]], [[entry]]
+# [[passage]]
+
+====Declension====
+{{ru-noun-table|c|loc=на +}}
+
+===Noun===
+{{ru-noun*|c,e}}
+
+# {{context|games|lang=ru}} [[move]], [[turn]], [[lead]]
+
+====Declension====
+{{ru-noun-table|c,e|loc=на +}}
+
+===Noun===
+{{ru-noun*|c||(1)}}
+
+# [[axle]] with wheels
+
+====Declension====
+{{ru-noun-table|c||(1)|loc=на +}}
+
+пруд
+
+==Russian==
+{{wikipedia|lang=ru}}
+
+===Pronunciation===
+* {{ru-IPA}}
+* Homophones: [[прут]]
+
+===Noun===
+{{ru-noun*|b,c}}
+
+# [[pond]]
+
+====Declension====
+{{ru-noun-table|b,c|loc=+}}
+
+====Synonyms====
+* [[озерцо]]
+
+====Related terms====
+* [[прудик]]
+* [[прудовик]]
+* [[прудок]]
+* [[запруда]]
+* [[прудить]]
+* [[запрудить]]
+* [[пруд пруди]]
+
+остриё
+
+==Russian==
+
+===Pronunciation===
+* {{ru-IPA}}
+
+===Noun===
+{{ru-noun*}}
+
+# [[point]], [[spike]], [[tip]]
+# [[edge]], [[cutting edge]]
+
+====Declension====
+{{ru-noun-table||(2)}}
+
+====Related terms====
+* [[острый]]
+
+деревце
+
+==Russian==
+
+===Etymology===
+{{diminutive of|де́рево|lang=ru}}.
+
+===Pronunciation===
+* {{ru-IPA|де́ревце}}
+
+===Noun===
+{{ru-noun*|c|де́ревце}}
+
+# {{diminutive of|де́рево|lang=ru}} [[sapling]], small [[tree]]
+
+====Synonyms====
+* {{l|ru|деревцо́}}
+
+====Declension====
+{{ru-noun-table|c|де́ревце|*|or|c||*(2)}}
+
+кружевце
+
+==Russian==
+
+===Etymology===
+{{diminutive of|кру́жево|lang=ru}}.
+
+===Pronunciation===
+* {{ru-IPA|кру́жевце}}
+
+===Noun===
+{{ru-noun*|кру́жевце}}
+
+# {{diminutive of|кру́жево||lace|lang=ru}}
+
+====Synonyms====
+* {{l|ru|кружевцо́}}
+* {{l|ru|кружевца́}}
+* {{l|ru|кру́жевца}}
+
+====Declension====
+{{ru-noun-table|кру́жевце|*|or||*(2)}}
+
+
+кружево
+
+==Russian==
+{{wikipedia|lang=ru}}
+[[Image:Lace of tree branch (Pavlovsk park).jpg|thumb|кружево]]
+
+===Pronunciation===
+* {{ru-IPA|кру́жево}}
+
+===Noun===
+{{ru-noun*|c|кру́жево}}
+
+# [[lace]]
+
+====Declension====
+{{ru-noun-table|c|кру́жево|gen_pl=кру́жев}}
+
+====Related terms====
+*[[кружевце]], [[кружавчик]]
+*[[кружевник]], [[кружевница]]
+*[[кружевной]]
+
+ружьё
+
+==Russian==
+{{wikipedia|lang=ru}}
+
+===Pronunciation===
+* {{ru-IPA|ружьё}}
+
+===Noun===
+{{ru-noun*|d|ружьё}}
+
+# [[shotgun]], [[musket]], [[rifle]]
+#*[[двуствольное ружьё]] — [[double-barreled]] shotgun
+#*[[помповое ружьё]] — [[pump-action]] shotgun
+#*[[противотанковое ружьё]] — [[antitank]] rifle
+#*[[духовое ружьё]] — [[air rifle]]
+# device resembling such a firearm, e.g.:
+#*[[фоторужьё]] — a "[[rifle]] [[stock]]" [[camera]]
+#*[[подводное ружьё]] — [[spear gun]]
+
+====Usage notes====
+* Although the term embraces almost any long-[[barrel]]ed [[firearm]] (except those capable of [[automatic]] [[fire]]), nowadays it is mostly used to refer to a [[smoothbore]] [[hunting]] shotgun (''synonym:'' [[охотничье ружьё]]).
+
+====Declension====
+{{ru-noun-table|d|gen_pl=ру́жей}}
+
+подмасте́рье
+
+==Russian==
+
+===Pronunciation===
+* {{ru-IPA|подмасте́рье}}
+
+===Noun===
+{{ru-noun*|подмасте́рье|m|a=an}}
+
+# [[apprentice]]
+# [[journeyman]]
+
+====Declension====
+{{ru-noun-table|подмасте́рье|(2)|a=an}}
 
 любовь
 
