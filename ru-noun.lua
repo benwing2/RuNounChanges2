@@ -478,26 +478,26 @@ end
 -- stress classes, such as "а/a" or "о-и/d'", which are more or less
 -- equivalent to stem/gender/stress categories, but we also have the same
 -- prefixed by "reducible-stem/" for reducible stems.
-local function tracking_code(stress, decl_class, real_decl_class, args)
-	assert(decl_class)
-	assert(real_decl_class)
+local function tracking_code(stress, decl, real_decl, args)
+	assert(decl)
+	assert(real_decl)
 	local hint_types = com.get_stem_trailing_letter_type(args.stem)
-	if real_decl_class == decl_class then
-		real_decl_class = nil
+	if real_decl == decl then
+		real_decl = nil
 	end
 	local function dotrack(prefix)
 		track(stress)
-		track(decl_class)
-		track(decl_class .. "/" .. stress)
-		if real_decl_class then
-			track(real_decl_class)
-			track(real_decl_class .. "/" .. stress)
+		track(decl)
+		track(decl .. "/" .. stress)
+		if real_decl then
+			track(real_decl)
+			track(real_decl .. "/" .. stress)
 		end
 		for _, hint_type in ipairs(hint_types) do
 			track(hint_type)
-			track(decl_class .. "/" .. hint_type)
-			if real_decl_class then
-				track(real_decl_class .. "/" .. hint_type)
+			track(decl .. "/" .. hint_type)
+			if real_decl then
+				track(real_decl .. "/" .. hint_type)
 			end
 		end
 		if args.pl ~= args.stem then
@@ -509,10 +509,10 @@ local function tracking_code(stress, decl_class, real_decl_class, args)
 		track("reducible-stem")
 		dotrack("reducible-stem/")
 	end
-	if rlfind(args.stem, "и́?н$") and (decl_class == "" or decl_class == "#") then
+	if rlfind(args.stem, "и́?н$") and (decl == "" or decl == "#") then
 		track("irregular-in")
 	end
-	if rlfind(args.stem, "[еёо]́?нок$") and (decl_class == "" or decl_class == "#") then
+	if rlfind(args.stem, "[еёо]́?нок$") and (decl == "" or decl == "#") then
 		track("irregular-onok")
 	end
 	if args.pltail then
@@ -552,7 +552,7 @@ end
 -- Insert categories into ARGS.CATEGORIES corresponding to the specified
 -- stress and declension classes and to the form of the stem (e.g. velar,
 -- sibilant, etc.).
-local function categorize(stress, decl_class, args)
+local function categorize(stress, decl, args)
 	local function cat_to_list(cat)
 		if not cat then
 			return {}
@@ -606,15 +606,15 @@ local function categorize(stress, decl_class, args)
 		return false
 	end
 
-	assert(decl_class)
+	assert(decl)
 	local decl_cats = args.old and declensions_old_cat or declensions_cat
 
 	local sgdecl, pldecl
-	if rfind(decl_class, "/") then
-		local indiv_decl_classes = rsplit(decl_class, "/")
-		sgdecl, pldecl = indiv_decl_classes[1], indiv_decl_classes[2]
+	if rfind(decl, "/") then
+		local indiv_decls = rsplit(decl, "/")
+		sgdecl, pldecl = indiv_decls[1], indiv_decls[2]
 	else
-		sgdecl, pldecl = decl_class, decl_class
+		sgdecl, pldecl = decl, decl
 	end
 	local sgdc = decl_cats[sgdecl]
 	local pldc = decl_cats[pldecl]
@@ -702,7 +702,7 @@ local function categorize(stress, decl_class, args)
 		end
 	end
 	if sgcat and plcat and (sgdc.suffix or sgdc.irregpl or
-			rfind(decl_class, "/")) then
+			rfind(decl, "/")) then
 		for _, scat in ipairs(cat_to_list(sgcat)) do
 			for _, pcat in ipairs(cat_to_list(plcat)) do
 				insert_cat("~ " .. scat .. " with " .. pcat)
@@ -825,7 +825,7 @@ function export.do_generate_forms(args, old)
 		args.notes = notes .. entry
 	end
 
-	local decls = old and declensions_old or declensions
+	local decl_sufs = old and declensions_old or declensions
 	local decl_cats = old and declensions_old_cat or declensions_cat
 	local intable = old and internal_notes_table_old or internal_notes_table
 
@@ -842,13 +842,13 @@ function export.do_generate_forms(args, old)
 	-- Loop over all arg sets.
 	for _, arg_set in ipairs(arg_sets) do
 		local stress_arg = arg_set[1]
-		local decl_class = arg_set[3] or ""
+		local decl = arg_set[3] or ""
 		local bare = arg_set[4]
 		local pl = arg_set[5]
 
 		-- Extract special markers from declension class.
-		if decl_class == "manual" then
-			decl_class = "$"
+		if decl == "manual" then
+			decl = "$"
 			args.manual = true
 			if #arg_sets > 1 then
 				error("Can't specify multiple argument sets when manual")
@@ -857,14 +857,14 @@ function export.do_generate_forms(args, old)
 				error("Can't specify optional stem parameters when manual")
 			end
 		end
-		decl_class, args.jo_special = rsubb(decl_class, "([^/%a])ё$", "%1")
+		decl, args.jo_special = rsubb(decl, "([^/%a])ё$", "%1")
 		if not args.jo_special then
-			decl_class, args.jo_special = rsubb(decl_class, "([^/%a])ё([^/%a])", "%1%2")
+			decl, args.jo_special = rsubb(decl, "([^/%a])ё([^/%a])", "%1%2")
 		end
-		decl_class, args.want_sc1 = rsubb(decl_class, "%(1%)", "")
-		decl_class, args.alt_gen_pl = rsubb(decl_class, "%(2%)", "")
-		decl_class, args.reducible = rsubb(decl_class, "%*", "")
-		decl_class = rsub(decl_class, ";", "")
+		decl, args.want_sc1 = rsubb(decl, "%(1%)", "")
+		decl, args.alt_gen_pl = rsubb(decl, "%(2%)", "")
+		decl, args.reducible = rsubb(decl, "%*", "")
+		decl = rsub(decl, ";", "")
 
 		-- Get the lemma.
 		local lemma = args.manual and "-" or arg_set[2] or default_lemma
@@ -877,12 +877,12 @@ function export.do_generate_forms(args, old)
 		-- This will autodetect the declension from the lemma if an explicit
 		-- decl isn't given.
 		local stem, was_accented, was_plural, was_autodetected
-		if rfind(decl_class, "^%+") then
-			stem, decl_class, was_accented, was_plural, was_autodetected =
-				detect_adj_type(lemma, decl_class, old)
+		if rfind(decl, "^%+") then
+			stem, decl, was_accented, was_plural, was_autodetected =
+				detect_adj_type(lemma, decl, old)
 		else
-			stem, decl_class, was_accented, was_plural, was_autodetected =
-				determine_decl(lemma, decl_class, args)
+			stem, decl, was_accented, was_plural, was_autodetected =
+				determine_decl(lemma, decl, args)
 		end
 		if was_plural then
 			args.n = args.n or "p"
@@ -905,12 +905,12 @@ function export.do_generate_forms(args, old)
 		-- If stress not given, auto-determine; else validate/canonicalize
 		-- stress arg, override in certain cases and convert to list.
 		if not stress_arg then
-			stress_arg = {detect_stress_pattern(stem, decl_class, decl_cats, args.reducible, was_plural, was_accented)}
+			stress_arg = {detect_stress_pattern(stem, decl, decl_cats, args.reducible, was_plural, was_accented)}
 		else
 			stress_arg = rsplit(stress_arg, ",")
 			for i=1,#stress_arg do
 				local stress = stress_arg[i]
-				stress = override_stress_pattern(decl_class, stress)
+				stress = override_stress_pattern(decl, stress)
 				stress = numbered_to_zaliznyak_stress_pattern[stress] or stress
 				if not stress_patterns[stress] then
 					error("Unrecognized accent pattern " .. stress)
@@ -920,16 +920,16 @@ function export.do_generate_forms(args, old)
 		end
 
 		-- parse slash decl to list
-		local sub_decl_classes
-		if rfind(decl_class, "/") then
+		local sub_decls
+		if rfind(decl, "/") then
 			track("mixed-decl")
 			insert_cat("~ with mixed declension")
-			local indiv_decl_classes = rsplit(decl_class, "/")
+			local indiv_decls = rsplit(decl, "/")
 			-- Should have been caught in canonicalize_decl()
-			assert(#indiv_decl_classes == 2)
-			sub_decl_classes = {{indiv_decl_classes[1], "sg"}, {indiv_decl_classes[2], "pl"}}
+			assert(#indiv_decls == 2)
+			sub_decls = {{indiv_decls[1], "sg"}, {indiv_decls[2], "pl"}}
 		else
-			sub_decl_classes = {{decl_class}}
+			sub_decls = {{decl}}
 		end
 
 		local original_stem = stem
@@ -1025,7 +1025,7 @@ function export.do_generate_forms(args, old)
 				end
 			end
 
-			local sgdecl = sub_decl_classes[1][1]
+			local sgdecl = sub_decls[1][1]
 			local sgdc = decl_cats[sgdecl]
 			local resolved_bare = bare
 			-- Handle (de)reducibles
@@ -1042,11 +1042,11 @@ function export.do_generate_forms(args, old)
 				-- where bare is explicitly specified to see how many could
 				-- be predicted
 				local nomsg
-				if rfind(decl_class, "^ь%-") then
+				if rfind(decl, "^ь%-") then
 					nomsg = stem .. "ь"
-				elseif rfind(decl_class, "^й") then
+				elseif rfind(decl, "^й") then
 					nomsg = stem .. "й"
-				elseif rfind(decl_class, "^ъ") then
+				elseif rfind(decl, "^ъ") then
 					nomsg = stem .. "ъ"
 				end
 				if stem == bare then
@@ -1168,20 +1168,20 @@ function export.do_generate_forms(args, old)
 			-- Loop over declension classes (we may have two of them, one for
 			-- singular and one for plural, in the case of a mixed declension
 			-- class of the form SGDECL/PLDECL).
-			for _,decl_class_spec in ipairs(sub_decl_classes) do
-				local orig_decl_class = decl_class_spec[1]
-				local number = decl_class_spec[2]
-				local real_decl_class =
-					determine_stress_variant(orig_decl_class, stress)
+			for _,decl_spec in ipairs(sub_decls) do
+				local orig_decl = decl_spec[1]
+				local number = decl_spec[2]
+				local real_decl =
+					determine_stress_variant(orig_decl, stress)
 				-- sanity checking; errors should have been caught in
 				-- canonicalize_decl()
-				assert(decl_cats[real_decl_class])
-				assert(decls[real_decl_class])
-				tracking_code(stress, orig_decl_class, real_decl_class, args)
-				do_stress_pattern(stress, args, decls[real_decl_class], number)
+				assert(decl_cats[real_decl])
+				assert(decl_sufs[real_decl])
+				tracking_code(stress, orig_decl, real_decl, args)
+				do_stress_pattern(stress, args, decl_sufs[real_decl], number)
 
 				-- handle internal notes
-				local internal_note = intable[real_decl_class]
+				local internal_note = intable[real_decl]
 				if internal_note then
 					ut.insert_if_not(args.internal_notes, internal_note)
 				end
@@ -1196,10 +1196,10 @@ function export.do_generate_forms(args, old)
 			end
 			if bare and not is_nonsyllabic(args.suffixes.nom_sg) and not is_nonsyllabic(args.suffixes.gen_pl) then
 				track("pointless-bare")
-				track("pointless-bare/" .. decl_class)
+				track("pointless-bare/" .. decl)
 			end
 
-			categorize(stress, decl_class, args)
+			categorize(stress, decl, args)
 		end
 	end
 
