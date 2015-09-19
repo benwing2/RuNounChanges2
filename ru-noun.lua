@@ -830,8 +830,8 @@ function export.do_generate_forms(args, old)
 	local intable = old and internal_notes_table_old or internal_notes_table
 
 	if #arg_sets > 1 then
-		track("multiple-stems")
-		insert_cat("~ with multiple stems")
+		track("multiple-arg-sets")
+		insert_cat("~ with multiple argument sets")
 	end
 
 	-- Default lemma defaults to previous lemma, first one to page name.
