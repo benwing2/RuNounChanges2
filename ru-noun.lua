@@ -295,6 +295,7 @@ local rmatch = mw.ustring.match
 local rsplit = mw.text.split
 local ulower = mw.ustring.lower
 local usub = mw.ustring.sub
+local ulen = mw.ustring.len
 
 local AC = u(0x0301) -- acute =  ́
 local CFLEX = u(0x0302) -- circumflex =  ̂
@@ -766,6 +767,37 @@ local function arg1_is_stress(arg1)
 	return true
 end
 
+local function determine_headword_gender(args, sgdc, gender)
+	-- If gender unspecified, use normal gender of declension, except when
+	-- adjectival nouns that are pluralia tantum, where the gender is
+	-- mostly indeterminate (FIXME, not completely with old-style declensions
+	-- but we don't handle that currently).
+	if not gender then
+		if sgdc.adj and args.n == "p" then
+			gender = nil
+		else
+			gender = args.g
+		end
+	end
+
+	-- Determine headword genders
+	gender = gender and gender ~= "none" and gender .. "-" or ""
+	local plsuffix = args.n == "p" and "-p" or ""
+	local hgens
+	if args.a == "a" then
+		hgens = {gender .. "an" .. plsuffix}
+	elseif args.a == "i" then
+		hgens = {gender .. "in" .. plsuffix}
+	else
+		hgens = {gender .. "an" .. plsuffix, gender .. "in" .. plsuffix}
+	end
+
+	-- Insert into list of genders
+	for _, hgen in ipairs(hgens) do
+		ut.insert_if_not(args.genders, hgen)
+	end
+end
+
 function export.do_generate_forms(args, old)
 	local SUBPAGENAME = mw.title.getCurrentTitle().subpageText
 	old = old or args.old
@@ -814,6 +846,7 @@ function export.do_generate_forms(args, old)
 	args.n = args.n and string.sub(args.n, 1, 1)
 	args.forms = {}
 	args.categories = {}
+	args.genders = {}
 	local function insert_cat(cat)
 		insert_category(args.categories, cat)
 	end
@@ -832,6 +865,8 @@ function export.do_generate_forms(args, old)
 	if #arg_sets > 1 then
 		track("multiple-arg-sets")
 		insert_cat("~ with multiple argument sets")
+		track("multiple-declensions")
+		insert_cat("~ with multiple declensions")
 	end
 
 	-- Default lemma defaults to previous lemma, first one to page name.
@@ -876,12 +911,12 @@ function export.do_generate_forms(args, old)
 		-- Convert lemma and decl arg into stem and canonicalized decl.
 		-- This will autodetect the declension from the lemma if an explicit
 		-- decl isn't given.
-		local stem, was_accented, was_plural, was_autodetected
+		local stem, gender, was_accented, was_plural, was_autodetected
 		if rfind(decl, "^%+") then
-			stem, decl, was_accented, was_plural, was_autodetected =
+			stem, decl, gender, was_accented, was_plural, was_autodetected =
 				detect_adj_type(lemma, decl, old)
 		else
-			stem, decl, was_accented, was_plural, was_autodetected =
+			stem, decl, gender, was_accented, was_plural, was_autodetected =
 				determine_decl(lemma, decl, args)
 		end
 		if was_plural then
@@ -931,6 +966,15 @@ function export.do_generate_forms(args, old)
 		else
 			sub_decls = {{decl}}
 		end
+
+		-- Get singular declension and corresponding category.
+		local sgdecl = sub_decls[1][1]
+		local sgdc = decl_cats[sgdecl]
+		assert(sgdc)
+
+		-- Compute headword gender(s). We base it off the singular declension
+		-- if we have a slash declension -- it's the best we can do.
+		determine_headword_gender(args, sgdc, sgdecl)
 
 		local original_stem = stem
 		local original_bare = bare
@@ -1025,8 +1069,6 @@ function export.do_generate_forms(args, old)
 				end
 			end
 
-			local sgdecl = sub_decls[1][1]
-			local sgdc = decl_cats[sgdecl]
 			local resolved_bare = bare
 			-- Handle (de)reducibles
 			-- FIXME! We are dereducing based on the singular declension.
@@ -1206,6 +1248,8 @@ function export.do_generate_forms(args, old)
 	if #all_stresses_seen > 1 then
 		track("multiple-accent-patterns")
 		insert_cat("~ with multiple accent patterns")
+		track("multiple-declensions")
+		insert_cat("~ with multiple declensions")
 	end
 
 	handle_forms_and_overrides(args)
@@ -1588,12 +1632,12 @@ local function detect_lemma_type(lemma, gender, anim)
 	return lemma, ""
 end
 
-local plural_variation_detection_map = {
+local plural_variant_detection_map = {
 	[""] = {["-ья"]="-ья"},
 	["ъ"] = {["-ья"]="ъ-ья"},
 }
 
-local special_case_1_to_plural_variation = {
+local special_case_1_to_plural_variant = {
 	[""] = "-а",
 	["ъ"] = "ъ-а",
 	["й"] = "й-я",
@@ -1660,12 +1704,13 @@ end
 -- 5. An actual declension, possibly including a plural variant (e.g. о-ы) or
 --    a slash declension (e.g. я/-ья, used for the noun дядя).
 --
--- Return five args: stem (lemma minus ending), canonicalized declension,
--- whether the specified declension or detected ending was accented,
--- whether the detected ending was pl, and whether the declension was
--- autodetected (corresponds to cases where a full word with ending attached
--- is required in the lemma field). "Canonicalized" means after autodetection,
--- with accents removed, with any aliases mapped to their canonical versions
+-- Return six args: stem (lemma minus ending), canonicalized declension,
+-- explicitly specified gender if any (m, f, n or nil), whether the
+-- specified declension or detected ending was accented, whether the
+-- detected ending was pl, and whether the declension was autodetected
+-- (corresponds to cases where a full word with ending attached is required
+-- in the lemma field). "Canonicalized" means after autodetection, with
+-- accents removed, with any aliases mapped to their canonical versions
 -- and with any requested plural variants applied. The result is either a
 -- declension that will have a categorization entry (in declensions_cat[] or
 -- declensions_old_cat[]) or a slash declension where each part similarly has
@@ -1691,6 +1736,13 @@ determine_decl = function(lemma, decl, args)
 	else
 		stem = lemma
 	end
+	-- Now canonicalize gender
+	if gender == "3f" then
+		gender = "f"
+	elseif gender == "" then
+		gender = nil
+	end
+
 	-- The ending should be treated as accented if either the original singular
 	-- or plural ending was accented, or if the stem is non-syllabic.
 	local was_accented = com.is_stressed(decl) or
@@ -1732,7 +1784,7 @@ determine_decl = function(lemma, decl, args)
 	if rfind(decl, "/") then
 		if want_ya_plural then
 			-- Don't think this can happen
-			error("Plural variation " .. want_ya_plural .. " not compatible with slash declension " .. decl)
+			error("Plural variant " .. want_ya_plural .. " not compatible with slash declension " .. decl)
 		end
 		if args.want_sc1 then
 			error("Special case (1) not compatible with slash declension" .. decl)
@@ -1757,7 +1809,7 @@ determine_decl = function(lemma, decl, args)
 	--    plural variant matches any other available plural variants, and
 	--    return the declension.
 	if args.want_sc1 then
-		local sc1_decl = special_case_1_to_plural_variation[basic_decl] or
+		local sc1_decl = special_case_1_to_plural_variant[basic_decl] or
 			error("Special case (1) not compatible with declension " .. basic_decl)
 		local sc1_plural = rsub(sc1_decl, "^.*%-", "-")
 		local other_plural = want_ya_plural or detected_or_explicit_plural
@@ -1773,8 +1825,8 @@ determine_decl = function(lemma, decl, args)
 	--    our full declension.)
 	if want_ya_plural and not detected_or_explicit_plural then
 		local variant_decl
-		if plural_variation_detection_map[decl] then
-			variant_decl = plural_variation_detection_map[decl][want_ya_plural]
+		if plural_variant_detection_map[decl] then
+			variant_decl = plural_variant_detection_map[decl][want_ya_plural]
 		end
 		if variant_decl then
 			return stem, variant_decl, was_accented, was_plural, was_autodetected
@@ -1804,7 +1856,7 @@ end
 --    (WARNING: Unclear if slash declensions will work, especially those
 --    that are adjective/noun combinations)
 --
--- Returns the same five args as for determine_decl(). The returned
+-- Returns the same six args as for determine_decl(). The returned
 -- declension will always begin with +.
 detect_adj_type = function(lemma, decl, old)
 	local was_autodetected
@@ -1891,7 +1943,10 @@ detect_adj_type = function(lemma, decl, old)
 		was_plural = true
 		decl = singdecl
 	end
-	return base, canonicalize_decl(decl, old), was_accented, was_plural, was_autodetected
+	-- 3rd argument is currently always nil because we don't currently
+	-- let the user specify an explicit gender with adjectival nouns.
+	-- We should maybe change this.
+	return base, canonicalize_decl(decl, old), nil, was_accented, was_plural, was_autodetected
 end
 
 -- If stress pattern omitted, detect it based on whether ending is stressed
