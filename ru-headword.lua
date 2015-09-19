@@ -5,6 +5,15 @@ local pos_functions = {}
 
 local lang = require("Module:languages").getByCode("ru")
 
+local rfind = mw.ustring.find
+local rsubn = mw.ustring.gsub
+
+-- version of rsubn() that discards all but the first return value
+local function rsub(term, foo, bar)
+	local retval = rsubn(term, foo, bar)
+	return retval
+end
+
 -- Clone parent's args while also assigning nil to empty strings.
 local function clone_args(frame)
 	local args = {}
@@ -53,7 +62,7 @@ function export.show(frame)
 
 	-- Get transliteration
 	local head = heads[1] and require("Module:links").remove_links(heads[1]) or PAGENAME
-	local head_noaccents = mw.ustring.gsub(head, "\204\129", "")
+	local head_noaccents = rsub(head, "\204\129", "")
 	local tr_gen = mw.ustring.toNFC(lang:transliterate(head, nil))
 	local tr_gen_noaccents = mw.ustring.toNFC(lang:transliterate(head_noaccents, nil))
 
@@ -64,16 +73,16 @@ function export.show(frame)
 			table.insert(categories, "Russian terms with irregular pronunciations")
 		end
 		local tr_fixed = tr
-		tr_fixed = mw.ustring.gsub(tr_fixed, "ɛ", "e")
-		tr_fixed = mw.ustring.gsub(tr_fixed, "([eoéó])v([oó])$", "%1g%2")
-		tr_fixed = mw.ustring.gsub(tr_fixed, "([eoéó])v([oó][- ])", "%1g%2")
+		tr_fixed = rsub(tr_fixed, "ɛ", "e")
+		tr_fixed = rsub(tr_fixed, "([eoéó])v([oó])$", "%1g%2")
+		tr_fixed = rsub(tr_fixed, "([eoéó])v([oó][- ])", "%1g%2")
 		tr_fixed = mw.ustring.toNFC(tr_fixed)
 
 		if tr == tr_gen or tr == tr_gen_noaccents then
 			table.insert(tracking_categories, "ru headword with tr/redundant")
 		elseif tr_fixed == tr_gen then
 			table.insert(tracking_categories, "ru headword with tr/with manual adjustment")
-		elseif mw.ustring.find(tr, ",") then
+		elseif rfind(tr, ",") then
 			table.insert(tracking_categories, "ru headword with tr/comma")
 		elseif head_noaccents == PAGENAME then
 			if not args.notrcat then
@@ -102,68 +111,33 @@ end
 
 -- Display additional inflection information for a noun
 pos_functions["nouns"] = function(args, heads, genders, inflections, categories, no_plural)
-	-- Iterate over all gn parameters (g2, g3 and so on) until one is empty
-	local g = args[2]
-	local i = 2
+	-- Iterate over a chain of parameters, FIRST then PREF2, PREF3, ...,
+	-- inserting into LIST (newly created if omitted). Return LIST.
+	local function process_arg_chain(list, first, pref)
+		if not list then
+			list = {}
+		end
+		local val = args[first]
+		local i = 2
 
-	while g do
-		table.insert(genders, g)
-		g = args["g" .. i]
-		i = i + 1
+		while val do
+			table.insert(list, val)
+			val = args[pref .. i]
+			i = i + 1
+		end
+		return list
 	end
+
+	process_arg_chain(genders, 2, "g") -- do genders
+	local genitives = process_arg_chain(genitives, 3, "gen") -- do genitives
+	local plurals = process_arg_chain(plurals, 4, "pl") -- do plurals
+	local feminines = process_arg_chain(feminines, "f", "f") -- do feminines
+	local masculines = process_arg_chain(masculines, "m", "m") -- do masculines
 
 	if #genders == 0 then
 		table.insert(genders, "?")
 	elseif #genders > 1 then
 		table.insert(categories, "Russian nouns with multiple genders")
-	end
-
-	-- Get the genitive parameters
-	-- First get the 3rd parameter. The remainder is named gen2=, gen3= etc.
-	local genitives = {}
-	local form = args[3]
-	local i = 2
-
-	while form do
-		table.insert(genitives, form)
-		form = args["gen" .. i]
-		i = i + 1
-	end
-
-	-- Get the plural parameters
-	-- First get the 4th parameter. The remainder is named pl2=, pl3= etc.
-	local plurals = {}
-	local form = args[4]
-	local i = 2
-
-	while form do
-		table.insert(plurals, form)
-		form = args["pl" .. i]
-		i = i + 1
-	end
-
-	-- Get the feminine parameters
-	-- First get the f= parameter. The remainder is named f2=, f3= etc.
-	local feminines = {}
-	local form = args.f
-	local i = 2
-
-	while form do
-		table.insert(feminines, form)
-		form = args["f" .. i]
-		i = i + 1
-	end
-
-	-- Get the masculine parameters
-	-- First get the m= parameter. The remainder is named m2=, m3= etc.
-	local masculines = {}
-	local form = args.m
-	local i = 2
-
-	while form do
-		table.insert(masculines, form)
-		form = args["m" .. i]
-		i = i + 1
 	end
 
 	-- Process the genders
@@ -184,6 +158,9 @@ pos_functions["nouns"] = function(args, heads, genders, inflections, categories,
 
 	local plural_genders = {
 		["p"] = true,  -- This is needed because some invariant plurale tantums have no gender to speak of
+		["?-p"] = true,
+		["an-p"] = true,
+		["in-p"] = true,
 
 		["m-p"] = true,
 		["m-?-p"] = true,
@@ -209,10 +186,12 @@ pos_functions["nouns"] = function(args, heads, genders, inflections, categories,
 			g = "f-?"
 		elseif g == "f-p" then
 			g = "f-?-p"
+		elseif g == "p" then
+			g = "?-p"
 		end
 
 		if not singular_genders[g] and not plural_genders[g] then
-			g = "?"
+			error("Unrecognized gender: " .. g)
 		end
 
 		genders[i] = g
@@ -227,9 +206,9 @@ pos_functions["nouns"] = function(args, heads, genders, inflections, categories,
 		end
 
 		-- Categorize by animacy
-		if g:sub(3,4) == "an" then
+		if rfind(g, "an") then
 			table.insert(categories, "Russian animate nouns")
-		elseif g:sub(3,4) == "in" then
+		elseif rfind(g, "in") then
 			table.insert(categories, "Russian inanimate nouns")
 		end
 
@@ -237,7 +216,7 @@ pos_functions["nouns"] = function(args, heads, genders, inflections, categories,
 		if plural_genders[g] then
 			table.insert(categories, "Russian pluralia tantum")
 
-			if g == "p" then
+			if g == "?-p" or g == "an-p" or g == "in-p" then
 				table.insert(categories, "Russian pluralia tantum with incomplete gender")
 			end
 		end
