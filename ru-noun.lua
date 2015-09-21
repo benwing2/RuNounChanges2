@@ -164,7 +164,7 @@ TODO:
    possible to remove the special plural stem, which would get rid of more
    special cases. On the other hand, it makes it more complicated to support
    plural variant -ья with all singular types, and the category code that
-   displays things like "Russian nominals with singular -X and plural -Y"
+   displays things like "Russian nouns with singular -X and plural -Y"
    also gets more complicated, and there's something convenient and intuitive
    about plural stems, and slash declensions are also convenient and at least
    somewhat intuitive. One possibility is to externally allow slash
@@ -349,9 +349,9 @@ local internal_notes_table = {}
 -- 'suffix', 'gensg', 'irregpl', 'cant_reduce', 'ignore_reduce', 'stem_suffix'.
 --
 -- 'singular' is used to construct a category of the form
--- "Russian nominals SINGULAR". If omitted, a category is constructed of the
--- form "Russian nominals ending in -ENDING", where ENDING is the actual
--- nom sg ending shorn of its acute accents; or "Russian nominals ending
+-- "Russian nouns SINGULAR". If omitted, a category is constructed of the
+-- form "Russian nouns ending in -ENDING", where ENDING is the actual
+-- nom sg ending shorn of its acute accents; or "Russian nouns ending
 -- in suffix -ENDING", if 'suffix' is true. The value of SINGULAR can be
 -- one of the following: a single string, a list of strings, or a function,
 -- which is passed one argument (the value of ENDING that would be used to
@@ -359,17 +359,17 @@ local internal_notes_table = {}
 -- of strings. Such a category is only constructed if 'gensg' is true.
 --
 -- 'plural' is analogous but used to construct a category of the form
--- "Russian nominals with PLURAL", and if omitted, a category is constructed
--- of the form "Russian nominals with plural -ENDING", based on the actual
+-- "Russian nouns with PLURAL", and if omitted, a category is constructed
+-- of the form "Russian nouns with plural -ENDING", based on the actual
 -- nom pl ending shorn of its acute accents. Currently no plural category
 -- is actually constructed.
 --
 -- In addition, a category may normally constructed from the combination of
 -- 'singular' and 'plural', appropriately defaulted; e.g. if both are present,
--- the combined category will be "Russian nominals SINGULAR with PLURAL" and
+-- the combined category will be "Russian nouns SINGULAR with PLURAL" and
 -- if both are missing, the combined category will be
--- "Russian nominals ending in -SGENDING with plural -PLENDING" (or
--- "Russian nominals ending in suffix -SGENDING with plural -PLENDING" if
+-- "Russian nouns ending in -SGENDING with plural -PLENDING" (or
+-- "Russian nouns ending in suffix -SGENDING with plural -PLENDING" if
 -- 'suffix' is true). Note that if either singular or plural or both
 -- specifies a list, looping will occur over all combinations. Such a
 -- category is constructed only if 'irregpl' or 'suffix' is true or if the
@@ -386,7 +386,7 @@ local internal_notes_table = {}
 --
 -- In addition to the above categories, additional more specific categories
 -- are constructed based on the final letter of the stem, e.g.
--- "Russian velar-stem 1st-declension hard nominals". See calls to
+-- "Russian velar-stem 1st-declension hard nouns". See calls to
 -- com.get_stem_trailing_letter_type(). 'stem_suffix', if present, is added to
 -- the end of the stem when get_stem_trailing_letter_type() is called.
 -- This is the only place that 'stem_suffix' is used. This is for use with
@@ -542,11 +542,15 @@ end
 local gender_to_full = {m="masculine", f="feminine", n="neuter"}
 
 -- Insert the category CAT (a string) into list CATEGORIES. String will
--- have "Russian " prepended and ~ substituted for the part of speech --
--- currently always "nominals".
-local function insert_category(categories, cat)
+-- have "Russian " prepended and ~ substituted for the plural part of speech.
+local function insert_category(categories, cat, pos, atbeg)
 	if enable_categories then
-		table.insert(categories, "Russian " .. rsub(cat, "~", "nominals"))
+		local fullcat = "Russian " .. rsub(cat, "~", pos .. "s")
+		if atbeg then
+			table.insert(categories, 1, fullcat)
+		else
+			table.insert(categories, fullcat)
+		end
 	end
 end
 
@@ -568,11 +572,10 @@ local function categorize(stress, decl, args)
 	-- Insert category CAT into the list of categories in ARGS.
 	-- CAT may be nil, a single string or a list of strings. We call
 	-- insert_category() on each string. The strings will have "Russian "
-	-- prepended and "~" replaced with the part of speech (currently always
-	-- "nominals").
+	-- prepended and "~" replaced with the plural part of speech.
 	local function insert_cat(cat)
 		for _, c in ipairs(cat_to_list(cat)) do
-			insert_category(args.categories, c)
+			insert_category(args.categories, c, args.pos)
 		end
 	end
 
@@ -658,7 +661,7 @@ local function categorize(stress, decl, args)
 		else
 			-- NOTE: There are 8 Zaliznyak-style stem types and 3 genders, but
 			-- we don't create a category for masculine-type 3rd-declension
-			-- nominals (there is such a noun, путь, but it mostly behaves
+			-- nouns (there is such a noun, путь, but it mostly behaves
 			-- like a feminine noun), so there are 23.
 			insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. "-type ~")
 			-- NOTE: Here we are creating categories for the combination of
@@ -848,7 +851,7 @@ function export.do_generate_forms(args, old)
 	args.categories = {}
 	args.genders = {}
 	local function insert_cat(cat)
-		insert_category(args.categories, cat)
+		insert_category(args.categories, cat, args.pos)
 	end
 	args.internal_notes = {}
 	-- Superscript footnote marker at beginning of note, similarly to what's
@@ -1407,7 +1410,6 @@ function export.catboiler(frame)
 	local args = clone_args(frame)
 
 	local cats = {}
-	insert_category(cats, "~")
 
 	local function get_stem_gender_text(stem, gender)
 		if not stem_gender_endings[gender] then
@@ -1427,34 +1429,45 @@ function export.catboiler(frame)
 		return stem .. ", usually " .. gender .. " ~, normally ending in nominative singular " .. sgending .. " and nominative plural " .. plending .. "." .. stemtext .. decltext
 	end
 
-	local maintext
+	local function get_pos()
+		pos = rmatch(SUBPAGENAME, "^Russian (.-)s ")
+		if pos then
+			error("Invalid category name, should be e.g. \"Russian nouns with ...\"")
+		end
+		return pos
+	end
+
+	local maintext, pos
 	if args[1] == "stemgenderstress" then
-		local stem, gender, stress = rmatch(SUBPAGENAME, "^Russian (.-) (.-)%-type accent%-(.-) ")
+		local stem, gender, stress
+		stem, gender, stress, pos = rmatch(SUBPAGENAME, "^Russian (.-) (.-)%-type accent%-(.-) (.*)s$")
 		if not stem then
-			error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type accent-a nominals\"")
+			error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type accent-a nouns\"")
 		end
 		local stem_gender_text = get_stem_gender_text(stem, gender)
-		local accent_text = " This nominal is stressed according to accent pattern " .. stress .. "."
+		local accent_text = " This " .. pos .. " is stressed according to accent pattern " .. stress .. "."
 		maintext = stem_gender_text .. accent_text
-		insert_category(cats, "~ by stem type, gender and accent pattern")
+		insert_category(cats, "~ by stem type, gender and accent pattern", pos)
 	elseif args[1] == "stemgender" then
 		if rfind(SUBPAGENAME, "invariable") then
 			maintext = "invariable (indeclinable) ~, which normally have the same form for all cases and numbers."
 		else
-			local stem, gender = rmatch(SUBPAGENAME, "^Russian (.-) (.-)%-type")
+			local stem, gender
+			stem, gender, pos = rmatch(SUBPAGENAME, "^Russian (.-) (.-)%-type (.*)s$")
 			if not stem then
-				error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type nominals\"")
+				error("Invalid category name, should be e.g. \"Russian velar-stem masculine-type nouns\"")
 			end
 			maintext = get_stem_gender_text(stem, gender)
 		end
-		insert_category(cats, "~ by stem type and gender")
+		insert_category(cats, "~ by stem type and gender", pos)
 	elseif args[1] == "adj" then
-		local stem, gender, stress = rmatch(SUBPAGENAME, "^Russian (.*) (.-) accent%-(.-) adjectival")
+		local stem, gender, stress
+		stem, gender, stress, pos = rmatch(SUBPAGENAME, "^Russian (.*) (.-) accent%-(.-) adjectival (.*)s$")
 		if not stem then
-			stem, gender = rmatch(SUBPAGENAME, "^Russian (.*) (.-) adjectival")
+			stem, gender, pos = rmatch(SUBPAGENAME, "^Russian (.*) (.-) adjectival (.*)s$")
 		end
 		if not stem then
-			error("Invalid category name, should be e.g. \"Russian velar-stem masculine accent-a adjectival nominals\"")
+			error("Invalid category name, should be e.g. \"Russian velar-stem masculine accent-a adjectival nouns\"")
 		end
 		local stemtext
 		if rfind(stem, "possessive") then
@@ -1469,35 +1482,40 @@ function export.catboiler(frame)
 			stemtext = " The stem ends in " .. stem_expl[stem] .. " and is Zaliznyak's type " .. zaliznyak_stem_type[stem] .. "."
 		end
 		local stresstext = stress == "a" and
-			"This nominal is stressed according to accent pattern a (stress on the stem)." or
+			"This " .. pos .. " is stressed according to accent pattern a (stress on the stem)." or
 			stress == "b" and
-			"This nominal is stressed according to accent pattern b (stress on the ending)." or
-			"All nominals of this class are stressed according to accent pattern a (stress on the stem)."
+			"This " .. pos .. " is stressed according to accent pattern b (stress on the ending)." or
+			"All ~ of this class are stressed according to accent pattern a (stress on the stem)."
 		maintext = stem .. " " .. gender .. " ~, with " .. possessive .. "adjectival endings, ending in nominative singular " .. args[2] .. " and nominative plural " .. args[3] .. "." .. stemtext .. " " .. stresstext
-		insert_category(cats, "~ by stem type, gender and accent pattern")
-	elseif args[1] == "sg" then
-		maintext = "~ ending in nominative singular " .. args[2] .. "."
-		insert_category(cats, "~ by singular ending")
-	elseif args[1] == "pl" then
-		maintext = "~ ending in nominative plural " .. args[2] .. "."
-		insert_category(cats, "~ by plural ending")
-	elseif args[1] == "sgpl" then
-		maintext = "~ ending in nominative singular " .. args[2] .. " and nominative plural " .. args[3] .. "."
-		insert_category(cats, "~ by singular and plural ending")
-	elseif args[1] == "stress" then
-		maintext = "~ with accent pattern " .. args[2] .. "."
-		insert_category(cats, "~ by accent pattern")
-	elseif args[1] == "extracase" then
-		maintext = "~ with a separate " .. args[2] .. " singular case."
-		insert_category(cats, "~ by case form")
-	elseif args[1] == "irregcase" then
-		maintext = "~ with an irregular " .. args[2] .. " case."
-		insert_category(cats, "~ by case form")
+		insert_category(cats, "~ by stem type, gender and accent pattern", pos)
 	else
-		maintext = "~ " .. args[1]
+		pos = get_pos()
+		if args[1] == "sg" then
+			maintext = "~ ending in nominative singular " .. args[2] .. "."
+			insert_category(cats, "~ by singular ending", pos)
+		elseif args[1] == "pl" then
+			maintext = "~ ending in nominative plural " .. args[2] .. "."
+			insert_category(cats, "~ by plural ending", pos)
+		elseif args[1] == "sgpl" then
+			maintext = "~ ending in nominative singular " .. args[2] .. " and nominative plural " .. args[3] .. "."
+			insert_category(cats, "~ by singular and plural ending", pos)
+		elseif args[1] == "stress" then
+			maintext = "~ with accent pattern " .. args[2] .. "."
+			insert_category(cats, "~ by accent pattern", pos)
+		elseif args[1] == "extracase" then
+			maintext = "~ with a separate " .. args[2] .. " singular case."
+			insert_category(cats, "~ by case form", pos)
+		elseif args[1] == "irregcase" then
+			maintext = "~ with an irregular " .. args[2] .. " case."
+			insert_category(cats, "~ by case form", pos)
+		else
+			maintext = "~ " .. args[1]
+		end
 	end
 
-	return "This category contains Russian " .. rsub(maintext, "~", "nominals")
+	insert_category(cats, "~", pos, "at beginning")
+
+	return "This category contains Russian " .. rsub(maintext, "~", pos .. "s")
 		.. "\n" ..
 		mw.getCurrentFrame():expandTemplate{title="ru-categoryTOC", args={}}
 		.. m_utilities.format_categories(cats, lang)
