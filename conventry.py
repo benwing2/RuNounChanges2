@@ -193,15 +193,18 @@ def process_page(index, page):
       #    isn't stressed, issue a warning and do nothing, else remove
       #    stress a. If stress is b, d or f (ending-stressed): If no stress
       #    on stem, no problem -- stress the ending, remove stress b. If
-      #    stem has ё, check that there's no е later in the stem; if there
-      #    is, issue a warning and do nothing. Else, if stress is b or d,
-      #    remove ё and add ;ё to newdecl, with a message to this effect.
-      #    Else, if no ё, if b or d and ending stress, or f and beginning
-      #    stress, we can safely remove the stress as it will be put back
-      #    in the same spot by ru-noun.lua; do so, and issue a message if
-      #    stem is multi-syllabic, and stress the ending, remove stress b.
-      #    Otherwise, can't safely remove stress; issue a warning and take
-      #    no further action.
+      #    stem has ё, and stress is b or d, check that ё is the last vowel
+      #    in the stem; if not, issue a warning and do nothing. If so, remove
+      #    ё and add ;ё to newdecl, with a message to this effect. If stem
+      #    has ё, and stress is f, check that ё is the first vowel in the stem
+      #    *and* that there's no following plain е; if both conditions check
+      #    out, remove ё and add ;ё to newdecl, with a message to this effect;
+      #    else, issue a warning and do nothing. Else, if no ё, if b or d and
+      #    ending stress, or f and beginning stress, we can safely remove the
+      #    stress as it will be put back in the same spot by ru-noun.lua;
+      #    do so, and issue a message if stem is multi-syllabic, and stress
+      #    the ending, remove stress b. Otherwise, can't safely remove stress;
+      #    issue a warning and take no further action.
 
       if not ru.ends_with_vowel(lemma):
         if newstress == ["a"]:
@@ -213,16 +216,70 @@ def process_page(index, page):
             if lemma == pagetitle:
               lemma = ""
             newstress = []
-      else:
-      if newstress == ["b"]:
-          pass
+      # else, ends with vowel
+      elif ru.is_multi_stressed(lemma):
+        pagemsg("WARNING: Multiple stresses in lemma %s: %s" %
+            (lemma, unicode(t)))
+      elif len(newstress) != 1:
+        pass
+      elif ru.is_ending_stressed(lemma):
+        if newstress[0] in ["a", "c", "e"]:
+          pagemsg("WARNING: Ending-stressed lemma %s with stem stress pattern %s, may be error: %s" %
+              (lemma, newstress[0], unicode(t)))
+        elif newstress == ["b"]:
+          newstress = []
+      else: # last syllable isn't stressed
+        need_ending_stress = False
+        m = re.match("^(.*)([" + ru.vowel + "][" + ru.AC + ru.GR +ru.DI + "]?)$", lemma)
+        assert m
+        stem, ending = m.groups()
+        if newstress[0] in ["a", "c", "e"]:
+          if ru.is_monosyllabic(stem):
+            stem = ru.make_ending_stressed(stem)
+            lemma = stem + ending
+          if ru.needs_accents(lemma):
+            pagemsg("WARNING: Missing stress in lemma %s: %s" %
+                (lemma, unicode(t)))
+          elif newstress == ["a"]:
+            newstress = []
+        # else stress is b, d, f or variants
+        elif ru.is_unstressed(stem):
+          need_ending_stress = True
+        elif u"ё" in stem:
+          if re.match("^[bd]", newstress[0]):
+            if re.search(u"ё.*[" + ru.vowel + "]", stem):
+              pagemsg(u"WARNING: ё in stem with later vowel in lemma %s and ending stress %s wanted, can't use ;ё special: %s" %
+                  (lemma, newstress[0], unicode(t)))
+            else:
+              pagemsg(u"Removing ё from stem in lemma %s with ending stress %s wanted and using ;ё special: %s" %
+                  (lemma, newstress[0], unicode(t)))
+              need_ending_stress = True
+          else:
+            assert re.match("^f", newstress[0])
+            if (re.search("[" + ru.vowel + u"].*ё", stem) or
+              re.search(u"ё.*е", stem)):
+              pagemsg(u"WARNING: ё in stem with earlier vowel or later е in lemma %s and ending stress %s wanted, can't use ;ё special: %s" %
+                  (lemma, newstress[0], unicode(t)))
+            else:
+              pagemsg(u"Removing ё from stem in lemma %s with ending stress %s wanted and using ;ё special: %s" %
+                  (lemma, newstress[0], unicode(t)))
+              need_ending_stress = True
+        else:
+          if (re.match("^[bd]", newstress[0]) and ru.is_ending_stressed(stem) or
+              re.match("^f", newstress[0]) and ru.is_beginning_stressed(stem)):
+            if not ru.is_monosyllabic(stem):
+              pagemsg("Stem-stressed lemma %s with stress in default position for ending-stressed accent %s, removing: %s" % (
+                lemma, newstress[0], unicode(t)))
+            need_ending_stress = True
+          else:
+            pagemsg("WARNING: Stem-stressed lemma %s has stress not in default position for ending-stressed accent %s, can't remove: %s" % (
+              lemma, newstress[0], unicode(t)))
+        if need_ending_stress:
+          lemma = ru.make_ending_stressed(lemma)
+          if newstress == ["b"]:
+            newstress = []
 
-
-
-
-
-
-        FIXME
+      # FIXME: Check for switching BARE to * reducible (or not)
 
       # Here we need to compare the old declension with the new one and
       # make sure the output is the same.
