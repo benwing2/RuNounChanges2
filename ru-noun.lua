@@ -502,7 +502,7 @@ local function tracking_code(stress, decl, real_decl, args)
 			end
 		end
 		if args.pl ~= args.stem then
-			track("irreg-pl")
+			track("irreg-pl-stem")
 		end
 	end
 	dotrack("")
@@ -531,8 +531,11 @@ local function tracking_code(stress, decl, real_decl, args)
 	if args.alt_gen_pl then
 		track("alt-gen-pl")
 	end
+	if args.manual then
+		track("manual")
+	end
 	for _, case in ipairs(cases) do
-		if args[case] then
+		if args[case] and not args.manual then
 			track("irreg/" .. case)
 			-- questionable use: dotrack("irreg/" .. case .. "/")
 		end
@@ -557,9 +560,9 @@ end
 
 -- Insert categories into ARGS.CATEGORIES corresponding to the specified
 -- stress and declension classes and to the form of the stem (e.g. velar,
--- sibilant, etc.). Also compute the declension heading that describes
--- similar information.
-local function categorize_and_compute_heading(stress, decl, args)
+-- sibilant, etc.). Also initialize values used to compute the declension
+-- heading that describes similar information.
+local function categorize_and_init_heading(stress, decl, args)
 	local function cat_to_list(cat)
 		if not cat then
 			return {}
@@ -612,10 +615,7 @@ local function categorize_and_compute_heading(stress, decl, args)
 		return false
 	end
 
-	local heading = ""
-
-	heading = heading .. (args.a == "a" and "animate" or args.a == "i" and "inanimate" or "bianimate")
-	heading = heading .. (args.n == "s" and " sg-only" or args.n == "p" and " pl-only" or "")
+	local h = args.headings
 
 	assert(decl)
 	local decl_cats = args.old and declensions_old_cat or declensions_cat
@@ -638,7 +638,7 @@ local function categorize_and_compute_heading(stress, decl, args)
 	-- insert English version of Zaliznyak stem type
 	if sgdc.decl == "invariable" then
 		insert_cat("invariable ~")
-		heading = heading .. " invariable"
+		ut.insert_if_not(h.stemetc, "invariable")
 	else
 		local stem_type =
 			sgdc.decl == "3rd" and "3rd-declension" or
@@ -659,16 +659,21 @@ local function categorize_and_compute_heading(stress, decl, args)
 			-- masculine from feminine/neuter, but this is too rare a case
 			-- to worry about)
 			local gendertext = args.n == "p" and "plural-only" or gender_to_full[sgdc.g]
-			local headinggender = args.n == "p" and "" or " " .. gender_to_short[sgdc.g]
+			ut.insert_if_not(h.adjectival, "yes")
+			if args.n ~= "p" then
+				ut.insert_if_not(h.gender, gender_to_short[sgdc.g])
+			end
 			if sgdc.possadj then
-				insert_cat(sgdc.decl .. " possessive " .. gendertext .. " adjectival ~")
-				heading = heading .. sgdc.decl .. " possessive" .. headinggender .. " adjectival"
+				insert_cat(sgdc.decl .. " possessive " .. gendertext .. " accent-" .. stress .. " adjectival ~")
+				ut.insert_if_not(h.stemetc, sgdc.decl .. " possessive")
+				ut.insert_if_not(h.stress, stress)
 			elseif stem_type == "soft-stem" or stem_type == "vowel-stem" then
 				insert_cat(stem_type .. " " .. gendertext .. " adjectival ~")
-				heading = heading .. stem_type .. headinggender .. " adjectival"
+				ut.insert_if_not(h.stemetc, stem_type)
 			else
 				insert_cat(stem_type .. " " .. gendertext .. " accent-" .. stress .. " adjectival ~")
-				heading = heading .. stem_type .. headinggender .. " accent-" .. stress .. " adjectival"
+				ut.insert_if_not(h.stemetc, stem_type)
+				ut.insert_if_not(h.stress, stress)
 			end
 		else
 			-- NOTE: There are 8 Zaliznyak-style stem types and 3 genders, but
@@ -687,7 +692,10 @@ local function categorize_and_compute_heading(stress, decl, args)
 			-- actual stem/gender/accent categories, although there are more
 			-- of them in Zaliznyak (FIXME, how many? See generate_cats.py).
 			insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. "-type accent-" .. stress .. " ~")
-			heading = heading .. stem_type .. " " .. gender_to_short[sgdc.g] .. "-type accent-" .. stress
+			ut.insert_if_not(h.adjectival, "no")
+			ut.insert_if_not(h.gender, gender_to_short[sgdc.g])
+			ut.insert_if_not(h.stemetc, stem_type)
+			ut.insert_if_not(h.stress, stress)
 		end
 		insert_cat("~ with accent pattern " .. stress)
 	end
@@ -728,14 +736,30 @@ local function categorize_and_compute_heading(stress, decl, args)
 	end
 
 	if args.pl ~= args.stem then
-		insert_cat("~ with irregular plural")
+		insert_cat("~ with irregular plural stem")
+		ut.insert_if_not(h.irreg_pl_stem, "yes")
+	else
+		ut.insert_if_not(h.irreg_pl_stem, "no")
 	end
 	if bare_is_reducible(args.stem, args.bare) then
 		insert_cat("~ with reducible stem")
 		heading = heading .. " reducible"
+		ut.insert_if_not(h.reducible, "yes")
+	else
+		ut.insert_if_not(h.reducible, "no")
 	end
-	if args.alt_gen_pl then
+	if args.gen_pl then
+		ut.insert_if_not(h.irreg_gen_pl, "yes")
+	elseif args.alt_gen_pl then
 		insert_cat("~ with alternate genitive plural")
+		ut.insert_if_not(h.irreg_gen_pl, "yes")
+	else
+		ut.insert_if_not(h.irreg_gen_pl, "no")
+	end
+	if sgdc.irregpl or args.nom_pl then
+		ut.insert_if_not(h.irreg_nom_pl, "yes")
+	else
+		ut.insert_if_not(h.irreg_nom_pl, "no")
 	end
 	if sgdc.adj then
 		insert_cat("adjectival ~")
@@ -753,15 +777,55 @@ local function categorize_and_compute_heading(stress, decl, args)
 			if case == "loc" or case == "voc" or case == "par" then
 				insert_cat("~ with " .. engcase)
 			elseif not args.manual then
+				if case ~= "nom_pl" and case ~= "gen_pl" then
+					ut.insert_if_not(h.irreg_misc, "yes")
+				end
 				insert_cat("~ with irregular " .. engcase)
 			end
 		end
 	end
+end
 
-	-- FIXME! If multiple declensions, we currently only list info for
-	-- the first one. Do something smarter.
-	if not args.heading then
-		args.heading = heading
+local function compute_heading(args)
+	local headings = {}
+	local irreg_headings = {}
+	local h = args.headings
+	table.insert(headings, args.a == "a" and "animate" or args.a == "i" and
+		"inanimate" or "bianimate")
+	table.insert(headings, args.n == "s" and "sg-only" or args.n == "p" and
+		"pl-only")
+	if #h.gender > 0 then
+		table.insert(headings, table.concat(h.gender, "/") .. "-type")
+	end
+	if #h.stemetc > 0 then
+		table.insert(headings, table.concat(h.stemetc, "/"))
+	end
+	if #h.stress > 0 then
+		table.insert(headings, "accent-" .. table.concat(h.stress, "/"))
+	end
+
+	local function handle_bool(boolvals, text, into)
+		into = into or headings
+		if ut.contains(boolvals, "yes") and ut.contains(boolvals, "no") then
+			table.insert(into, "[" .. text .. "]")
+		elseif ut.contains(boolvals, "yes") then
+			table.insert(into, text)
+		end
+	end
+	handle_bool(h.adjectival, "adjectival")
+	handle_bool(h.reducible, "reducible")
+
+	local function handle_irreg_bool(boolvals, text)
+		handle_bool(boolvals, text, irreg_headings)
+	end
+	handle_irreg_bool(h.irreg_pl_stem, "pl stem")
+	handle_irreg_bool(h.irreg_nom_pl, "nom pl")
+	handle_irreg_bool(h.irreg_gen_pl, "gen pl")
+	handle_irreg_bool(h.irreg_misc, "misc")
+	args.heading = "(" .. table.concat(headings, " ") .. ")"
+	if #irreg_headings > 0 then
+		args.heading = args.heading .. "<br />Irregularities: " ..
+			table.concat(irreg_headings, " ")
 	end
 end
 
@@ -869,6 +933,9 @@ function export.do_generate_forms(args, old)
 	args.n = args.n and string.sub(args.n, 1, 1)
 	args.forms = {}
 	args.categories = {}
+	args.headings = {animacy={}, number={}, gender={}, stress={}, stemetc={},
+		adjectival={}, reducible={}, irreg_nom_pl={}, irreg_gen_pl={},
+		irreg_pl_stem={}, irreg_misc={}}
 	args.genders = {}
 	local function insert_cat(cat)
 		insert_category(args.categories, cat, args.pos)
@@ -1264,7 +1331,7 @@ function export.do_generate_forms(args, old)
 				track("pointless-bare/" .. decl)
 			end
 
-			categorize_and_compute_heading(stress, decl, args)
+			categorize_and_init_heading(stress, decl, args)
 		end
 	end
 
@@ -1274,6 +1341,8 @@ function export.do_generate_forms(args, old)
 		track("multiple-declensions")
 		insert_cat("~ with multiple declensions")
 	end
+
+	compute_heading(args)
 
 	handle_forms_and_overrides(args)
 
@@ -3198,7 +3267,7 @@ make_table = function(args)
 	local anim = args.a
 	local numb = args.n
 	local old = args.old
-	args.after_title = " (" .. args.heading .. ")"
+	args.after_title = " " .. args.heading
 	args.number = numbers[numb]
 
 	args.lemma = m_links.remove_links((numb == "p") and table.concat(args.nom_pl, ", ") or table.concat(args.nom_sg, ", "))
