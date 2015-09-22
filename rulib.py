@@ -57,6 +57,8 @@ def is_nonsyllabic(word):
 def is_monosyllabic(word):
   return not re.search("[" + vowel + "].*[" + vowel + "]", word)
 
+def ends_with_vowel(word):
+  return re.search("[" + vowel + "][" + AC + GR + DI + "]?$", word)
 
 grave_deaccenter = {
     GR:"", # grave accent
