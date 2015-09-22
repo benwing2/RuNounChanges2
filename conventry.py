@@ -53,6 +53,17 @@ conv_decl = {
     u"ьё":[u"ьё"],
 }
 
+numbered_to_lettered_stress = {
+    "1":"a",
+    "2":"b",
+    "3":"c",
+    "4":"d",
+    "5":"e",
+    "6":"f",
+    "4*":"d'",
+    "6*":"f'",
+}
+
 def process_page(index, page):
   pagetitle = unicode(page.title())
   def pagemsg(txt):
@@ -134,6 +145,9 @@ def process_page(index, page):
         declconv = conv_decl[decl]
         # FIXME: If declconv[0] is "-ин" we might not be able to transfer it
         lemma = lemma + declconv[0]
+
+        # Transfer all the special markers, make sure they're not duplicated
+        # and go in the right order
         if len(declconv) == 0:
           special = []
         elif type(declconv[1]) is list:
@@ -147,8 +161,71 @@ def process_page(index, page):
               special = [x for x in special if x ~= spec]
           assert not special
 
+      if ending_stressed and not stress:
+        stress = "b"
+
+      # Canonicalize and split stress
+      newstress = []
+      is_3f = lemma.endswith(u"ь") and "f" in newdecl
+      if stress:
+        for s in re.split(",", stress):
+          if s == "2" and is_3f:
+            newstress.append("b'")
+          elif s == "6" and is_3f:
+            newstress.append("f''")
+          else:
+            newstress.append(numbered_to_lettered_stress.get(s, s))
+      # Now, attempt to eliminate explicit stress b by stressing the ending,
+      # and eliminate explicit stress a by not stressing the ending:
+      #
+      # 1. If lemma doesn't end with a vowel, there's no ending to stress.
+      #    Accent b must remain, but accent a can be removed as long as
+      #    there isn't a missing accent. In the process, remove monosyllabic
+      #    accents (unnecessary) and remove the lemma if same as pagename.
+      #
+      # 2. If lemma ends in a vowel: First, if multi-stressed, warn and do
+      #    nothing. If stress is empty or multiple, do nothing. Then,
+      #    (1) if last syllable is stressed: if stress is a, c, or e
+      #    (stem-stressed), warn that there may be an error somewhere;
+      #    else if stress is b, remove it, else do nothing. (2) if last
+      #    syllable isn't stressed: extract off stem and ending. If stress
+      #    is a, c or e, auto-stress a monosyllabic stem; then if the stem
+      #    isn't stressed, issue a warning and do nothing, else remove
+      #    stress a. If stress is b, d or f (ending-stressed): If no stress
+      #    on stem, no problem -- stress the ending, remove stress b. If
+      #    stem has ё, check that there's no е later in the stem; if there
+      #    is, issue a warning and do nothing. Else, if stress is b or d,
+      #    remove ё and add ;ё to newdecl, with a message to this effect.
+      #    Else, if no ё, if b or d and ending stress, or f and beginning
+      #    stress, we can safely remove the stress as it will be put back
+      #    in the same spot by ru-noun.lua; do so, and issue a message if
+      #    stem is multi-syllabic, and stress the ending, remove stress b.
+      #    Otherwise, can't safely remove stress; issue a warning and take
+      #    no further action.
+
+      if not ru.ends_with_vowel(lemma):
+        if newstress == ["a"]:
+          if ru.needs_accents(lemma):
+            pagemsg("WARNING: Missing stress in lemma %s: %s" %
+                (lemma, unicode(t)))
+          else:
+            lemma = remove_monosyllabic_accents(lemma)
+            if lemma == pagetitle:
+              lemma = ""
+            newstress = []
+      else:
+      if newstress == ["b"]:
+          pass
+
+
+
+
+
+
         FIXME
 
+      # Here we need to compare the old declension with the new one and
+      # make sure the output is the same.
       FIXME
 
   if verbose:
