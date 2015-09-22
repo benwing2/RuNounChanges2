@@ -16,7 +16,7 @@ def msg(text):
 def errmsg(text):
   print >>sys.stderr, text.encode("utf-8")
 
-def process_file(index, page):
+def process_page(index, page):
   pagetitle = unicode(page.title())
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, page, txt))
@@ -116,4 +116,4 @@ i = 0
 for page in pages:
   i += 1
   msg("Page %s %s: Processing" % (i, page))
-  process_file(i, pywikibot.Page(site, page))
+  process_page(i, pywikibot.Page(site, page))
