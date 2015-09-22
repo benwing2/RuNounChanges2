@@ -745,7 +745,6 @@ local function categorize_and_init_heading(stress, decl, args)
 	end
 	if bare_is_reducible(args.stem, args.bare) then
 		insert_cat("~ with reducible stem")
-		heading = heading .. " reducible"
 		ut.insert_if_not(h.reducible, "yes")
 	else
 		ut.insert_if_not(h.reducible, "no")
@@ -795,7 +794,7 @@ local function compute_heading(args)
 	table.insert(headings, args.a == "a" and "animate" or args.a == "i" and
 		"inanimate" or "bianimate")
 	table.insert(headings, args.n == "s" and "sg-only" or args.n == "p" and
-		"pl-only")
+		"pl-only" or nil)
 	if #h.gender > 0 then
 		table.insert(headings, table.concat(h.gender, "/") .. "-type")
 	end
@@ -803,7 +802,11 @@ local function compute_heading(args)
 		table.insert(headings, table.concat(h.stemetc, "/"))
 	end
 	if #h.stress > 0 then
-		table.insert(headings, "accent-" .. table.concat(h.stress, "/"))
+		local stresses = {}
+		for _, stress in ipairs(h.stress) do
+			table.insert(stresses, rsub(stress, "'", "&#39;"))
+		end
+		table.insert(headings, "accent-" .. table.concat(stresses, "/"))
 	end
 
 	local function handle_bool(boolvals, text, into)
@@ -820,15 +823,18 @@ local function compute_heading(args)
 	local function handle_irreg_bool(boolvals, text)
 		handle_bool(boolvals, text, irreg_headings)
 	end
-	handle_irreg_bool(h.irreg_pl_stem, "pl stem")
-	handle_irreg_bool(h.irreg_nom_pl, "nom pl")
-	handle_irreg_bool(h.irreg_gen_pl, "gen pl")
+	handle_irreg_bool(h.irreg_pl_stem, "pl-stem")
+	handle_irreg_bool(h.irreg_nom_pl, "nom-pl")
+	handle_irreg_bool(h.irreg_gen_pl, "gen-pl")
 	handle_irreg_bool(h.irreg_misc, "misc")
-	args.heading = "(" .. table.concat(headings, " ") .. ")"
 	if #irreg_headings > 0 then
-		args.heading = args.heading .. "<br />Irregularities: " ..
-			table.concat(irreg_headings, " ")
+		table.insert(headings, "irreg")
 	end
+	args.heading = "(" .. table.concat(headings, " ") .. ")"
+	--if #irreg_headings > 0 then
+	--	args.heading = args.heading .. "<br /><span style=\"text-align: center;\">Irregularities: " ..
+	--		table.concat(irreg_headings, " ") .. "</span>"
+	--end
 end
 
 --------------------------------------------------------------------------
@@ -896,6 +902,7 @@ function export.do_generate_forms(args, old)
 	old = old or args.old
 	args.old = old
 	args.suffix = args.suffix or ""
+	args.pos = args.pos or "noun"
 
 	-- Gather arguments into an array of ARG_SET objects, containing
 	-- (potentially) elements 1, 2, 3, 4, 5, corresponding to accent pattern,
@@ -3432,7 +3439,7 @@ local function template_prelude(min_width)
 	return rsub([===[
 <div>
 <div class="NavFrame" style="display: inline-block; min-width: MINWIDTHem">
-<div class="NavHead" style="background:#eff7ff">{title}{after_title}</div>
+<div class="NavHead" style="background:#eff7ff;">{title}<span style="font-weight: normal;">{after_title}</span></div>
 <div class="NavContent">
 {\op}| style="background:#F9F9F9;text-align:center; min-width:MINWIDTHem" class="inflection-table"
 |-
