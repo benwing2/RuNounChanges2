@@ -544,6 +544,88 @@ local function tracking_code(stress, decl, real_decl, args)
 	end
 end
 
+-- FIXME: Tracking code eventually to remove; track cases where bare is
+-- explicitly specified to see how many could be predicted. Return a value
+-- to use in place of explicit bare: empty string means remove the
+-- bare param, "*" means remove the bare param and add * to the decl field,
+-- anything else means keep the decl field (these should be manually
+-- rewritten).
+local function bare_tracking(stem, bare, decl, sgdc, stress, old)
+	local nomsg
+	if rfind(decl, "^ь%-") then
+		nomsg = stem .. "ь"
+	elseif rfind(decl, "^й") then
+		nomsg = stem .. "й"
+	elseif rfind(decl, "^ъ") then
+		nomsg = stem .. "ъ"
+	end
+	if stem == bare then
+		track("explicit-bare-same-as-stem")
+		return ""
+	elseif com.make_unstressed(stem) == com.make_unstressed(bare) then
+		track("explicit-bare-different-stress")
+		track("explicit-bare-different-stress-from-stem")
+	elseif nomsg and nomsg == bare then
+		track("explicit-bare-same-as-nom-sg")
+		return ""
+	elseif nomsg and com.make_unstressed(nomsg) == com.make_unstressed(bare) then
+		track("explicit-bare-different-stress")
+		track("explicit-bare-different-stress-from-nom-sg")
+	else
+		if is_reducible(sgdc) then
+			local barestem, baredecl = rmatch(bare, "^(.-)([ьйъ]?)$")
+			assert(barestem)
+			local autostem = export.reduce_nom_sg_stem(barestem, baredecl)
+			if not autostem then
+				track("error-reducible")
+			elseif autostem == stem then
+				track("predictable-reducible")
+				return "*"
+			elseif com.make_unstressed(autostem) == com.make_unstressed(stem) then
+				if com.remove_accents(autostem) ~= com.remove_accents(stem) then
+					--error("autostem=" .. autostem .. ", stem=" .. stem)
+					track("predictable-reducible-but-jo-differences")
+				elseif com.is_unstressed(autostem) and com.is_ending_stressed(stem) then
+					track("predictable-reducible-but-extra-ending-stress")
+					return "*"
+				else
+					--error("autostem=" .. autostem .. ", stem=" .. stem)
+					track("predictable-reducible-but-different-stress")
+				end
+			else
+				--error("autostem=" .. autostem .. ", stem=" .. stem)
+				track("unpredictable-reducible")
+			end
+		elseif is_dereducible(sgdc) then
+			local autobare = export.dereduce_nom_sg_stem(stem, sgdc, stress, old)
+			if not autobare then
+				track("error-dereducible")
+			elseif autobare == bare then
+				track("predictable-dereducible")
+				return "*"
+			elseif com.make_unstressed(autobare) == com.make_unstressed(bare) then
+				if com.remove_accents(autobare) ~= com.remove_accents(bare) then
+					--error("autobare=" .. autobare .. ", bare=" .. bare)
+					track("predictable-dereducible-but-jo-differences")
+				elseif com.is_unstressed(autobare) and com.is_ending_stressed(bare) then
+					track("predictable-dereducible-but-extra-ending-stress")
+					return "*"
+				else
+					--error("autobare=" .. autobare .. ", bare=" .. bare)
+					track("predictable-dereducible-but-different-stress")
+				end
+			else
+				--error("autobare=" .. autobare .. ", bare=" .. bare)
+				track("unpredictable-dereducible")
+			end
+		else
+			track("bare-without-reducibility")
+		end
+	end
+
+	return bare
+end
+
 local gender_to_full = {m="masculine", f="feminine", n="neuter"}
 local gender_to_short = {m="masc", f="fem", n="neut"}
 
@@ -1183,74 +1265,7 @@ function export.do_generate_forms(args, old)
 			-- with ё special case); the remaining times we generate the bare
 			-- value directly from the plural stem.
 			if bare then
-				-- FIXME: Tracking code eventually to remove; track cases
-				-- where bare is explicitly specified to see how many could
-				-- be predicted
-				local nomsg
-				if rfind(decl, "^ь%-") then
-					nomsg = stem .. "ь"
-				elseif rfind(decl, "^й") then
-					nomsg = stem .. "й"
-				elseif rfind(decl, "^ъ") then
-					nomsg = stem .. "ъ"
-				end
-				if stem == bare then
-					track("explicit-bare-same-as-stem")
-				elseif com.make_unstressed(stem) == com.make_unstressed(bare) then
-					track("explicit-bare-different-stress")
-					track("explicit-bare-different-stress-from-stem")
-				elseif nomsg and nomsg == bare then
-					track("explicit-bare-same-as-nom-sg")
-				elseif nomsg and com.make_unstressed(nomsg) == com.make_unstressed(bare) then
-					track("explicit-bare-different-stress")
-					track("explicit-bare-different-stress-from-nom-sg")
-				else
-					if is_reducible(sgdc) then
-						local barestem, baredecl = rmatch(bare, "^(.-)([ьйъ]?)$")
-						assert(barestem)
-						local autostem = export.reduce_nom_sg_stem(barestem, baredecl)
-						if not autostem then
-							track("error-reducible")
-						elseif autostem == stem then
-							track("predictable-reducible")
-						elseif com.make_unstressed(autostem) == com.make_unstressed(stem) then
-							if com.remove_accents(autostem) ~= com.remove_accents(stem) then
-								--error("autostem=" .. autostem .. ", stem=" .. stem)
-								track("predictable-reducible-but-jo-differences")
-							elseif com.is_unstressed(autostem) and com.is_ending_stressed(stem) then
-								track("predictable-reducible-but-extra-ending-stress")
-							else
-								--error("autostem=" .. autostem .. ", stem=" .. stem)
-								track("predictable-reducible-but-different-stress")
-							end
-						else
-							--error("autostem=" .. autostem .. ", stem=" .. stem)
-							track("unpredictable-reducible")
-						end
-					elseif is_dereducible(sgdc) then
-						local autobare = export.dereduce_nom_sg_stem(stem, sgdc, stress, old)
-						if not autobare then
-							track("error-dereducible")
-						elseif autobare == bare then
-							track("predictable-dereducible")
-						elseif com.make_unstressed(autobare) == com.make_unstressed(bare) then
-							if com.remove_accents(autobare) ~= com.remove_accents(bare) then
-								--error("autobare=" .. autobare .. ", bare=" .. bare)
-								track("predictable-dereducible-but-jo-differences")
-							elseif com.is_unstressed(autobare) and com.is_ending_stressed(bare) then
-								track("predictable-dereducible-but-extra-ending-stress")
-							else
-								--error("autobare=" .. autobare .. ", bare=" .. bare)
-								track("predictable-dereducible-but-different-stress")
-							end
-						else
-							--error("autobare=" .. autobare .. ", bare=" .. bare)
-							track("unpredictable-dereducible")
-						end
-					else
-						track("bare-without-reducibility")
-					end
-				end
+				bare_tracking(stem, bare, decl, sgdc, stress, old)
 			elseif args.reducible and not sgdc.ignore_reduce then
 				-- Zaliznyak treats all nouns in -ье and -ья as being
 				-- reducible. We handle this automatically and don't require
