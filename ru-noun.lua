@@ -540,6 +540,7 @@ local function tracking_code(stress, decl, real_decl, args)
 end
 
 local gender_to_full = {m="masculine", f="feminine", n="neuter"}
+local gender_to_short = {m="masc", f="fem", n="neut"}
 
 -- Insert the category CAT (a string) into list CATEGORIES. String will
 -- have "Russian " prepended and ~ substituted for the plural part of speech.
@@ -556,8 +557,9 @@ end
 
 -- Insert categories into ARGS.CATEGORIES corresponding to the specified
 -- stress and declension classes and to the form of the stem (e.g. velar,
--- sibilant, etc.).
-local function categorize(stress, decl, args)
+-- sibilant, etc.). Also compute the declension heading that describes
+-- similar information.
+local function categorize_and_compute_heading(stress, decl, args)
 	local function cat_to_list(cat)
 		if not cat then
 			return {}
@@ -610,6 +612,11 @@ local function categorize(stress, decl, args)
 		return false
 	end
 
+	local heading = ""
+
+	heading = heading .. (args.a == "a" and "animate" or args.a == "i" and "inanimate" or "bianimate")
+	heading = heading .. (args.n == "s" and " sg-only" or args.n == "p" and " pl-only" or "")
+
 	assert(decl)
 	local decl_cats = args.old and declensions_old_cat or declensions_cat
 
@@ -631,6 +638,7 @@ local function categorize(stress, decl, args)
 	-- insert English version of Zaliznyak stem type
 	if sgdc.decl == "invariable" then
 		insert_cat("invariable ~")
+		heading = heading .. " invariable"
 	else
 		local stem_type =
 			sgdc.decl == "3rd" and "3rd-declension" or
@@ -651,12 +659,16 @@ local function categorize(stress, decl, args)
 			-- masculine from feminine/neuter, but this is too rare a case
 			-- to worry about)
 			local gendertext = args.n == "p" and "plural-only" or gender_to_full[sgdc.g]
+			local headinggender = args.n == "p" and "" or " " .. gender_to_short[sgdc.g]
 			if sgdc.possadj then
 				insert_cat(sgdc.decl .. " possessive " .. gendertext .. " adjectival ~")
+				heading = heading .. sgdc.decl .. " possessive" .. headinggender .. " adjectival"
 			elseif stem_type == "soft-stem" or stem_type == "vowel-stem" then
 				insert_cat(stem_type .. " " .. gendertext .. " adjectival ~")
+				heading = heading .. stem_type .. headinggender .. " adjectival"
 			else
 				insert_cat(stem_type .. " " .. gendertext .. " accent-" .. stress .. " adjectival ~")
+				heading = heading .. stem_type .. headinggender .. " accent-" .. stress .. " adjectival"
 			end
 		else
 			-- NOTE: There are 8 Zaliznyak-style stem types and 3 genders, but
@@ -675,6 +687,7 @@ local function categorize(stress, decl, args)
 			-- actual stem/gender/accent categories, although there are more
 			-- of them in Zaliznyak (FIXME, how many? See generate_cats.py).
 			insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. "-type accent-" .. stress .. " ~")
+			heading = heading .. stem_type .. " " .. gender_to_short[sgdc.g] .. "-type accent-" .. stress
 		end
 		insert_cat("~ with accent pattern " .. stress)
 	end
@@ -719,6 +732,7 @@ local function categorize(stress, decl, args)
 	end
 	if bare_is_reducible(args.stem, args.bare) then
 		insert_cat("~ with reducible stem")
+		heading = heading .. " reducible"
 	end
 	if args.alt_gen_pl then
 		insert_cat("~ with alternate genitive plural")
@@ -742,6 +756,12 @@ local function categorize(stress, decl, args)
 				insert_cat("~ with irregular " .. engcase)
 			end
 		end
+	end
+
+	-- FIXME! If multiple declensions, we currently only list info for
+	-- the first one. Do something smarter.
+	if not args.heading then
+		args.heading = heading
 	end
 end
 
@@ -1244,7 +1264,7 @@ function export.do_generate_forms(args, old)
 				track("pointless-bare/" .. decl)
 			end
 
-			categorize(stress, decl, args)
+			categorize_and_compute_heading(stress, decl, args)
 		end
 	end
 
@@ -3037,12 +3057,6 @@ ending_stressed_dat_sg_patterns = ending_stressed_pre_sg_patterns
 ending_stressed_sg_patterns = ending_stressed_pre_sg_patterns
 ending_stressed_pl_patterns = ut.list_to_set({"b", "b'", "c"})
 
-local after_titles = {
-	["a"] = " (animate)",
-	["i"] = " (inanimate)",
-	["b"] = "",
-}
-
 local numbers = {
 	["s"] = "singular",
 	["p"] = "plural",
@@ -3184,7 +3198,7 @@ make_table = function(args)
 	local anim = args.a
 	local numb = args.n
 	local old = args.old
-	args.after_title = after_titles[anim]
+	args.after_title = " (" .. args.heading .. ")"
 	args.number = numbers[numb]
 
 	args.lemma = m_links.remove_links((numb == "p") and table.concat(args.nom_pl, ", ") or table.concat(args.nom_sg, ", "))
