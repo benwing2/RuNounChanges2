@@ -10,7 +10,7 @@ def parse(text):
 
 def getparam(template, param):
 	if template.has(param):
-		return unicode(template.get(param))
+		return unicode(template.get(param).value)
 	else:
 		return ""
 
