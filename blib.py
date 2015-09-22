@@ -5,6 +5,18 @@ import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, 
 
 site = pywikibot.Site()
 
+def parse(text):
+	return mwparserfromhell.parser.Parser().parse(page.text, skip_style_tags=True)
+
+def getparam(template, param):
+	if template.has(param):
+		return unicode(template.get(param))
+	else:
+		return ""
+
+def rmparam(template, param):
+	if template.has(param):
+		template.remove(param)
 
 def display(page):
 	pywikibot.output(u'# [[{0}]]'.format(page.title()))
@@ -252,3 +264,6 @@ def getEtymLanguageData():
 	for etyl in etym_languages:
 		etym_languages_byCode[etyl["code"]] = etyl
 		etym_languages_byCanonicalName[etyl["canonicalName"]] = etyl
+
+# For Vim, so we get 4-space tabs
+# vim: set ts=4 sw=4 noet:
