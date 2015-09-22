@@ -140,6 +140,8 @@
 
 TODO:
 
+1. Put back gender hints for pl adjectival nouns; used by ru-noun+.
+   [IMPLEMENTED. NEED TO TEST.]
 3. FIXME: Test that omitting a manual form leaves the form as a big dash.
 6. FIXME: Test that omitting a manual form in ru-adjective leaves the form as
    a big dash.
@@ -863,7 +865,7 @@ local function determine_headword_gender(args, sgdc, gender)
 		if sgdc.adj and args.n == "p" then
 			gender = nil
 		else
-			gender = args.g
+			gender = sgdc.g
 		end
 	end
 
@@ -886,6 +888,10 @@ local function determine_headword_gender(args, sgdc, gender)
 end
 
 function export.do_generate_forms(args, old)
+	local orig_args
+	if test_new_ru_noun_module then
+		orig_args = mw.clone(args)
+	end
 	local SUBPAGENAME = mw.title.getCurrentTitle().subpageText
 	old = old or args.old
 	args.old = old
@@ -1064,7 +1070,7 @@ function export.do_generate_forms(args, old)
 
 		-- Compute headword gender(s). We base it off the singular declension
 		-- if we have a slash declension -- it's the best we can do.
-		determine_headword_gender(args, sgdc, sgdecl)
+		determine_headword_gender(args, sgdc, gender)
 
 		local original_stem = stem
 		local original_bare = bare
@@ -1204,7 +1210,7 @@ function export.do_generate_forms(args, old)
 							if com.remove_accents(autostem) ~= com.remove_accents(stem) then
 								--error("autostem=" .. autostem .. ", stem=" .. stem)
 								track("predictable-reducible-but-jo-differences")
-							elseif is_unstressed(autostem) and com.is_ending_stressed(stem) then
+							elseif com.is_unstressed(autostem) and com.is_ending_stressed(stem) then
 								track("predictable-reducible-but-extra-ending-stress")
 							else
 								--error("autostem=" .. autostem .. ", stem=" .. stem)
@@ -1224,7 +1230,7 @@ function export.do_generate_forms(args, old)
 							if com.remove_accents(autobare) ~= com.remove_accents(bare) then
 								--error("autobare=" .. autobare .. ", bare=" .. bare)
 								track("predictable-dereducible-but-jo-differences")
-							elseif is_unstressed(autobare) and com.is_ending_stressed(bare) then
+							elseif com.is_unstressed(autobare) and com.is_ending_stressed(bare) then
 								track("predictable-dereducible-but-extra-ending-stress")
 							else
 								--error("autobare=" .. autobare .. ", bare=" .. bare)
@@ -1349,8 +1355,7 @@ function export.do_generate_forms(args, old)
 	-- Test code to compare existing module to new one.
 	if test_new_ru_noun_module then
 		local m_new_ru_noun = require("Module:User:Benwing2/ru-noun")
-		local newargs = clone_args(frame)
-		newargs = m_new_ru_noun.do_generate_forms(newargs, old)
+		local newargs = m_new_ru_noun.do_generate_forms(orig_args, old)
 		for _, case in ipairs(cases) do
 			local is_pl = rfind(case, "_pl")
 			if args.n == "s" and is_pl or args.n == "p" and not is_pl then
@@ -1733,7 +1738,9 @@ local function detect_lemma_type(lemma, gender, anim)
 			error("Need to specify gender m or f with lemma in -ь: ".. lemma)
 		end
 	end
-	if rfind(lemma, "[уыэюиіѣѵУЫЭЮИІѢѴ]́?$") then
+	if rfind(lemma, "[ыиЫИ]́?$") then
+		error("If this is a plural lemma, gender must be specified: " .. lemma)
+	elseif rfind(lemma, "[уыэюиіѣѵУЫЭЮИІѢѴ]́?$") then
 		error("Don't know how to decline lemma ending in this type of vowel: " .. lemma)
 	end
 	return lemma, ""
@@ -1896,7 +1903,7 @@ determine_decl = function(lemma, decl, args)
 		if args.want_sc1 then
 			error("Special case (1) not compatible with slash declension" .. decl)
 		end
-		return stem, decl, was_accented, was_plural, was_autodetected
+		return stem, decl, gender, was_accented, was_plural, was_autodetected
 	end
 
 	-- 2: Retrieve explicitly specified or autodetected decl and pl. variant
@@ -1923,7 +1930,7 @@ determine_decl = function(lemma, decl, args)
 		if other_plural and sc1_plural ~= other_plural then
 			error("Plural variant " .. other_plural .. " specified or detected, but special case (1) calls for plural variant " .. sc1_plural)
 		end
-		return stem, sc1_decl, was_accented, was_plural, was_autodetected
+		return stem, sc1_decl, gender, was_accented, was_plural, was_autodetected
 	end
 
 	-- 5: Handle user-requested plural variant without explicit or detected
@@ -1936,15 +1943,15 @@ determine_decl = function(lemma, decl, args)
 			variant_decl = plural_variant_detection_map[decl][want_ya_plural]
 		end
 		if variant_decl then
-			return stem, variant_decl, was_accented, was_plural, was_autodetected
+			return stem, variant_decl, gender, was_accented, was_plural, was_autodetected
 		else
-			return stem, decl .. "/" .. want_ya_plural, was_accented, was_plural, was_autodetected
+			return stem, decl .. "/" .. want_ya_plural, gender, was_accented, was_plural, was_autodetected
 		end
 	end
 
 	-- 6: Just return the full declension, which will include any available
 	--    plural variant in it.
-	return stem, decl, was_accented, was_plural, was_autodetected
+	return stem, decl, gender, was_accented, was_plural, was_autodetected
 end
 
 -- Attempt to determine the actual adjective declension based on a
@@ -1959,7 +1966,14 @@ end
 -- 3. +short, +mixed or +proper, with the declension partly specified but
 --    the particular gender/number-specific short/mixed variant to be
 --    autodetected
--- 4. An actual declension, possibly including a slash declension
+-- 4. A gender (+m, +f or +n), used only for detecting the singular of
+--    plural-form lemmas (this is primarily used in conjunction with template
+--    ru-noun+, to explicitly specify the gender; for the actual declension,
+--    it doesn't much matter what singular gender we pick since we're a
+--    plurale tantum)
+-- 5. A gender plus short/mixed/proper/ь (e.g. +f-mixed), again with the gender
+--    used only for detecting the singular of plural-form short/mixed lemmas
+-- 6. An actual declension, possibly including a slash declension
 --    (WARNING: Unclear if slash declensions will work, especially those
 --    that are adjective/noun combinations)
 --
@@ -1968,6 +1982,14 @@ end
 detect_adj_type = function(lemma, decl, old)
 	local was_autodetected
 	local base, ending
+	local basedecl, g = rmatch(decl, "^(%+)([mfn])$")
+	if not basedecl then
+		g, basedecl = rmatch(decl, "^%+([mfn])%-([a-zь]+)$")
+		if basedecl then
+			basedecl = "+" .. basedecl
+		end
+	end
+	decl = basedecl or decl
 	if decl == "+" or decl == "+ь" then
 		base, ending = rmatch(lemma, "^(.*)([ыиіьаяое]́?[йея])$")
 		if ending == "ий" and decl == "+ь" then
@@ -2034,26 +2056,26 @@ detect_adj_type = function(lemma, decl, old)
 	decl = map_decl(decl, convert_sib_velar_variant)
 	local singdecl
 	if decl == "+ые" then
-		singdecl = was_accented and "+ой" or "+ый"
+		singdecl = (g == "m" or not g) and (was_accented and "+ой" or "+ый") or not old and g == "f" and "+ая" or not old and g == "n" and "+ое"
+	elseif decl == "+ыя" and old then
+		singdecl = (g == "f" or not g) and "+ая" or g == "n" and "+ое"
 	elseif decl == "+ие" and not old then
-		singdecl = "+ий"
-	elseif decl == "+іе" and old then
+		singdecl = (g == "m" or not g) and "+ий" or g == "f" and "+яя" or g == "n" and "+ее"
+	elseif decl == "+іе" and old and (g == "m" or not g) then
 		singdecl = "+ій"
 	elseif decl == "+ія" and old then
-		singdecl = "+яя"
+		singdecl = (g == "f" or not g) and "+яя" or g == "n" and "+ее"
 	elseif decl == "+ьи" then
-		singdecl = old and "+ьій" or "+ьий"
+		singdecl = (g == "m" or not g) and (old and "+ьій" or "+ьий") or g == "f" and "+ья" or g == "n" and "+ье"
 	elseif rfind(decl, "^%+ы%-") then -- decl +ы-mixed or similar
-		singdecl = "+" .. (old and "ъ" or "") .. usub(decl, 3)
+		local beg = (g == "m" or not g) and (old and "ъ" or "") or g == "f" and "а" or g == "n" and "о"
+		singdecl = beg and "+" .. beg .. usub(decl, 3)
 	end
 	if singdecl then
 		was_plural = true
 		decl = singdecl
 	end
-	-- 3rd argument is currently always nil because we don't currently
-	-- let the user specify an explicit gender with adjectival nouns.
-	-- We should maybe change this.
-	return base, canonicalize_decl(decl, old), nil, was_accented, was_plural, was_autodetected
+	return base, canonicalize_decl(decl, old), g, was_accented, was_plural, was_autodetected
 end
 
 -- If stress pattern omitted, detect it based on whether ending is stressed
@@ -3469,7 +3491,7 @@ templates["full_a"] = template_prelude("50") .. [===[
 | {dat_sg}
 | {dat_pl}
 |-
-! style="background:#eff7ff" rowspan="2" | accusative <span style="padding-left:1em;display:inline-block;vertical-align:middle">animate<br/>inanimate</span>
+! style="background:#eff7ff" rowspan="2" | accusative <span style="padding-left:1em;display:inline-block;vertical-align:middle">animate<br/><br/>inanimate</span>
 | {gen_sg}
 | {gen_pl}
 |-
@@ -3502,7 +3524,7 @@ templates["full_af"] = template_prelude("50") .. [===[
 | {dat_sg}
 | {dat_pl}
 |-
-! style="background:#eff7ff" rowspan="2" | accusative <span style="padding-left:1em;display:inline-block;vertical-align:middle">animate<br/>inanimate</span>
+! style="background:#eff7ff" rowspan="2" | accusative <span style="padding-left:1em;display:inline-block;vertical-align:middle">animate<br/><br/>inanimate</span>
 | rowspan="2" | {acc_sg}
 | {gen_pl}
 |-
@@ -3553,7 +3575,7 @@ templates["half_a"] = template_prelude("35") .. [===[
 ! style="background:#eff7ff" | dative
 | {dat_x}
 |-
-! style="background:#eff7ff" rowspan="2" | accusative <span style="padding-left:1em;display:inline-block;vertical-align:middle">animate<br/>inanimate</span>
+! style="background:#eff7ff" rowspan="2" | accusative <span style="padding-left:1em;display:inline-block;vertical-align:middle">animate<br/><br/>inanimate</span>
 | {gen_x}
 |-
 | {nom_x}
