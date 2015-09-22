@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#coding: utf-8
+# -*- coding: utf-8 -*-
 
 import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, json
 

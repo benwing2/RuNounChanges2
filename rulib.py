@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import re
 
@@ -22,7 +23,7 @@ def needs_accents(text):
   def word_needs_accents(word):
     # A word needs accents if it is unstressed and contains more than one vowel
     return is_unstressed(word) and not is_monosyllabic(word)
-  words = rsplit(text, r"\s")
+  words = re.split(r"\s", text)
   for word in words:
     if word_needs_accents(word):
       return True
@@ -79,7 +80,7 @@ def remove_monosyllabic_accents(word):
   # MediaWiki upon saving)
   if is_monosyllabic(word):
     return remove_accents(word)
-  else
+  else:
     return word
 
 destresser = deaccenter.copy()
@@ -94,11 +95,11 @@ def remove_jo(word):
 
 def make_unstressed_once(word):
   # leave graves alone
-  return re.sub(u"([́̈ёЁ])([^́̈ёЁ]*)$", lambda m: destresser[m.group(1)] + m.group(2), word, 0, 1)
+  return re.sub(u"([́̈ёЁ])([^́̈ёЁ]*)$", lambda m: destresser[m.group(1)] + m.group(2), word, 1)
 
 def make_unstressed_once_at_beginning(word):
   # leave graves alone
-  return re.sub(u"^([^́̈ёЁ]*)([́̈ёЁ])", lambda m: m.group(1) + destresser[m.group(2)], word, 0, 1)
+  return re.sub(u"^([^́̈ёЁ]*)([́̈ёЁ])", lambda m: m.group(1) + destresser[m.group(2)], word, 1)
 
 def correct_grave_acute_clash(word):
   word = re.sub(u"([̀ѐЀѝЍ])́", lambda m: grave_deaccenter[m.group(1)] + AC, word)
