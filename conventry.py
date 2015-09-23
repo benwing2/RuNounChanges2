@@ -109,7 +109,7 @@ def lemma_to_stem_decl(lemma, decl):
   return lemma, ""
 
 def is_suffixed(lemma):
-  return re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ut.remove_accents(lemma))
+  return re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ru.remove_accents(lemma))
 
 def process_page(index, page, save=False, verbose=False):
   if not page.exists():
@@ -175,7 +175,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
 
       # Extract specials from decl, put into newdecl
       newdecl = ""
-      decl, nsubs = re.subn(ur"(\d|[^/\w])ё(\d|[^/\w]|$)", r"\1\2", decl)
+      decl, nsubs = re.subn(ur"(\d|[^/\w])ё(\d|[^/\w]|$)", r"\1\2", decl, 0, re.U)
       if nsubs:
         newdecl += u";ё"
       decl, nsubs = re.subn(r"\(1\)", "", decl)
@@ -232,7 +232,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
 
             # Transfer all the special markers, make sure they're not duplicated
             # and go in the right order
-            if len(declconv) == 0:
+            if len(declconv) == 1:
               special = []
             elif type(declconv[1]) is list:
               special = declconv[1]
@@ -381,6 +381,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
             else:
               pagemsg(u"Removing ё from stem in lemma %s with ending stress %s wanted and using ;ё special: %s" %
                   (lemma, newstress[0], unicode(t)))
+              newdecl += u";ё"
               need_ending_stress = True
           else:
             assert re.search("^f", newstress[0])
@@ -391,6 +392,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
             else:
               pagemsg(u"Removing ё from stem in lemma %s with ending stress %s wanted and using ;ё special: %s" %
                   (lemma, newstress[0], unicode(t)))
+              newdecl += u";ё"
               need_ending_stress = True
         else:
           if (re.search("^[bd]", newstress[0]) and ru.is_ending_stressed(stem) or
@@ -411,11 +413,11 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
             newstress = []
 
       # Handle spelling rules for ё/е/о after sibilants and ц
-      lemma, nsubs = re.subn("([" + ru.sib_c + u"])ё(нок|ночек|)$", ur"\1о́\2$", lemma)
+      lemma, nsubs = re.subn("([" + ru.sib_c + u"])ё(нок|ночек|)$", ur"\1о́\2", lemma)
       if nsubs:
         pagemsg(u"Converted -ё after sibilant/ц to -о́ in %s: %s" % (
           lemma, unicode(t)))
-      lemma, nsubs = re.subn("([" + ru.sib_c + u"])о$", ur"\1е$", lemma)
+      lemma, nsubs = re.subn("([" + ru.sib_c + u"])о$", ur"\1е", lemma)
       if nsubs:
         pagemsg(u"Converted -о after sibilant/ц to -е in %s: %s" % (
           lemma, unicode(t)))
@@ -491,7 +493,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
                 newlemma = lemma
               if was_stressed:
                 newlemma = ru.make_ending_stressed(newlemma)
-            if newemma != lemma:
+            if newlemma != lemma:
               m = re.search("(3f|[mnf])", newdecl)
               if m and m.group(1) != newgender:
                 pagemsg("WARNING: Existing gender %s present and not same as new plural gender %s: %s" % (
@@ -521,12 +523,13 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
       new_value_str = "|".join(new_values)
       if new_value_str:
         new_value_str = "|" + new_value_str
-      new_named_params = "|".join(unicode(x) for x in t.params
+      new_named_params = [x for x in t.params
           if unicode(x.name) not in ["1", "2", "3", "4", "5"] and
-          (not remove_n or unicode(x.name) != "n"))
-      if new_named_params:
-        new_named_params = "|" + new_named_params
-      new_template = "{{%s%s%s}}" % (unicode(t.name), new_value_str, new_named_params)
+          (not remove_n or unicode(x.name) != "n")]
+      new_named_param_str = "|".join(unicode(x) for x in new_named_params)
+      if new_named_param_str:
+        new_named_param_str = "|" + new_named_param_str
+      new_template = "{{%s%s%s}}" % (unicode(t.name), new_value_str, new_named_param_str)
       if old_template != new_template:
         vals_differ = False
         if verbose:
@@ -551,17 +554,19 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
         if vals_differ:
           pagemsg("WARNING: Template %s and replacement %s don't give same declension" % (old_template, new_template))
         else:
-          if remove_n:
-            rmparam(t, "n")
-          rmparam(t, "5")
-          rmparam(t, "4")
-          rmparam(t, "3")
-          rmparam(t, "2")
-          rmparam(t, "1")
+          del t.params[:]
+          #if remove_n:
+          #  rmparam(t, "n")
+          #rmparam(t, "5")
+          #rmparam(t, "4")
+          #rmparam(t, "3")
+          #rmparam(t, "2")
+          #rmparam(t, "1")
           i = 0
           for param in new_values:
             i += 1
             t.add(str(i), param)
+          t.params.extend(new_named_params)
           if new_template != unicode(t):
             pagemsg("WARNING: Something wrong: New template text %s not equal to new template %s" % (
               new_template, unicode(t)))
@@ -597,7 +602,42 @@ def yield_ref_pages():
       pargs.end or None):
     yield i, page
 
-testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}")]
+testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
+            (u"обшлаг", u"{{ru-noun-table|2|обшла́г|(1)}}"),
+            (u"имя", u"{{ru-noun-table|3|и́|мя}}"),
+            (u"имя", u"{{ru-noun-old|3|и́|мя}}"),
+            (u"ребёнок", u"""{{ru-noun-table|6|реб|ёнок/ь-m||де́т|or|2|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}"""),
+            (u"море", u"{{ru-noun-table|3|мо́р|е}}"),
+            (u"другъ", u"{{ru-noun-old|c|дру́гъ|-ья(2)||друз|voc=дру́же|a=an}}"),
+            (u"волос", u"{{ru-noun-table|e|во́лос|(2)}}"),
+            (u"сажень", u"{{ru-noun-table|1|са́жен|ь-f|gen_pl=са́женей, са́жен}}"),
+            (u"похвала", u"{{ru-noun-table|2|похва́л|а}}"),
+            (u"тля", u"{{ru-noun-table|2|тл|я|a=an}}"),
+            (u"сирота", u"{{ru-noun-table|4|сиро́т|а|a=an}}"),
+            (u"заря", u"{{ru-noun-table|d|заря́|||зор|dat_pl=зо́рям,заря́м*|ins_pl=зо́рями,заря́ми*|pre_pl=зо́рях,заря́х*|notes=* Archaic.}}"),
+            (u"межа", u"{{ru-noun-table|4|ме́ж|а}}"),
+            (u"змея", u"{{ru-noun-table|4|зме́|я|a=a}}"),
+            (u"доля", u"{{ru-noun-table|5|до́л|я}}"),
+            (u"слобода", u"{{ru-noun-table|f|слобода́}}"),
+            (u"рука", u"{{ru-noun-table|6*|ру́к|а}}"),
+            (u"пустошь", u"{{ru-noun-table|1|пу́стош|ь-f}}"),
+            (u"площадь", u"{{ru-noun-table|5|пло́щад|ь-f}}"),
+            (u"статья", u"{{ru-noun-table|2|стат|ья}}"),
+            (u"гостья", u"{{ru-noun-table|1|го́ст|ья|a=an}}"),
+            (u"пелена", u"{{ru-noun-table|2|пелён|а}}"),
+            (u"слеза", u"{{ru-noun-table|6|слёз|а}}"),
+            (u"железа", u"{{ru-noun-table|f|железа́|;ё}}"),
+            (u"щёлочь", u"{{ru-noun-table|5|щёлоч|ь-f}}"),
+            (u"брюки", u"{{ru-noun-table|1|брю́к|а|n=pl}}"),
+            (u"солнце", u"{{ru-noun-table|1|со́лнц|о}}"),
+            (u"жилище", u"{{ru-noun-table|1|жили́щ|о}}"),
+            (u"лицо", u"{{ru-noun-table|4|ли́ц|о}}"),
+            (u"лицо", u"{{ru-noun-old|4|ли́ц|о}}"),
+            (u"питьё", u"{{ru-noun-table|2|пит|ьё}}"),
+            (u"копьё", u"{{ru-noun-table|4|ко́п|ьё}}"),
+            (u"житие", u"{{ru-noun-table|2|жити́|е́}}"),
+            (u"ворота", u"{{ru-noun-table|1|воро́т|о|n=p}}"),
+    ]
 
 if pargs.test:
   i = 0
