@@ -10,12 +10,12 @@
 # 3. Finish adding masculine test cases including masculine plurals and
 #    cases in -ин (both -анин, -янин stressed and unstressed and other -ин)
 #    and -ёнок/-о́нок and -ёночек (we might have to synthesize such examples).
-# 4. Add reducible test cases.
+# 4. Add reducible test cases. Implement some mockup of bare handling
+#    for offline testing.
 # 5. Add test cases with -а, -й, ь-я, -ья, о-ья, ъ-ья, etc.
 # 6. Add some adjectival test cases; at least make sure nothing changes.
 # 7. Make sure invariable cases are correctly handled.
-# 8. Test for real; add option to do on-line testing (don't turn on
-#    test=True or make that instead be offline=True).
+# 8. Test for real (online).
 # 9. Do a big run.
 
 import pywikibot, re, sys, codecs, argparse
@@ -145,7 +145,7 @@ def process_page(index, page, save=False, verbose=False):
       pagemsg("Would save with comment = %s" % comment)
 
 
-def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, test=False):
+def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, offline=False):
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
 
@@ -290,7 +290,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
         elif is_suffixed(lemma):
           pagemsg("WARNING: Bare %s found with suffixed lemma %s, not changing: %s" % (
             bare, lemma, unicode(t)))
-        elif test:
+        elif offline:
           pagemsg("WARNING: Bare %s found when testing, not changing: %s" % (
             bare, unicode(t)))
         else:
@@ -553,7 +553,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
         vals_differ = False
         if verbose:
           pagemsg("Comparing output of %s and %s" % (old_template, new_template))
-        if not test:
+        if not offline:
           raw_result = site.expand_text("{{#invoke:ru-noun|generate_multi_forms|%s|%s}}" % (
             old_template.replace("=", "<->").replace("|", "<!>"),
             new_template.replace("=", "<->").replace("|", "<!>")))
@@ -603,7 +603,8 @@ pa.add_argument("--end", help="Start index", type=int)
 pa.add_argument("--file", help="File containing pages to do")
 pa.add_argument("--save", help="Save pages", action="store_true")
 pa.add_argument("--verbose", help="Output verbose messages", action="store_true")
-pa.add_argument("--test", help="Save pages", action="store_true")
+pa.add_argument("--test", help="Test", action="store_true")
+pa.add_argument("--offline", help="Do testing offline", action="store_true")
 pargs = pa.parse_args()
 
 def yield_pages(fn):
@@ -662,7 +663,7 @@ if pargs.test:
   i = 0
   for title, text in testdata:
     i += 1
-    process_page_data(i, title, text, save=pargs.save, verbose=pargs.verbose, test=True)
+    process_page_data(i, title, text, save=pargs.save, verbose=pargs.verbose, offline=pargs.offline)
 else:
   if pargs.file:
     do_pages = yield_pages(pargs.file)
