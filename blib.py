@@ -81,7 +81,7 @@ def references(page, startsort = None, endsort = None, namespaces = None, includ
 		if endsort != None and not t:
 			t = datetime.datetime.now()
 		
-		yield current
+		yield i, current
 		
 		if i % steps == 0:
 			tdisp = ""
@@ -115,7 +115,7 @@ def cat_articles(page, startsort = None, endsort = None):
 			elif current.title(withNamespace=False) >= endsort:
 				break
 		
-		yield current
+		yield i, current
 
 
 def cat_subcats(page, startsort = None, endsort = None):
@@ -137,7 +137,7 @@ def cat_subcats(page, startsort = None, endsort = None):
 			elif current.title() >= endsort:
 				break
 		
-		yield current
+		yield i, current
 
 
 def prefix(prefix, startsort = None, endsort = None, namespace = None):
@@ -152,7 +152,7 @@ def prefix(prefix, startsort = None, endsort = None, namespace = None):
 		if endsort != None and i > endsort:
 			break
 		
-		yield current
+		yield i, current
 
 def stream(st, startsort = None, endsort = None):
 	i = 0
@@ -170,7 +170,7 @@ def stream(st, startsort = None, endsort = None):
 		
 		name = re.sub(ur"^[#*] *\[\[(.+)]]$", ur"\1", name, flags=re.UNICODE)
 		
-		yield pywikibot.Page(site, name)
+		yield i, pywikibot.Page(site, name)
 
 
 def get_args():
