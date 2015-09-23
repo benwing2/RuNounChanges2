@@ -549,7 +549,9 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
       if new_named_param_str:
         new_named_param_str = "|" + new_named_param_str
       new_template = "{{%s%s%s}}" % (unicode(t.name), new_value_str, new_named_param_str)
-      if old_template != new_template:
+      if old_template == new_template:
+        pagemsg("Not changing template %s" % old_template)
+      else:
         vals_differ = False
         if verbose:
           pagemsg("Comparing output of %s and %s" % (old_template, new_template))
