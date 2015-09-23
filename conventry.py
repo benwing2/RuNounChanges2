@@ -64,6 +64,32 @@ numbered_to_lettered_stress = {
     "6*":"f'",
 }
 
+# Split off lemma and decl. Doesn't handle plural lemmas currently
+# (returns None for lemma and decl in that case).
+def lemma_to_stem_decl(lemma, decl):
+  m = re.match(u"^(.*?)([ая]́?)", lemma)
+  if m:
+    if "n" in decl:
+      return None, None
+  m = re.match(u"^(.*?)([ыи]́?)", lemma)
+  if m:
+    return None, None
+  m = re.match(u"^(.*?)(ь[яеё]́?)$", lemma)
+  if m:
+    return m.groups()
+  m = re.match(u"^(.*?)ь$", lemma)
+  if m:
+    if "f" in decl:
+      return lemma, u"ь-f"
+    elif "m" in decl:
+      return lemma, u"ь-m"
+    else:
+      return None, None
+  m = re.match(u"^(.*?)([йаяеёо]́?)$", lemma)
+  if m:
+    return m.groups()
+  return lemma, ""
+
 def process_page(index, page):
   pagetitle = unicode(page.title())
   def pagemsg(txt):
@@ -78,7 +104,8 @@ def process_page(index, page):
   parsed = blib.parse(text)
 
   for t in parsed.filter_templates():
-    if unicode(t.name) == "ru-noun-table":
+    if unicode(t.name) in ["ru-noun-table", "ru-noun-old"]:
+      old = unicode(t.name) == "ru-noun-old"
 
       # Punt if multi-arg-set, can't handle yet
       should_continue = False
@@ -131,6 +158,9 @@ def process_page(index, page):
       elif "/" in decl:
         pagemg("Found slash decl in template, not changing: %s" % unicode(t))
         newdecl = decl + newdecl
+      elif "+" in decl:
+        pagemg("Found adjectival decl in template, not changing: %s" % unicode(t))
+        newdecl = decl + newdecl
       # Else, single old-style decl; convert to new by transfering the ending
       # to the end of the lemma and incorporating and new special marker if
       # needed
@@ -175,6 +205,9 @@ def process_page(index, page):
             newstress.append("f''")
           else:
             newstress.append(numbered_to_lettered_stress.get(s, s))
+
+
+
       # Now, attempt to eliminate explicit stress b by stressing the ending,
       # and eliminate explicit stress a by not stressing the ending:
       #
@@ -275,10 +308,25 @@ def process_page(index, page):
             pagemsg("WARNING: Stem-stressed lemma %s has stress not in default position for ending-stressed accent %s, can't remove: %s" % (
               lemma, newstress[0], unicode(t)))
         if need_ending_stress:
-          lemma = ru.make_ending_stressed(lemma)
+          if re.search(u"е$", lemma):
+            lemma = re.sub(u"е$", u"ё", lemma)
+          else:
+            lemma = ru.make_ending_stressed(lemma)
           if newstress == ["b"]:
             newstress = []
 
+      # Handle spelling rules for ё/е/о after sibilants and ц
+      lemma, nsubs = re.subn("([" + ru.sib_c + u"])ё$", ur"\1о́$", lemma)
+      if nsubs:
+        pagemsg(u"Converted -ё after sibilant/ц to -о́ in %s: %s" % (
+          lemma, unicode(t)))
+      lemma, nsubs = re.subn("([" + ru.sib_c + u"])о$", ur"\1е$", lemma)
+      if nsubs:
+        pagemsg(u"Converted -о after sibilant/ц to -е in %s: %s" % (
+          lemma, unicode(t)))
+
+      if bare:
+      #
       # FIXME: Check for switching BARE to * reducible (or not)
 
       # Here we need to compare the old declension with the new one and
