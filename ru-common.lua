@@ -111,7 +111,7 @@ end
 -- True if a word has two or more stresses
 function export.is_multi_stressed(word)
 	word = rsub(word, "[ёЁ]", "е́")
-	return rfind(word, "[" .. export.vowel .. "][́̈].*[" .. export.vowel .. "][́̈]*$")
+	return rfind(word, "[" .. export.vowel .. "][́̈].*[" .. export.vowel .. "][́̈]")
 end
 
 function export.is_beginning_stressed(word)
