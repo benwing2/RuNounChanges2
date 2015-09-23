@@ -554,8 +554,9 @@ end
 -- explicitly specified to see how many could be predicted. Return a value
 -- to use in place of explicit bare: empty string means remove the
 -- bare param, "*" means remove the bare param and add * to the decl field,
--- anything else means keep the decl field (these should be manually
--- rewritten).
+-- "**" means substitute the bare param for the lemma and add * to the decl
+-- field, anything else means keep the decl field and is a message indicating
+-- why (these should be manually rewritten).
 local function bare_tracking(stem, bare, decl, sgdc, stress, old)
 	local nomsg
 	if rfind(decl, "^ь%-") then
@@ -565,71 +566,73 @@ local function bare_tracking(stem, bare, decl, sgdc, stress, old)
 	elseif rfind(decl, "^ъ") then
 		nomsg = stem .. "ъ"
 	end
+	local function rettrack(val)
+		track(val)
+		return val
+	end
 	if stem == bare then
 		track("explicit-bare-same-as-stem")
 		return ""
 	elseif com.make_unstressed(stem) == com.make_unstressed(bare) then
 		track("explicit-bare-different-stress")
-		track("explicit-bare-different-stress-from-stem")
+		return rettrack("explicit-bare-different-stress-from-stem")
 	elseif nomsg and nomsg == bare then
 		track("explicit-bare-same-as-nom-sg")
 		return ""
 	elseif nomsg and com.make_unstressed(nomsg) == com.make_unstressed(bare) then
 		track("explicit-bare-different-stress")
-		track("explicit-bare-different-stress-from-nom-sg")
-	else
-		if is_reducible(sgdc) then
-			local barestem, baredecl = rmatch(bare, "^(.-)([ьйъ]?)$")
-			assert(barestem)
-			local autostem = export.reduce_nom_sg_stem(barestem, baredecl)
-			if not autostem then
-				track("error-reducible")
-			elseif autostem == stem then
-				track("predictable-reducible")
-				return "*"
-			elseif com.make_unstressed(autostem) == com.make_unstressed(stem) then
-				if com.remove_accents(autostem) ~= com.remove_accents(stem) then
-					--error("autostem=" .. autostem .. ", stem=" .. stem)
-					track("predictable-reducible-but-jo-differences")
-				elseif com.is_unstressed(autostem) and com.is_ending_stressed(stem) then
-					track("predictable-reducible-but-extra-ending-stress")
-					return "*"
-				else
-					--error("autostem=" .. autostem .. ", stem=" .. stem)
-					track("predictable-reducible-but-different-stress")
-				end
+		return rettrack("explicit-bare-different-stress-from-nom-sg")
+	elseif is_reducible(sgdc) then
+		local barestem, baredecl = rmatch(bare, "^(.-)([ьйъ]?)$")
+		assert(barestem)
+		local autostem = export.reduce_nom_sg_stem(barestem, baredecl)
+		if not autostem then
+			return rettrack("error-reducible")
+		elseif autostem == stem then
+			track("predictable-reducible")
+			return "**"
+		elseif com.make_unstressed(autostem) == com.make_unstressed(stem) then
+			if com.remove_accents(autostem) ~= com.remove_accents(stem) then
+				--error("autostem=" .. autostem .. ", stem=" .. stem)
+				return rettrack("predictable-reducible-but-jo-differences")
+			elseif com.is_unstressed(autostem) and com.is_ending_stressed(stem) then
+				track("predictable-reducible-but-extra-ending-stress")
+				return "**"
 			else
 				--error("autostem=" .. autostem .. ", stem=" .. stem)
-				track("unpredictable-reducible")
-			end
-		elseif is_dereducible(sgdc) then
-			local autobare = export.dereduce_nom_sg_stem(stem, sgdc, stress, old)
-			if not autobare then
-				track("error-dereducible")
-			elseif autobare == bare then
-				track("predictable-dereducible")
-				return "*"
-			elseif com.make_unstressed(autobare) == com.make_unstressed(bare) then
-				if com.remove_accents(autobare) ~= com.remove_accents(bare) then
-					--error("autobare=" .. autobare .. ", bare=" .. bare)
-					track("predictable-dereducible-but-jo-differences")
-				elseif com.is_unstressed(autobare) and com.is_ending_stressed(bare) then
-					track("predictable-dereducible-but-extra-ending-stress")
-					return "*"
-				else
-					--error("autobare=" .. autobare .. ", bare=" .. bare)
-					track("predictable-dereducible-but-different-stress")
-				end
-			else
-				--error("autobare=" .. autobare .. ", bare=" .. bare)
-				track("unpredictable-dereducible")
+				return rettrack("predictable-reducible-but-different-stress")
 			end
 		else
-			track("bare-without-reducibility")
+			--error("autostem=" .. autostem .. ", stem=" .. stem)
+			return rettrack("unpredictable-reducible")
 		end
+	elseif is_dereducible(sgdc) then
+		local autobare = export.dereduce_nom_sg_stem(stem, sgdc, stress, old)
+		if not autobare then
+			return rettrack("error-dereducible")
+		elseif autobare == bare then
+			track("predictable-dereducible")
+			return "*"
+		elseif com.make_unstressed(autobare) == com.make_unstressed(bare) then
+			if com.remove_accents(autobare) ~= com.remove_accents(bare) then
+				--error("autobare=" .. autobare .. ", bare=" .. bare)
+				return rettrack("predictable-dereducible-but-jo-differences")
+			elseif com.is_unstressed(autobare) and com.is_ending_stressed(bare) then
+				track("predictable-dereducible-but-extra-ending-stress")
+				return "*"
+			else
+				--error("autobare=" .. autobare .. ", bare=" .. bare)
+				return rettrack("predictable-dereducible-but-different-stress")
+			end
+		else
+			--error("autobare=" .. autobare .. ", bare=" .. bare)
+			return rettrack("unpredictable-dereducible")
+		end
+	else
+		return rettrack("bare-without-reducibility")
 	end
 
-	return bare
+	assert(false)
 end
 
 -- FIXME: Temporary code to assist in converting bare arguments. Remove
@@ -1453,10 +1456,7 @@ local function get_form(forms)
 	return table.concat(canon_forms, ",")
 end
 
--- The entry point for 'ru-noun-forms' to generate all noun forms.
-function export.generate_forms(frame)
-	local args = clone_args(frame)
-	local args = export.do_generate_forms(args, false)
+local function concat_case_args(args)
 	local ins_text = {}
 	for _, case in ipairs(cases) do
 		if args.forms[case] then
@@ -1464,6 +1464,47 @@ function export.generate_forms(frame)
 		end
 	end
 	return table.concat(ins_text, "|")
+end
+
+-- The entry point for 'ru-noun-forms' to generate all noun forms.
+-- This returns a single string, with | separating arguments and named
+-- arguments of the form NAME=VALUE.
+function export.generate_forms(frame)
+	local args = clone_args(frame)
+	local args = export.do_generate_forms(args, false)
+	return concat_case_args(args)
+end
+
+-- The entry point for 'ru-noun-multi-forms' to generate multiple sets of
+-- noun forms. This is a hack to speed up calling from a bot, where we
+-- often want to compare old and new argument results to make sure they're
+-- the same. Each set of arguments is jammed together into a single argument
+-- with individual values separated by <!>; named arguments are of the form
+-- NAME<->VALUE. The return value for each set of arguments is as in
+-- export.generate_forms(), and the return values are concatenated with <!>
+-- separating them. NOTE: This will fail if the exact sequences <!> or <->
+-- happen to occur in values (which is unlikely, esp. as we don't even use
+-- the characters <, ! or > for anything) and aren't HTML-escaped.
+function export.generate_multi_forms(frame)
+	local retvals = {}
+	for _, argset in ipairs(frame.args) do
+		local args = {}
+		local i = 0
+		local argvals = rsplit(argset, "<!>")
+		for _, argval in ipairs(argvals) do
+			local split_arg = rsplit(argval, "<%->")
+			if #split_arg == 1 then
+				i += 1
+				args[i] = ine(split_arg)
+			else
+				assert(#split_arg == 2)
+				args[split_arg[1]] = ine(split_arg[2])
+			end
+		end
+		args = export.do_generate_forms(args, false)
+		table.insert(retvals, concat_case_args(args))
+	end
+	return table.concat(retvals, "<!>")
 end
 
 -- The entry point for 'ru-noun-form' to generate a particular noun form.
