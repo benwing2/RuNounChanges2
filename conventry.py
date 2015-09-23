@@ -1,6 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# TODO:
+# 1. Fix issues with multiple accents. Destress ё to е as we do with regularly
+#    accented endings; we already have a special case to restress е to ё if
+#    needed.
+# 2. Consider handling е́. One way is to destress it with a special variable
+#    indicating that it needs restressing as е́ not ё. Another way is just
+#    not to handle these cases and do them manually since there are only
+#    maybe 3 or 4.
+# 3. Finish adding masculine test cases including masculine plurals and
+#    cases in -ин (both -анин, -янин stressed and unstressed and other -ин)
+#    and -ёнок/-о́нок and -ёночек (we might have to synthesize such examples).
+# 4. Add reducible test cases.
+# 5. Add test cases with -а, -й, ь-я, -ья, о-ья, ъ-ья, etc.
+# 6. Add some adjectival test cases; at least make sure nothing changes.
+# 7. Make sure invariable cases are correctly handled.
+# 8. Test for real; add option to do on-line testing (don't turn on
+#    test=True or make that instead be offline=True).
+# 9. Do a big run.
+
 import pywikibot, re, sys, codecs, argparse
 
 import blib
