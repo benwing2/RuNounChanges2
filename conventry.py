@@ -81,7 +81,8 @@ numbered_to_lettered_stress = {
 }
 
 # Split off lemma and decl. Doesn't handle plural lemmas currently
-# (returns None for lemma and decl in that case).
+# (returns None for lemma and decl in that case). Doesn't currently correctly
+# handle suffixed -ин or -ёнок, etc. (FIXME; caller should check).
 def lemma_to_stem_decl(lemma, decl):
   m = re.search(u"^(.*?)([ая]́?)", lemma)
   if m:
@@ -104,10 +105,13 @@ def lemma_to_stem_decl(lemma, decl):
       return lemma, u"ь-m"
     else:
       return None, None
-  m = re.search(u"^(.*?)([йаяеёо]́?)$", lemma)
+  m = re.search(u"^(.*?)([ъйаяеёо]́?)$", lemma)
   if m:
     return m.groups()
   return lemma, ""
+
+def is_suffixed(lemma):
+  return re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ut.remove_accents(lemma))
 
 def process_page(index, page):
   pagetitle = unicode(page.title())
@@ -256,6 +260,9 @@ def process_page(index, page):
         elif explicit_decl:
           pagemsg("WARNING: Bare %s found with kept explicit decl, not changing: %s" %
               (bare, unicode(t)))
+        elif is_suffixed(lemma):
+          pagemsg("WARNING: Bare %s found with suffixed lemma %s, not changing: %s" % (
+            bare, lemma, unicode(t)))
         else:
           stem, decl = lemma_to_stem_decl(lemma, newdecl)
           if not stem:
@@ -409,7 +416,7 @@ def process_page(index, page):
         elif "/" in newdecl or explicit_decl:
           pagemsg("WARNING: Explicit decl %s, not converting lemma %s to plural: %s" % (
           newdecl, lemma, unicode(t)))
-        elif re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ut.remove_accents(lemma)):
+        elif is_suffixed(lemma):
           pagemsg("WARNING: Not converting suffixed lemma %s to plural: %s" % (
             lemma, unicode(t)))
         elif "(1)" in newdecl:
