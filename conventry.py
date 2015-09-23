@@ -455,6 +455,8 @@ def process_page(index, page):
     else:
       pagemsg("Would save with comment = %s" % comment)
 
+
+assert sys.argv[1]
 pages = [x.strip() for x in codecs.open(sys.argv[1], "r", "utf-8")]
 i = 0
 for page in pages:
