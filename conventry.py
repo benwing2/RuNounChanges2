@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # TODO:
-# 1. Fix issues with multiple accents. Destress ё to е as we do with regularly
-#    accented endings; we already have a special case to restress е to ё if
-#    needed.
+# 1. Canonicalize a=a etc. to a=an; remove a=i etc.; similarly for n=s, n=p.
 # 2. Consider handling е́. One way is to destress it with a special variable
 #    indicating that it needs restressing as е́ not ё. Another way is just
 #    not to handle these cases and do them manually since there are only
@@ -222,12 +220,12 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
         pagemg("Found adjectival decl in template, not changing: %s" % unicode(t))
         newdecl = decl + newdecl
       # Else, single old-style decl; convert to new by transfering the ending
-      # to the end of the lemma and incorporating and new special marker if
+      # to the end of the lemma and incorporating any new special marker if
       # needed
       else:
         ending_stressed = ru.is_stressed(decl)
         if decl != u"е́":
-          decl = ru.remove_accents(decl)
+          decl = ru.make_unstressed(decl)
         if decl in keep_decl:
           pagemsg("Keeping explicit decl %s: %s" % (decl, unicode(t)))
           explicit_decl = True
@@ -309,7 +307,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
             else:
               the_stress = newstress[0]
             if decl != u"е́":
-              decl = ru.remove_accents(decl)
+              decl = ru.make_unstressed(decl)
             bare_result = site.expand_text("{{#invoke:ru-noun|bare_tracking|%s|%s|%s|%s%s}}" % (
               stem, bare, decl, the_stress, old and "|yes" or ""))
             if not bare_result:
@@ -365,8 +363,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
             newstress = []
       # else, ends with vowel
       elif ru.is_multi_stressed(lemma):
-        pagemsg("WARNING: Multiple stresses in lemma %s: %s" %
-            (lemma, unicode(t)))
+        pass # We will warn about this later
       elif len(newstress) != 1:
         pass
       elif ru.is_ending_stressed(lemma):
@@ -425,7 +422,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
               lemma, newstress[0], unicode(t)))
         if need_ending_stress:
           if re.search(u"е$", lemma):
-            lemma = re.sub(u"е$", u"ё", lemma)
+            lemma = re.sub(u"е$", u"ё", ru.make_unstressed(lemma))
           else:
             lemma = ru.make_ending_stressed(lemma)
           if newstress == ["b"]:
@@ -470,7 +467,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
               lemma, unicode(t)))
           else:
             was_stressed = ru.is_stressed(decl)
-            decl = ru.remove_accents(decl)
+            decl = ru.make_unstressed(decl)
             if decl in ["", u"ъ", u"й", u"ь-m", u"ь-f"]:
               if bare:
                 pagemsg("WARNING: Not converting lemma %s with explicit bare %s to plural: %s" % (
@@ -526,6 +523,9 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, tes
                 remove_n = True
 
       lemma = ru.remove_monosyllabic_accents(lemma)
+      if ru.is_multi_stressed(lemma):
+        pagemsg("WARNING: Multiple stresses in lemma %s: %s" %
+            (lemma, unicode(t)))
       full_lemma = lemma
       if lemma == pagetitle:
         lemma = ""
