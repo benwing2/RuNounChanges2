@@ -644,6 +644,7 @@ function export.bare_tracking(frame)
 	local decl_cats = old and declensions_old_cat or declensions_cat
 	if not decl_cats[decl] then
 		error("Unrecognized declension: " .. decl)
+	end
 	return bare_tracking(stem, bare, decl, decl_cats[decl], stress, old)
 end
 
@@ -743,7 +744,7 @@ local function categorize_and_init_heading(stress, decl, args)
 	-- insert English version of Zaliznyak stem type
 	if sgdc.decl == "invariable" then
 		insert_cat("invariable ~")
-		ut.insert_if_not(h.stemetc, "invariable")
+		ut.insert_if_not(h.stemetc, "invar")
 	else
 		local stem_type =
 			sgdc.decl == "3rd" and "3rd-declension" or
@@ -756,6 +757,7 @@ local function categorize_and_init_heading(stress, decl, args)
 			ut.contains(sghint_types, "palatal") and "vowel-stem" or
 			sgdc.hard == "soft" and "soft-stem" or
 			"hard-stem"
+		local short_stem_type = stem_type == "3rd-declension" and "3rd-decl" or stem_type
 		if sgdc.adj then
 			-- Don't include gender for pluralia tantum because it's mostly
 			-- indeterminate (certainly when specified using a plural lemma,
@@ -770,14 +772,14 @@ local function categorize_and_init_heading(stress, decl, args)
 			end
 			if sgdc.possadj then
 				insert_cat(sgdc.decl .. " possessive " .. gendertext .. " accent-" .. stress .. " adjectival ~")
-				ut.insert_if_not(h.stemetc, sgdc.decl .. " possessive")
+				ut.insert_if_not(h.stemetc, sgdc.decl .. " poss")
 				ut.insert_if_not(h.stress, stress)
 			elseif stem_type == "soft-stem" or stem_type == "vowel-stem" then
 				insert_cat(stem_type .. " " .. gendertext .. " adjectival ~")
-				ut.insert_if_not(h.stemetc, stem_type)
+				ut.insert_if_not(h.stemetc, short_stem_type)
 			else
 				insert_cat(stem_type .. " " .. gendertext .. " accent-" .. stress .. " adjectival ~")
-				ut.insert_if_not(h.stemetc, stem_type)
+				ut.insert_if_not(h.stemetc, short_stem_type)
 				ut.insert_if_not(h.stress, stress)
 			end
 		else
@@ -799,7 +801,7 @@ local function categorize_and_init_heading(stress, decl, args)
 			insert_cat(stem_type .. " " .. gender_to_full[sgdc.g] .. "-type accent-" .. stress .. " ~")
 			ut.insert_if_not(h.adjectival, "no")
 			ut.insert_if_not(h.gender, gender_to_short[sgdc.g])
-			ut.insert_if_not(h.stemetc, stem_type)
+			ut.insert_if_not(h.stemetc, short_stem_type)
 			ut.insert_if_not(h.stress, stress)
 		end
 		insert_cat("~ with accent pattern " .. stress)
@@ -894,8 +896,8 @@ local function compute_heading(args)
 	local headings = {}
 	local irreg_headings = {}
 	local h = args.headings
-	table.insert(headings, args.a == "a" and "animate" or args.a == "i" and
-		"inanimate" or "bianimate")
+	table.insert(headings, args.a == "a" and "anim" or args.a == "i" and
+		"inan" or "bian")
 	table.insert(headings, args.n == "s" and "sg-only" or args.n == "p" and
 		"pl-only" or nil)
 	if #h.gender > 0 then
@@ -920,8 +922,8 @@ local function compute_heading(args)
 			table.insert(into, text)
 		end
 	end
-	handle_bool(h.adjectival, "adjectival")
-	handle_bool(h.reducible, "reducible")
+	handle_bool(h.adjectival, "adj")
+	handle_bool(h.reducible, "reduc")
 
 	local function handle_irreg_bool(boolvals, text)
 		handle_bool(boolvals, text, irreg_headings)
@@ -933,7 +935,7 @@ local function compute_heading(args)
 	if #irreg_headings > 0 then
 		table.insert(headings, "irreg")
 	end
-	args.heading = "(" .. table.concat(headings, " ") .. ")"
+	args.heading = "(<span style=\"font-size: smaller;\">[[Appendix:Russian nouns#Declension tables|" .. table.concat(headings, " ") .. "]]</span>)"
 	--if #irreg_headings > 0 then
 	--	args.heading = args.heading .. "<br /><span style=\"text-align: center;\">Irregularities: " ..
 	--		table.concat(irreg_headings, " ") .. "</span>"
@@ -1471,7 +1473,7 @@ end
 -- arguments of the form NAME=VALUE.
 function export.generate_forms(frame)
 	local args = clone_args(frame)
-	local args = export.do_generate_forms(args, false)
+	args = export.do_generate_forms(args, false)
 	return concat_case_args(args)
 end
 
@@ -1494,7 +1496,7 @@ function export.generate_multi_forms(frame)
 		for _, argval in ipairs(argvals) do
 			local split_arg = rsplit(argval, "<%->")
 			if #split_arg == 1 then
-				i += 1
+				i = i + 1
 				args[i] = ine(split_arg)
 			else
 				assert(#split_arg == 2)
