@@ -44,7 +44,7 @@ def is_ending_stressed(word):
 # True if a word has two or more stresses
 def is_multi_stressed(word):
   word = re.sub(u"[ёЁ]", u"е́", word)
-  return re.search("[" + vowel + u"][́̈].*[" + vowel + u"][́̈]*$", word)
+  return re.search("[" + vowel + u"][́̈].*[" + vowel + u"][́̈]", word)
 
 def is_beginning_stressed(word):
   return (re.search("^[^" + vowel + u"]*[ёЁ]", word) or
@@ -74,7 +74,7 @@ deaccenter[DI] = "" # diaeresis
 
 def remove_accents(word):
   # remove acute, grave and diaeresis (but not affecting composed ёЁ)
-    return re.sub(u"[̀́̈ѐЀѝЍ]", deaccenter, word)
+    return re.sub(u"([̀́̈ѐЀѝЍ])", lambda m: deaccenter[m.group(1)], word)
 
 def remove_monosyllabic_accents(word):
   # note: This doesn't affect ё or Ё, provided that the word is
