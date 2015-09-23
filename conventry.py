@@ -112,17 +112,28 @@ def is_suffixed(lemma):
   return re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ut.remove_accents(lemma))
 
 def process_page(index, page, save=False, verbose=False):
-  pagetitle = unicode(page.title())
-  def pagemsg(txt):
-    msg("Page %s %s: %s" % (index, page, txt))
-
   if not page.exists():
     pagemsg("WARNING: Page doesn't exist")
     return
 
-  text = unicode(page.text)
-  newtext = text
-  parsed = blib.parse(text)
+  pagetitle = unicode(page.title())
+  pagetext = unicode(page.text)
+  newtext, comment = process_page_data(index, pagetitle, pagetext, save, verbose)
+  if newtext != pagetext:
+    if save:
+      pagemsg("Saving with comment = %s" % comment)
+      page.text = newtext
+      page.save(comment=comment)
+    else:
+      pagemsg("Would save with comment = %s" % comment)
+
+
+def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, test=False):
+  def pagemsg(txt):
+    msg("Page %s %s: %s" % (index, pagetitle, txt))
+
+  newtext = pagetext
+  parsed = blib.parse_text(pagetext)
 
   lemmas_changed = []
 
@@ -179,8 +190,9 @@ def process_page(index, page, save=False, verbose=False):
       decl = re.sub(";", "", decl)
 
       explicit_decl = False
+      ending_stressed = False
       # If remaining decl is new format (opt. GENDER then opt. -ья), do nothing
-      m = re.search(u"^([mfn]|3f|)(-ья)?", decl)
+      m = re.search(u"^([mfn]|3f|)(-ья)?$", decl)
       if m:
         newdecl = decl + newdecl
       # If slash decl, also do nothing
@@ -261,6 +273,9 @@ def process_page(index, page, save=False, verbose=False):
         elif is_suffixed(lemma):
           pagemsg("WARNING: Bare %s found with suffixed lemma %s, not changing: %s" % (
             bare, lemma, unicode(t)))
+        elif test:
+          pagemsg("WARNING: Bare %s found when testing, not changing: %s" % (
+            bare, unicode(t)))
         else:
           stem, decl = lemma_to_stem_decl(lemma, newdecl)
           if not stem:
@@ -489,7 +504,7 @@ def process_page(index, page, save=False, verbose=False):
                 lemma = newlemma
                 remove_n = True
 
-      lemma = remove_monosyllabic_accents(lemma)
+      lemma = ru.remove_monosyllabic_accents(lemma)
       full_lemma = lemma
       if lemma == pagetitle:
         lemma = ""
@@ -503,35 +518,36 @@ def process_page(index, page, save=False, verbose=False):
         new_values = [lemma, newdecl, bare, plstem]
       while new_values and not new_values[-1]:
         del new_values[-1]
-      new_values = "|".join(new_values)
-      if new_values:
-        new_values = "|" + new_values
+      new_value_str = "|".join(new_values)
+      if new_value_str:
+        new_value_str = "|" + new_value_str
       new_named_params = "|".join(unicode(x) for x in t.params
           if unicode(x.name) not in ["1", "2", "3", "4", "5"] and
           (not remove_n or unicode(x.name) != "n"))
       if new_named_params:
         new_named_params = "|" + new_named_params
-      new_template = "{{%s%s%s}}" % (unicode(t.name), new_values, new_named_params)
+      new_template = "{{%s%s%s}}" % (unicode(t.name), new_value_str, new_named_params)
       if old_template != new_template:
+        vals_differ = False
         if verbose:
           pagemsg("Comparing output of %s and %s" % (old_template, new_template))
-        raw_result = site.expand_text("{{#invoke:ru-noun|generate_multi_forms|%s|%s}}" % (
-          old_template.replace("=", "<->").replace("|", "<!>"),
-          new_template.replace("=", "<->").replace("|", "<!>")))
-        if verbose:
-          pagemsg("Raw result is %s" % raw_result)
-        old_result, new_result = re.split("<!>", raw_result)
-        old_vals = dict(re.split("=", x) for x in re.split(r"\|", old_result))
-        new_vals = dict(re.split("=", x) for x in re.split(r"\|", new_result))
-        keys = set(old_vals.keys())|set(new_vals.keys())
-        vals_differ = False
-        for key in keys:
-          oval = old_vals.get(key, "")
-          nval = new_vals.get(key, "")
-          if oval != nval:
-            pagemsg("WARNING: For key %s, old value %s different from new %s" % (
-              key, oval, nval))
-            vals_differ = True
+        if not test:
+          raw_result = site.expand_text("{{#invoke:ru-noun|generate_multi_forms|%s|%s}}" % (
+            old_template.replace("=", "<->").replace("|", "<!>"),
+            new_template.replace("=", "<->").replace("|", "<!>")))
+          if verbose:
+            pagemsg("Raw result is %s" % raw_result)
+          old_result, new_result = re.split("<!>", raw_result)
+          old_vals = dict(re.split("=", x) for x in re.split(r"\|", old_result))
+          new_vals = dict(re.split("=", x) for x in re.split(r"\|", new_result))
+          keys = set(old_vals.keys())|set(new_vals.keys())
+          for key in keys:
+            oval = old_vals.get(key, "")
+            nval = new_vals.get(key, "")
+            if oval != nval:
+              pagemsg("WARNING: For key %s, old value %s different from new %s" % (
+                key, oval, nval))
+              vals_differ = True
         if vals_differ:
           pagemsg("WARNING: Template %s and replacement %s don't give same declension" % (old_template, new_template))
         else:
@@ -546,22 +562,16 @@ def process_page(index, page, save=False, verbose=False):
           for param in new_values:
             i += 1
             t.add(str(i), param)
-          assert new_template == unicode(t)
+          if new_template != unicode(t):
+            pagemsg("WARNING: Something wrong: New template text %s not equal to new template %s" % (
+              new_template, unicode(t)))
+            assert False
           pagemsg("Converting %s to %s" % (old_template, new_template))
           if full_lemma not in lemmas_changed:
             lemmas_changed.append(full_lemma)
 
-
-  newtext = unicode(parsed)
-  if newtext != oldtext:
-
-    comment = "Rewrite decl templates to new style for %s" % ", ".join(lemmas_changed)
-    if save:
-      pagemsg("Saving with comment = %s" % comment)
-      page.text = newtext
-      page.save(comment=comment)
-    else:
-      pagemsg("Would save with comment = %s" % comment)
+  comment = "Rewrite decl templates to new style for %s" % ", ".join(lemmas_changed)
+  return unicode(parsed), comment
 
 pa = argparse.ArgumentParser()
 pa.add_argument("--start", help="Start index", type=int)
@@ -569,6 +579,7 @@ pa.add_argument("--end", help="Start index", type=int)
 pa.add_argument("--file", help="File containing pages to do")
 pa.add_argument("--save", help="Save pages", action="store_true")
 pa.add_argument("--verbose", help="Output verbose messages", action="store_true")
+pa.add_argument("--test", help="Save pages", action="store_true")
 pargs = pa.parse_args()
 
 def yield_pages(fn):
@@ -586,10 +597,18 @@ def yield_ref_pages():
       pargs.end or None):
     yield i, page
 
-if pargs.file:
-  do_pages = yield_pages(pargs.file)
+testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}")]
+
+if pargs.test:
+  i = 0
+  for title, text in testdata:
+    i += 1
+    process_page_data(i, title, text, save=pargs.save, verbose=pargs.verbose, test=True)
 else:
-  do_pages = yield_ref_pages()
-for i, page in do_pages:
-    msg("Page %s %s: Processing" % (i, page))
-    process_page(i, pywikibot.Page(site, page), save=pargs.save, verbose=pargs.verbose)
+  if pargs.file:
+    do_pages = yield_pages(pargs.file)
+  else:
+    do_pages = yield_ref_pages()
+  for i, page in do_pages:
+      msg("Page %s %s: Processing" % (i, page))
+      process_page(i, pywikibot.Page(site, page), save=pargs.save, verbose=pargs.verbose)

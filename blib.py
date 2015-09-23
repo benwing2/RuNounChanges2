@@ -5,8 +5,11 @@ import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, 
 
 site = pywikibot.Site()
 
-def parse(text):
-	return mwparserfromhell.parser.Parser().parse(page.text, skip_style_tags=True)
+def parse_text(text):
+	return mwparserfromhell.parser.Parser().parse(text, skip_style_tags=True)
+
+def parse(page):
+	return parse_text(page.text)
 
 def getparam(template, param):
 	if template.has(param):
