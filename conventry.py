@@ -66,6 +66,7 @@ conv_decl = {
     u"ёночекъ":[u"ёночекъ"],
     u"оночекъ":[u"оночекъ"],
     u"еночекъ":[u"ёночекъ"],
+    u"мя":[u"мя"],
 }
 
 numbered_to_lettered_stress = {
@@ -90,6 +91,9 @@ def lemma_to_stem_decl(lemma, decl):
   if m:
     return None, None
   m = re.search(u"^(.*?)(ь[яеё]́?)$", lemma)
+  if m:
+    return m.groups()
+  m = re.search(u"^(.*?)(мя́?)$", lemma)
   if m:
     return m.groups()
   m = re.search(u"^(.*?)ь$", lemma)
@@ -118,6 +122,8 @@ def process_page(index, page):
   newtext = text
   parsed = blib.parse(text)
 
+  lemmas_changed = []
+
   for t in parsed.filter_templates():
     if unicode(t.name) in ["ru-noun-table", "ru-noun-old"]:
       old = unicode(t.name) == "ru-noun-old"
@@ -140,7 +146,9 @@ def process_page(index, page):
       bare = getparam(t, "4")
       plstem = getparam(t, "5")
       if not arg1_is_stress(stress):
-        assert not plstem
+        if plstem:
+          pagemsg("WARNING: Extraneous 5th argument: %s" % unicode(t))
+          continue
         plstem = bare
         bare = decl
         decl = lemma
@@ -148,6 +156,9 @@ def process_page(index, page):
         stress = ""
       if not lemma:
         lemma = pagetitle
+      if "$" in decl:
+        pagemsg("WARNING: Skipping invariable decl: %s" % unicode(t))
+        continue
 
       # Extract specials from decl, put into newdecl
       newdecl = ""
@@ -240,7 +251,7 @@ def process_page(index, page):
           pagemsg("WARNING: Bare %s found with reducible mark *, not changing: %s" %
               (bare, unicode(t)))
         elif len(newstress) > 1:
-          pagemsg("WARNING: Bare %s found with multiple stresses %s, not changing: %s" %
+          pagemsg("WARNING: Bare %s found with multiple stress patterns %s, not changing: %s" %
               (bare, "/".join(newstress), unicode(t)))
         elif explicit_decl:
           pagemsg("WARNING: Bare %s found with kept explicit decl, not changing: %s" %
@@ -312,9 +323,6 @@ def process_page(index, page):
             pagemsg("WARNING: Missing stress in lemma %s: %s" %
                 (lemma, unicode(t)))
           else:
-            lemma = remove_monosyllabic_accents(lemma)
-            if lemma == pagetitle:
-              lemma = ""
             newstress = []
       # else, ends with vowel
       elif ru.is_multi_stressed(lemma):
@@ -345,9 +353,9 @@ def process_page(index, page):
         # else stress is b, d, f or variants
         elif ru.is_unstressed(stem):
           need_ending_stress = True
-        elif u"ё" in stem:
+        elif u"ё" in stem or u"Ё" in stem:
           if re.search("^[bd]", newstress[0]):
-            if re.search(u"ё.*[" + ru.vowel + "]", stem):
+            if re.search(u"[ёЁ].*[" + ru.vowel + "]", stem):
               pagemsg(u"WARNING: ё in stem with later vowel in lemma %s and ending stress %s wanted, can't use ;ё special: %s" %
                   (lemma, newstress[0], unicode(t)))
             else:
@@ -357,7 +365,7 @@ def process_page(index, page):
           else:
             assert re.search("^f", newstress[0])
             if (re.search("[" + ru.vowel + u"].*ё", stem) or
-              re.search(u"ё.*е", stem)):
+              re.search(u"[ёЁ].*[еЕ]", stem)):
               pagemsg(u"WARNING: ё in stem with earlier vowel or later е in lemma %s and ending stress %s wanted, can't use ;ё special: %s" %
                   (lemma, newstress[0], unicode(t)))
             else:
@@ -392,6 +400,95 @@ def process_page(index, page):
         pagemsg(u"Converted -о after sibilant/ц to -е in %s: %s" % (
           lemma, unicode(t)))
 
+      # If n=p given, convert lemma to plural and remove n=p
+      remove_n = False
+      if re.search("^p", getparam(t, "n")):
+        if "+" in newdecl:
+          pagemsg("WARNING: FIXME: Not converting adjectival lemma %s to plural: %s" % (
+            lemma, unicode(t)))
+        elif "/" in newdecl or explicit_decl:
+          pagemsg("WARNING: Explicit decl %s, not converting lemma %s to plural: %s" % (
+          newdecl, lemma, unicode(t)))
+        elif re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ut.remove_accents(lemma)):
+          pagemsg("WARNING: Not converting suffixed lemma %s to plural: %s" % (
+            lemma, unicode(t)))
+        elif "(1)" in newdecl:
+          pagemsg("WARNING: Not converting lemma %s with special (1) to plural: %s" % (
+            lemma, unicode(t)))
+        elif u"-ья" in newdecl:
+          pagemsg("WARNING: Not converting lemma %s with special -ья to plural: %s" % (
+            lemma, unicode(t)))
+        else:
+          stem, decl = lemma_to_stem_decl(lemma, newdecl)
+          if not stem:
+            pagemsg("WARNING: Plural lemma %s found with n=p, removing n=p: %s" %
+                (lemma, unicode(t)))
+            remove_n = True
+          elif decl == u"е́":
+            pagemsg("WARNING: Not converting lemma %s with -е́ to plural: %s" % (
+              lemma, unicode(t)))
+          else:
+            was_stressed = ru.is_stressed(decl)
+            decl = ru.remove_accents(decl)
+            if decl in ["", u"ъ", u"й", u"ь-m", u"ь-f"]:
+              if bare:
+                pagemsg("WARNING: Not converting lemma %s with explicit bare %s to plural: %s" % (
+                  lemma, bare, unicode(t)))
+              elif "*" in newdecl:
+                pagemsg("WARNING: Not converting lemma %s with reducible to plural: %s" % (
+                  lemma, unicode(t)))
+              else:
+                if re.search("[" + ru.velar + ru.sib + "]$", stem) or decl in [u"й", u"ь-m", u"ь-f"]:
+                  newlemma = stem + u"и"
+                else:
+                  newlemma = stem + u"ы"
+                if newstress == ["b"]:
+                  if u"ё" in stem or u"Ё" in stem:
+                    pagemsg(u"ё in stem %s and stress b, not accenting pl ending: %s" % (stem, unicode(t)))
+                  else:
+                    newlemma = ru.make_ending_stressed(newlemma)
+                    newstress = []
+                if decl == u"ь-f":
+                  newgender = "3f"
+                else:
+                  newgender = "m"
+            else:
+              if decl in [u"а", u"я"]:
+                if re.search("[" + ru.velar + ru.sib + "]$", stem) or decl == u"я":
+                  newlemma = stem + u"и"
+                else:
+                  newlemma = stem + u"ы"
+                newgender = "f"
+              elif decl in [u"е", u"ё", u"о"]:
+                if re.search("[" + ru.velar + ru.sib_c + "]$", stem) or decl == u"о":
+                  newlemma = stem + u"а"
+                else:
+                  newlemma = stem + u"я"
+                newgender = "n"
+              else:
+                pagemsg("WARNING: Strange decl %s for lemma %s: %s" % (
+                  decl, lemma, unicode(t)))
+                newlemma = lemma
+              if was_stressed:
+                newlemma = ru.make_ending_stressed(newlemma)
+            if newemma != lemma:
+              m = re.search("(3f|[mnf])", newdecl)
+              if m and m.group(1) != newgender:
+                pagemsg("WARNING: Existing gender %s present and not same as new plural gender %s: %s" % (
+                  m.group(1), newgender, unicode(t)))
+              else:
+                if not m:
+                  newdecl = newgender + newdecl
+                pagemsg("Changing lemma from %s to plural %s with gender %s and removing n=p: %s" % (
+                  lemma, newlemma, newgender, unicode(t)))
+                lemma = newlemma
+                remove_n = True
+
+      lemma = remove_monosyllabic_accents(lemma)
+      full_lemma = lemma
+      if lemma == pagetitle:
+        lemma = ""
+
       # Compare the old declension with the new one and make sure the
       # output is the same.
       old_template = unicode(t)
@@ -405,7 +502,8 @@ def process_page(index, page):
       if new_values:
         new_values = "|" + new_values
       new_named_params = "|".join(unicode(x) for x in t.params
-          if unicode(x.name) not in ["1", "2", "3", "4", "5"])
+          if unicode(x.name) not in ["1", "2", "3", "4", "5"] and
+          (not remove_n or unicode(x.name) != "n"))
       if new_named_params:
         new_named_params = "|" + new_named_params
       new_template = "{{%s%s%s}}" % (unicode(t.name), new_values, new_named_params)
@@ -441,13 +539,15 @@ def process_page(index, page):
           for param in new_values:
             i += 1
             t.add(str(i), param)
+          if full_lemma not in lemmas_changed:
+            lemmas_changed.append(full_lemma)
 
   newtext = unicode(parsed)
   if newtext != oldtext:
     if verbose:
       pagemsg("Replacing [[%s]] with [[%s]]" % text, newtext)
 
-    comment = "Add pronunciation %s" % pronun
+    comment = "Rewrite decl templates to new style for %s" % ", ".join(lemmas_changed)
     if save:
       pagemsg("Saving with comment = %s" % comment)
       page.text = newtext
