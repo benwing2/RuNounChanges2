@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, json
+import pywikibot, re, sys, codecs, argparse
 
 import blib
 from blib import getparam, rmparam
@@ -9,8 +9,6 @@ from blib import getparam, rmparam
 import rulib as ru
 
 site = pywikibot.Site()
-save = False
-verbose = True
 
 def msg(text):
   print text.encode("utf-8")
@@ -113,7 +111,7 @@ def lemma_to_stem_decl(lemma, decl):
 def is_suffixed(lemma):
   return re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ut.remove_accents(lemma))
 
-def process_page(index, page):
+def process_page(index, page, save=False, verbose=False):
   pagetitle = unicode(page.title())
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, page, txt))
@@ -537,6 +535,8 @@ def process_page(index, page):
         if vals_differ:
           pagemsg("WARNING: Template %s and replacement %s don't give same declension" % (old_template, new_template))
         else:
+          if remove_n:
+            rmparam(t, "n")
           rmparam(t, "5")
           rmparam(t, "4")
           rmparam(t, "3")
@@ -546,13 +546,14 @@ def process_page(index, page):
           for param in new_values:
             i += 1
             t.add(str(i), param)
+          assert new_template == unicode(t)
+          pagemsg("Converting %s to %s" % (old_template, new_template))
           if full_lemma not in lemmas_changed:
             lemmas_changed.append(full_lemma)
 
+
   newtext = unicode(parsed)
   if newtext != oldtext:
-    if verbose:
-      pagemsg("Replacing [[%s]] with [[%s]]" % text, newtext)
 
     comment = "Rewrite decl templates to new style for %s" % ", ".join(lemmas_changed)
     if save:
@@ -562,11 +563,33 @@ def process_page(index, page):
     else:
       pagemsg("Would save with comment = %s" % comment)
 
+pa = argparse.ArgumentParser()
+pa.add_argument("--start", help="Start index", type=int)
+pa.add_argument("--end", help="Start index", type=int)
+pa.add_argument("--file", help="File containing pages to do")
+pa.add_argument("--save", help="Save pages", action="store_true")
+pa.add_argument("--verbose", help="Output verbose messages", action="store_true")
+pargs = pa.parse_args()
 
-assert sys.argv[1]
-pages = [x.strip() for x in codecs.open(sys.argv[1], "r", "utf-8")]
-i = 0
-for page in pages:
-  i += 1
-  msg("Page %s %s: Processing" % (i, page))
-  process_page(i, pywikibot.Page(site, page))
+def yield_pages(fn):
+  pages = [x.strip() for x in codecs.open(fn, "r", "utf-8")]
+  i = 0
+  for page in pages:
+    i += 1
+    yield i, page
+
+def yield_ref_pages():
+  for i, page in blib.references("Template:ru-noun-table", pargs.start or None,
+      pargs.end or None):
+    yield i, page
+  for i, page in blib.references("Template:ru-noun-old", pargs.start or None,
+      pargs.end or None):
+    yield i, page
+
+if pargs.file:
+  do_pages = yield_pages(pargs.file)
+else:
+  do_pages = yield_ref_pages()
+for i, page in do_pages:
+    msg("Page %s %s: Processing" % (i, page))
+    process_page(i, pywikibot.Page(site, page), save=pargs.save, verbose=pargs.verbose)
