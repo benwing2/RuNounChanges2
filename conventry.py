@@ -7,12 +7,12 @@
 #    indicating that it needs restressing as е́ not ё. Another way is just
 #    not to handle these cases and do them manually since there are only
 #    maybe 3 or 4.
-# 3. Finish adding masculine test cases including masculine plurals and
-#    cases in -ин (both -анин, -янин stressed and unstressed and other -ин)
-#    and -ёнок/-о́нок and -ёночек (we might have to synthesize such examples).
+# 3. FIX: d|армянин generates армя́нин, should be d|армяни́н
+# 3a. FIX: b with ёнок and variants should be removed
+# 3b. Finish testing masculine additions
 # 4. Add reducible test cases. Implement some mockup of bare handling
 #    for offline testing.
-# 5. Add test cases with -а, -й, ь-я, -ья, о-ья, ъ-ья, etc.
+# 5. Add test cases with -а, -й, ь-я, -ья, о-ья, ъ-ья, etc. (PARTLY DONE)
 # 6. Add some adjectival test cases; at least make sure nothing changes.
 # 7. Make sure invariable cases are correctly handled.
 # 8. Test for real (online).
@@ -53,14 +53,14 @@ conv_decl = {
     u"ъ-а":[u"ъ", "(1)"],
     u"ь-я":[u"ь", ["m", "(1)"]],
     u"й-я":[u"й", "(1)"],
-    # u"-ья":[u"", "-ья"], # should be caught earlier
-    u"ъ-ья":[u"ъ", "-ья"],
+    # u"-ья":[u"", u"-ья"], # should be caught earlier
+    u"ъ-ья":[u"ъ", u"-ья"],
     u"а":[u"а"],
     u"я":[u"я"],
     u"о":[u"о"],
     u"о-ы":[u"о", "(1)"],
     u"о-и":[u"о", "(1)"],
-    u"о-ья":[u"о", "-ья"],
+    u"о-ья":[u"о", u"-ья"],
     u"е":[u"е"],
     u"е́":[u"е́"],
     u"ё":[u"ё"],
@@ -69,17 +69,17 @@ conv_decl = {
     u"ьё":[u"ьё"],
     u"ин":[u"ин"],
     u"ёнок":[u"ёнок"],
-    u"онок":[u"онок"],
+    u"онок":[u"о́нок"],
     u"енок":[u"ёнок"],
     u"ёночек":[u"ёночек"],
-    u"оночек":[u"оночек"],
+    u"оночек":[u"о́ночек"],
     u"еночек":[u"ёночек"],
     u"инъ":[u"инъ"],
     u"ёнокъ":[u"ёнокъ"],
-    u"онокъ":[u"онокъ"],
+    u"онокъ":[u"о́нокъ"],
     u"енокъ":[u"ёнокъ"],
     u"ёночекъ":[u"ёночекъ"],
-    u"оночекъ":[u"оночекъ"],
+    u"оночекъ":[u"о́ночекъ"],
     u"еночекъ":[u"ёночекъ"],
     u"мя":[u"мя"],
 }
@@ -99,13 +99,13 @@ numbered_to_lettered_stress = {
 # (returns None for lemma and decl in that case). Doesn't currently correctly
 # handle suffixed -ин or -ёнок, etc. (FIXME; caller should check).
 def lemma_to_stem_decl(lemma, decl):
-  m = re.search(u"^(.*?)([ая]́?)", lemma)
+  m = re.search(u"^(.*?)([ая]́?)$", lemma)
   if m:
     if "n" in decl:
-      return None, None
-  m = re.search(u"^(.*?)([ыи]́?)", lemma)
+      return None, "pl"
+  m = re.search(u"^(.*?)([ыи]́?)$", lemma)
   if m:
-    return None, None
+    return None, "pl"
   m = re.search(u"^(.*?)(ь[яеё]́?)$", lemma)
   if m:
     return m.groups()
@@ -115,11 +115,11 @@ def lemma_to_stem_decl(lemma, decl):
   m = re.search(u"^(.*?)ь$", lemma)
   if m:
     if "f" in decl:
-      return lemma, u"ь-f"
+      return m.group(1), u"ь-f"
     elif "m" in decl:
-      return lemma, u"ь-m"
+      return m.group(1), u"ь-m"
     else:
-      return None, None
+      return None, "bad"
   m = re.search(u"^(.*?)([ъйаяеёо]́?)$", lemma)
   if m:
     return m.groups()
@@ -214,10 +214,10 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
         newdecl = decl + newdecl
       # If slash decl, also do nothing
       elif "/" in decl:
-        pagemg("Found slash decl in template, not changing: %s" % unicode(t))
+        pagemsg("Found slash decl in template, not changing: %s" % unicode(t))
         newdecl = decl + newdecl
       elif "+" in decl:
-        pagemg("Found adjectival decl in template, not changing: %s" % unicode(t))
+        pagemsg("Found adjectival decl in template, not changing: %s" % unicode(t))
         newdecl = decl + newdecl
       # Else, single old-style decl; convert to new by transfering the ending
       # to the end of the lemma and incorporating any new special marker if
@@ -240,7 +240,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
           # -ин is only recognized as special when animate and in combination
           # with -анин or -янин.
           if declconv[0] in [u"ин", u"инъ"] and (not re.search("^a", getparam(t, "a"))
-              or not re.search(u"[яа]н", lemma.lower())):
+              or not re.search(u"[яа́?]н", lemma.lower())):
             pagemsg("Keeping explicit decl %s: %s" % (declconv[0], unicode(t)))
             explicit_decl = True
             newdecl = declconv[0] + newdecl
@@ -255,12 +255,14 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
               special = declconv[1]
             else:
               special = [declconv[1]]
-              for spec in ["m", "f", u"-ья", "(1)"]:
-                if spec in special:
-                  if spec not in newdecl:
-                    newdecl += spec
-                  special = [x for x in special if x != spec]
-              assert not special
+            prepend = ""
+            for spec in ["m", "f", u"-ья", "(1)"]:
+              if spec in special:
+                if spec not in newdecl:
+                  prepend += spec
+                special = [x for x in special if x != spec]
+            newdecl = prepend + newdecl
+            assert not special
 
       if ending_stressed and not stress:
         stress = "b"
@@ -295,7 +297,10 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
             bare, unicode(t)))
         else:
           stem, decl = lemma_to_stem_decl(lemma, newdecl)
-          if not stem:
+          if decl == "bad":
+            pagemsg("WARNING: Unable to extract stem and decl from lemma %s found with bare %s, not changing: %s" %
+                (lemma, bare, unicode(t)))
+          elif decl == "pl":
             pagemsg("WARNING: Plural lemma %s found with bare %s, not changing: %s" %
                 (lemma, bare, unicode(t)))
           else:
@@ -458,7 +463,10 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
             lemma, unicode(t)))
         else:
           stem, decl = lemma_to_stem_decl(lemma, newdecl)
-          if not stem:
+          if decl == "bad":
+            pagemsg("WARNING: Unable to extract stem and decl from lemma %s, not changing: %s" %
+                (lemma, unicode(t)))
+          elif decl == "pl":
             pagemsg("WARNING: Plural lemma %s found with n=p, removing n=p: %s" %
                 (lemma, unicode(t)))
             remove_n = True
@@ -511,7 +519,13 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
                 newlemma = ru.make_ending_stressed(newlemma)
             if newlemma != lemma:
               m = re.search("(3f|[mnf])", newdecl)
-              if m and m.group(1) != newgender:
+              if m and m.group(1) == "f" and newgender == "3f" and decl == u"ь-f":
+                pagemsg(u"Converting f gender in ь-f declension to 3f: %s" %
+                    unicode(t))
+                newdecl = newdecl.replace("f", "3f")
+                lemma = newlemma
+                remove_n = True
+              elif m and m.group(1) != newgender:
                 pagemsg("WARNING: Existing gender %s present and not same as new plural gender %s: %s" % (
                   m.group(1), newgender, unicode(t)))
               else:
@@ -625,14 +639,88 @@ def yield_ref_pages():
     yield i, page
 
 testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
-            (u"обшлаг", u"{{ru-noun-table|2|обшла́г|(1)}}"),
             (u"имя", u"{{ru-noun-table|3|и́|мя}}"),
             (u"имя", u"{{ru-noun-old|3|и́|мя}}"),
             (u"ребёнок", u"""{{ru-noun-table|6|реб|ёнок/ь-m||де́т|or|2|ребёнок|dat_pl=де́тям,ребя́там*|ins_pl=детьми́,ребя́тами*|pre_pl=де́тях,ребя́тах*|a=an|pltail=*|notes=* Use the second plural with the meaning "boys!", "fellows!", "guys!", "comrades!".}}"""),
             (u"море", u"{{ru-noun-table|3|мо́р|е}}"),
             (u"другъ", u"{{ru-noun-old|c|дру́гъ|-ья(2)||друз|voc=дру́же|a=an}}"),
-            (u"волос", u"{{ru-noun-table|e|во́лос|(2)}}"),
             (u"сажень", u"{{ru-noun-table|1|са́жен|ь-f|gen_pl=са́женей, са́жен}}"),
+            # masculines
+            (u"завод", u"{{ru-noun-table|1|заво́д}}"),
+            (u"житель", u"{{ru-noun-table|1|жи́тел|ь-m|a=an}}"),
+            (u"товарищ", u"{{ru-noun-table|1|това́рищ|a=an}}"),
+            (u"случай", u"{{ru-noun-table|1|слу́ча|й}}"),
+            (u"случай", u"{{ru-noun-old|1|слу́ча|й}}"),
+            (u"герой", u"{{ru-noun-table|1|геро́|й|a=an}}"),
+            (u"сценарий", u"{{ru-noun-table|1|сцена́ри|й}}"),
+            (u"топор", u"{{ru-noun-table|2|топо́р|}}"),
+            (u"словарь", u"{{ru-noun-table|2|слова́р|ь-m}}"),
+            (u"рыбак", u"{{ru-noun-table|2|рыба́к|a=an}}"),
+            (u"нож", u"{{ru-noun-table|2|но́ж}}"),
+            (u"холуй", u"{{ru-noun-table|2|холу́|й}}"),
+            (u"холуй", u"{{ru-noun-table|2|холу́й}}"),
+            (u"дар", u"{{ru-noun-table|3|да́р}}"),
+            (u"плуг", u"{{ru-noun-table|3|плу́г}}"),
+            (u"буй", u"{{ru-noun-table|3|бу́|й}}"),
+            (u"кол", u"{{ru-noun-table|4|ко́л|-ья|loc=на +}}"),
+            (u"зуб", u"{{ru-noun-old|5|зу́б|ъ-ья|pltailall=*|notes=* Technical.}}"),
+            (u"голубь", u"{{ru-noun-table|5|го́луб|ь-m|a=an}}"),
+            (u"волк", u"{{ru-noun-table|5|во́лк|a=an}}"),
+            (u"конь", u"{{ru-noun-table|6|кон|ь-m}}"),
+            (u"конь", u"{{ru-noun-table|6||m}}"),
+            (u"римлянин", u"{{ru-noun-table|1|ри́млян|ин|a=an}}"),
+            (u"южанин", u"{{ru-noun-table|1|южа́н|ин|a=an}}"),
+            (u"армянин", u"{{ru-noun-table|4|армя́н|ин|a=an}}"),
+            (u"боярин", u"{{ru-noun-table|1|боя́р|ин|a=an}}"),
+            (u"господин", u"{{ru-noun-table|2|госпо́д|ин|a=an|nom_pl=господа́}}"),
+            (u"господь", u"{{ru-noun-table|го́спод|nom_sg=госпо́дь|voc=~и|n=s|a=a}}"),
+            (u"господь", u"{{ru-noun-table|1|го́спод||госпо́дь|voc=~и|n=s|a=a}}"),
+            (u"цыплёнок", u"{{ru-noun-table|2|цыпл|ёнок|a=an}}"),
+            (u"мышонок", u"{{ru-noun-table|2|мыш|онок|a=an}}"),
+            (u"цыплёночек", u"{{ru-noun-table|2|цыпл|ёночек|a=an}}"),
+            (u"цыплёночек", u"{{ru-noun-table|2|цыплёночек|a=an}}"),
+            (u"цыплёночек", u"{{ru-noun-table|2|цыплёночек|a=an}}"),
+            (u"мышоночек", u"{{ru-noun-table|2|мыш|оночек|a=an}}"),
+            (u"мышоночек", u"{{ru-noun-table|2|мышо́ночек|a=an}}"),
+            (u"обшлаг", u"{{ru-noun-table|2|обшла́г|(1)}}"),
+            (u"мастер", u"{{ru-noun-table|3|ма́стер|-а|a=an}}"),
+            (u"округ", u"{{ru-noun-table|3|о́круг|-а}}"),
+            (u"якорь", u"{{ru-noun-table|3|я́кор|ь-я}}"),
+            (u"край", u"{{ru-noun-table|3|кра́|й|nom_pl=края́|par=кра́ю|loc=краю́}}"),
+            (u"край", u"{{ru-noun-table|3|кра́|й-я|par=кра́ю|loc=краю́}}"),
+            (u"раз", u"{{ru-noun-table|c||(2)|par=+}}"),
+            (u"раз", u"{{ru-noun-table|3|ра́з|(2)|par=+}}"),
+            (u"волос", u"{{ru-noun-table|e|во́лос|(2)}}"),
+            (u"осётр", u"{{ru-noun-table|2|осётр|a=an}}"),
+            (u"мёд", u"{{ru-noun-table|3|мёд|par=+|loc=+}}"),
+            (u"чёрт", u"{{ru-noun-table|5|чёрт|/ь-m|nom_pl=че́рти|a=an|acc_sg=чёрта|gen_sg=чёрта,черта́*|notes=<sup>*</sup> Only in the expression ''ни черта́''.}}"),
+            (u"жёлудь", u"{{ru-noun-table|5|жёлуд|ь-m}}"),
+            (u"жёрнов", u"{{ru-noun-table|3|жёрнов|-а}}"),
+            (u"шёлк", u"{{ru-noun-table|3|шёлк|-а}}"),
+            (u"анналы", u"{{ru-noun-table|1|анна́л|n=pl}}"),
+            (u"весы", u"{{ru-noun-table|2|вес|n=pl}}"),
+            (u"кочкари", u"{{ru-noun-table|2|кочкар|ь-m|n=p}}"),
+            (u"сани", u"{{ru-noun-table|5|са́нь|m|n=pl}}"),
+            (u"трусики", u"{{ru-noun-table|тру́сик|n=pl}}"),
+            (u"духи", u"{{ru-noun-table|2|дух|n=pl}}"),
+            (u"пассатижи", u"{{ru-noun-table|1|пассати́ж|n=pl}}"),
+            (u"щи", u"{{ru-noun-table|2|щ|ь-f|n=p}}"),
+            (u"щи", u"{{ru-noun-old|2|щ|ь-f|n=p}}"),
+            (u"дрожжи", u"{{ru-noun-table|6|дро́жж|а|n=pl}}"),
+            (u"помои", u"{{ru-noun-table|1|помо́|й|n=plural}}"),
+            (u"леса", u"{{ru-noun-table|2|лес|-а|n=pl}}"),
+            (u"зеленя", u"{{ru-noun-table|2|зелен|ь-я|n=p}}"),
+            (u"торока", u"{{ru-noun-table|2|торок|n=plu}}"),
+            (u"стул", u"{{ru-noun-table|1|сту́л|-ья}}"),
+            (u"брат", u"{{ru-noun-table|бра́т|-ья|a=an|pltailall=*|notes=* The soft ending of the plural was originally used for feminine [[collective noun]]s, and the meaning of '''братья''' then was [[brotherhood]].}}"),
+            (u"клок", u"{{ru-noun-table|4|кло́к|-ья||кло́ч}}"),
+            (u"крюк", u"{{ru-noun-table|2|крю́к|or|4||-ья||крю́ч}}"),
+            (u"крюк", u"{{ru-noun-table|4||-ья||крю́ч}}"),
+            (u"колос", u"{{ru-noun-table|1|ко́лос|-ья||коло́с}}"),
+            (u"сынъ", u"{{ru-noun-old|c|сын|ъ-ья(2)||сынов|voc=сы́не|a=an}}"),
+            (u"деверь", u"{{ru-noun-table|c|де́верь|m-ья(2)|a=an}}"),
+            (u"кум", u"{{ru-noun-table|3|ку́м|-ья||кумов|a=an}}"),
+            # feminines
             (u"похвала", u"{{ru-noun-table|2|похва́л|а}}"),
             (u"тля", u"{{ru-noun-table|2|тл|я|a=an}}"),
             (u"сирота", u"{{ru-noun-table|4|сиро́т|а|a=an}}"),
