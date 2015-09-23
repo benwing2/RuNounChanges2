@@ -325,13 +325,19 @@ local function track(page)
 	return true
 end
 
+local function ine(val)
+	if val == "" then
+		return nil
+	else
+		return val
+	end
+end
+
 -- Clone parent's args while also assigning nil to empty strings.
 local function clone_args(frame)
 	local args = {}
 	for pname, param in pairs(frame:getParent().args) do
-		if param == "" then args[pname] = nil
-		else args[pname] = param
-		end
+		args[pname] = ine(param)
 	end
 	return args
 end
@@ -624,6 +630,18 @@ local function bare_tracking(stem, bare, decl, sgdc, stress, old)
 	end
 
 	return bare
+end
+
+-- FIXME: Temporary code to assist in converting bare arguments. Remove
+-- after all arguments converted.
+function export.bare_tracking(frame)
+	local a = frame.args
+	local stem, bare, decl, stress, old = ine(a[1]), ine(a[2]), ine(a[3]),
+		ine(a[4]), ine(a[5])
+	local decl_cats = old and declensions_old_cat or declensions_cat
+	if not decl_cats[decl] then
+		error("Unrecognized declension: " .. decl)
+	return bare_tracking(stem, bare, decl, decl_cats[decl], stress, old)
 end
 
 local gender_to_full = {m="masculine", f="feminine", n="neuter"}
