@@ -25,7 +25,8 @@ def arg1_is_stress(arg1):
     if not (re.search("^[a-f]'?'?$", arg) or re.search(r"^[1-6]\*?$", arg)):
       return False
   return True
-end
+
+keep_decl = [u"#", u"#-а", u"#-ья"]
 
 conv_decl = {
     #u"":[u""], # should be caught earlier
@@ -51,6 +52,20 @@ conv_decl = {
     u"ья":[u"ья"],
     u"ье":[u"ье"],
     u"ьё":[u"ьё"],
+    u"ин":[u"ин"],
+    u"ёнок":[u"ёнок"],
+    u"онок":[u"онок"],
+    u"енок":[u"ёнок"],
+    u"ёночек":[u"ёночек"],
+    u"оночек":[u"оночек"],
+    u"еночек":[u"ёночек"],
+    u"инъ":[u"инъ"],
+    u"ёнокъ":[u"ёнокъ"],
+    u"онокъ":[u"онокъ"],
+    u"енокъ":[u"ёнокъ"],
+    u"ёночекъ":[u"ёночекъ"],
+    u"оночекъ":[u"оночекъ"],
+    u"еночекъ":[u"ёночекъ"],
 }
 
 numbered_to_lettered_stress = {
@@ -67,17 +82,17 @@ numbered_to_lettered_stress = {
 # Split off lemma and decl. Doesn't handle plural lemmas currently
 # (returns None for lemma and decl in that case).
 def lemma_to_stem_decl(lemma, decl):
-  m = re.match(u"^(.*?)([ая]́?)", lemma)
+  m = re.search(u"^(.*?)([ая]́?)", lemma)
   if m:
     if "n" in decl:
       return None, None
-  m = re.match(u"^(.*?)([ыи]́?)", lemma)
+  m = re.search(u"^(.*?)([ыи]́?)", lemma)
   if m:
     return None, None
-  m = re.match(u"^(.*?)(ь[яеё]́?)$", lemma)
+  m = re.search(u"^(.*?)(ь[яеё]́?)$", lemma)
   if m:
     return m.groups()
-  m = re.match(u"^(.*?)ь$", lemma)
+  m = re.search(u"^(.*?)ь$", lemma)
   if m:
     if "f" in decl:
       return lemma, u"ь-f"
@@ -85,7 +100,7 @@ def lemma_to_stem_decl(lemma, decl):
       return lemma, u"ь-m"
     else:
       return None, None
-  m = re.match(u"^(.*?)([йаяеёо]́?)$", lemma)
+  m = re.search(u"^(.*?)([йаяеёо]́?)$", lemma)
   if m:
     return m.groups()
   return lemma, ""
@@ -150,8 +165,9 @@ def process_page(index, page):
         newdecl += "*"
       decl = re.sub(";", "", decl)
 
+      explicit_decl = False
       # If remaining decl is new format (opt. GENDER then opt. -ья), do nothing
-      m = re.match(u"^([mfn]|3f|)(-ья)?", decl)
+      m = re.search(u"^([mfn]|3f|)(-ья)?", decl)
       if m:
         newdecl = decl + newdecl
       # If slash decl, also do nothing
@@ -168,28 +184,41 @@ def process_page(index, page):
         ending_stressed = ru.is_stressed(decl)
         if decl != u"е́":
           decl = ru.remove_accents(decl)
-        if decl not in conv_decl:
-          pagemsg("WARNING: Unrecognized declension %s in %s" %
-              (decl, unicode(t)))
-          continue
-        declconv = conv_decl[decl]
-        # FIXME: If declconv[0] is "-ин" we might not be able to transfer it
-        lemma = lemma + declconv[0]
-
-        # Transfer all the special markers, make sure they're not duplicated
-        # and go in the right order
-        if len(declconv) == 0:
-          special = []
-        elif type(declconv[1]) is list:
-          special = declconv[1]
+        if decl in keep_decl:
+          pagemsg("Keeping explicit decl %s: %s" % (decl, unicode(t)))
+          explicit_decl = True
+          newdecl = decl + newdecl
         else:
-          special = [declconv[1]]
-          for spec in ["m", "f", u"-ья", "(1)"]:
-            if spec in special:
-              if spec not in newdecl:
-                newdecl += spec
-              special = [x for x in special if x ~= spec]
-          assert not special
+          if decl not in conv_decl:
+            pagemsg("WARNING: Unrecognized declension %s in %s" %
+                (decl, unicode(t)))
+            continue
+          declconv = conv_decl[decl]
+          # If declconv[0] is "-ин" we might not be able to transfer it;
+          # -ин is only recognized as special when animate and in combination
+          # with -анин or -янин.
+          if declconv[0] in [u"ин", u"инъ"] and (not re.search("^a", getparam(t, "a"))
+              or not re.search(u"[яа]н", lemma.lower())):
+            pagemsg("Keeping explicit decl %s: %s" % (declconv[0], unicode(t)))
+            explicit_decl = True
+            newdecl = declconv[0] + newdecl
+          else:
+            lemma = lemma + declconv[0]
+
+            # Transfer all the special markers, make sure they're not duplicated
+            # and go in the right order
+            if len(declconv) == 0:
+              special = []
+            elif type(declconv[1]) is list:
+              special = declconv[1]
+            else:
+              special = [declconv[1]]
+              for spec in ["m", "f", u"-ья", "(1)"]:
+                if spec in special:
+                  if spec not in newdecl:
+                    newdecl += spec
+                  special = [x for x in special if x != spec]
+              assert not special
 
       if ending_stressed and not stress:
         stress = "b"
@@ -206,7 +235,45 @@ def process_page(index, page):
           else:
             newstress.append(numbered_to_lettered_stress.get(s, s))
 
-
+      if bare:
+        if "*" in newdecl:
+          pagemsg("WARNING: Bare %s found with reducible mark *, not changing: %s" %
+              (bare, unicode(t)))
+        elif len(newstress) > 1:
+          pagemsg("WARNING: Bare %s found with multiple stresses %s, not changing: %s" %
+              (bare, "/".join(newstress), unicode(t)))
+        elif explicit_decl:
+          pagemsg("WARNING: Bare %s found with kept explicit decl, not changing: %s" %
+              (bare, unicode(t)))
+        else:
+          stem, decl = lemma_to_stem_decl(lemma, newdecl)
+          if not stem:
+            pagemsg("WARNING: Plural lemma %s found with bare %s, not changing: %s" %
+                (lemma, bare, unicode(t)))
+          else:
+            if not newstress:
+              if ru.is_stressed(decl):
+                the_stress = "b"
+              else:
+                the_stress = "a"
+            else:
+              the_stress = newstress[0]
+            if decl != u"е́":
+              decl = ru.remove_accents(decl)
+            bare_result = site.expand_text("{{#invoke:ru-noun|bare_tracking|%s|%s|%s|%s%s}}" % (
+              stem, bare, decl, the_stress, old and "|yes" or ""))
+            if not bare_result:
+              bare = ""
+            elif bare_result == "*":
+              bare = ""
+              newdecl += "*"
+            elif bare_result == "**":
+              lemma = bare
+              bare = ""
+              newdecl += "*"
+            else:
+              pagemsg("WARNING: Unable to remove bare %s: %s: %s" %
+                  (bare, bare_result, unicode(t)))
 
       # Now, attempt to eliminate explicit stress b by stressing the ending,
       # and eliminate explicit stress a by not stressing the ending:
@@ -263,7 +330,7 @@ def process_page(index, page):
           newstress = []
       else: # last syllable isn't stressed
         need_ending_stress = False
-        m = re.match("^(.*)([" + ru.vowel + "][" + ru.AC + ru.GR +ru.DI + "]?)$", lemma)
+        m = re.search("^(.*)([" + ru.vowel + "][" + ru.AC + ru.GR +ru.DI + "]?)$", lemma)
         assert m
         stem, ending = m.groups()
         if newstress[0] in ["a", "c", "e"]:
@@ -279,7 +346,7 @@ def process_page(index, page):
         elif ru.is_unstressed(stem):
           need_ending_stress = True
         elif u"ё" in stem:
-          if re.match("^[bd]", newstress[0]):
+          if re.search("^[bd]", newstress[0]):
             if re.search(u"ё.*[" + ru.vowel + "]", stem):
               pagemsg(u"WARNING: ё in stem with later vowel in lemma %s and ending stress %s wanted, can't use ;ё special: %s" %
                   (lemma, newstress[0], unicode(t)))
@@ -288,7 +355,7 @@ def process_page(index, page):
                   (lemma, newstress[0], unicode(t)))
               need_ending_stress = True
           else:
-            assert re.match("^f", newstress[0])
+            assert re.search("^f", newstress[0])
             if (re.search("[" + ru.vowel + u"].*ё", stem) or
               re.search(u"ё.*е", stem)):
               pagemsg(u"WARNING: ё in stem with earlier vowel or later е in lemma %s and ending stress %s wanted, can't use ;ё special: %s" %
@@ -298,8 +365,8 @@ def process_page(index, page):
                   (lemma, newstress[0], unicode(t)))
               need_ending_stress = True
         else:
-          if (re.match("^[bd]", newstress[0]) and ru.is_ending_stressed(stem) or
-              re.match("^f", newstress[0]) and ru.is_beginning_stressed(stem)):
+          if (re.search("^[bd]", newstress[0]) and ru.is_ending_stressed(stem) or
+              re.search("^f", newstress[0]) and ru.is_beginning_stressed(stem)):
             if not ru.is_monosyllabic(stem):
               pagemsg("Stem-stressed lemma %s with stress in default position for ending-stressed accent %s, removing: %s" % (
                 lemma, newstress[0], unicode(t)))
@@ -316,7 +383,7 @@ def process_page(index, page):
             newstress = []
 
       # Handle spelling rules for ё/е/о after sibilants and ц
-      lemma, nsubs = re.subn("([" + ru.sib_c + u"])ё$", ur"\1о́$", lemma)
+      lemma, nsubs = re.subn("([" + ru.sib_c + u"])ё(нок|ночек|)$", ur"\1о́\2$", lemma)
       if nsubs:
         pagemsg(u"Converted -ё after sibilant/ц to -о́ in %s: %s" % (
           lemma, unicode(t)))
@@ -325,24 +392,68 @@ def process_page(index, page):
         pagemsg(u"Converted -о after sibilant/ц to -е in %s: %s" % (
           lemma, unicode(t)))
 
-      if bare:
-      #
-      # FIXME: Check for switching BARE to * reducible (or not)
+      # Compare the old declension with the new one and make sure the
+      # output is the same.
+      old_template = unicode(t)
+      if newstress:
+        new_values = [",".join(newstress), lemma, newdecl, bare, plstem]
+      else:
+        new_values = [lemma, newdecl, bare, plstem]
+      while new_values and not new_values[-1]:
+        del new_values[-1]
+      new_values = "|".join(new_values)
+      if new_values:
+        new_values = "|" + new_values
+      new_named_params = "|".join(unicode(x) for x in t.params
+          if unicode(x.name) not in ["1", "2", "3", "4", "5"])
+      if new_named_params:
+        new_named_params = "|" + new_named_params
+      new_template = "{{%s%s%s}}" % (unicode(t.name), new_values, new_named_params)
+      if old_template != new_template:
+        if verbose:
+          pagemsg("Comparing output of %s and %s" % (old_template, new_template))
+        raw_result = site.expand_text("{{#invoke:ru-noun|generate_multi_forms|%s|%s}}" % (
+          old_template.replace("=", "<->").replace("|", "<!>"),
+          new_template.replace("=", "<->").replace("|", "<!>")))
+        if verbose:
+          pagemsg("Raw result is %s" % raw_result)
+        old_result, new_result = re.split("<!>", raw_result)
+        old_vals = dict(re.split("=", x) for x in re.split(r"\|", old_result))
+        new_vals = dict(re.split("=", x) for x in re.split(r"\|", new_result))
+        keys = set(old_vals.keys())|set(new_vals.keys())
+        vals_differ = False
+        for key in keys:
+          oval = old_vals.get(key, "")
+          nval = new_vals.get(key, "")
+          if oval != nval:
+            pagemsg("WARNING: For key %s, old value %s different from new %s" % (
+              key, oval, nval))
+            vals_differ = True
+        if vals_differ:
+          pagemsg("WARNING: Template %s and replacement %s don't give same declension" % (old_template, new_template))
+        else:
+          rmparam(t, "5")
+          rmparam(t, "4")
+          rmparam(t, "3")
+          rmparam(t, "2")
+          rmparam(t, "1")
+          i = 0
+          for param in new_values:
+            i += 1
+            t.add(str(i), param)
 
-      # Here we need to compare the old declension with the new one and
-      # make sure the output is the same.
-      FIXME
+  newtext = unicode(parsed)
+  if newtext != oldtext:
+    if verbose:
+      pagemsg("Replacing [[%s]] with [[%s]]" % text, newtext)
 
-  if verbose:
-    pagemsg("Replacing [[%s]] with [[%s]]" % text, newtext)
-
-  comment = "Add pronunciation %s" % pronun
-  if save:
-    pagemsg("Saving with comment = %s" % comment)
-    page.text = newtext
-    page.save(comment=comment)
-  else:
-    pagemsg("Would save with comment = %s" % comment)
+    comment = "Add pronunciation %s" % pronun
+    if save:
+      pagemsg("Saving with comment = %s" % comment)
+      page.text = newtext
+      page.save(comment=comment)
+    else:
+      pagemsg("Would save with comment = %s" % comment)
 
 pages = [x.strip() for x in codecs.open(sys.argv[1], "r", "utf-8")]
 i = 0
