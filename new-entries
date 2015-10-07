@@ -80,16 +80,72 @@
 
 ==Russian==
 
+===Alternative forms===
+* {{l|ru|ке́да}}
+
+===Etymology===
+From [[w:Keds|Keds]].
+
 ===Pronunciation===
 * {{ru-IPA}}
 
 ===Noun===
 {{ru-noun+}}
 
-# {{rfdef|lang=ru}}
+# {{lb|ru|sports|usually plural}} [[plimsoll]], [[sneaker]], [[Chuck]] {{gloss|kind of running shoes with a flat thin sole, similar to classic [[w:Chuck Taylor All-Stars|Chuck Taylor All-Stars]] design}}
 
 ====Declension====
 {{ru-noun-table|or||(2)}}
+
+[[Category:ru:Footwear]]
+
+кеда
+
+==Russian==
+
+===Alternative forms===
+* {{l|ru|кед}}
+
+===Etymology===
+From [[w:Keds|Keds]].
+
+===Pronunciation===
+* {{ru-IPA|ке́да}}
+
+===Noun===
+{{ru-noun+}}
+
+# {{lb|ru|sports|usually plural}} [[plimsoll]], [[sneaker]], [[Chuck]] {{gloss|kind of running shoes with a flat thin sole, similar to classic [[w:Chuck Taylor All-Stars|Chuck Taylor All-Stars]] design}}
+
+====Declension====
+{{ru-noun-table|ке́да}}
+
+[[Category:ru:Footwear]]
+
+кеды [verify gender of KDE]
+
+==Russian==
+
+===Etymology 1===
+====Pronunciation====
+* {{ru-IPA|ке́ды}}
+* {{audio|Ru-кеды.ogg|audio|lang=ru}}
+
+====Noun====
+{{ru-noun+|ке́ды|m|or||f}}
+
+# {{lb|ru|computing|slang}} [[KDE]]
+
+===Etymology 2===
+====Pronunciation====
+* {{ru-IPA|ке́ды}}
+* {{audio|Ru-кеды.ogg|audio|lang=ru}}
+
+====Noun====
+{{ru-noun form|ке́ды|m-in-p|g2=f-in-p}}
+
+# {{plural of|lang=ru|кед||[[plimsoll]], [[sneaker]], [[Chuck]]}}
+# {{plural of|lang=ru|ке́да||[[plimsoll]], [[sneaker]], [[Chuck]]}}
 
 перёд
 
@@ -110,13 +166,16 @@
 
 ==Russian==
 
+===Etymology===
+From [[w:Hans Christian Ørsted|Hans Christian Ørsted]].
+
 ===Pronunciation===
 * {{ru-IPA|эрсте́д}}
 
 ===Noun===
 {{ru-noun+|эрсте́д}}
 
-# {{rfdef|lang=ru}}
+# {{lb|ru|physics}} [[oersted]] {{gloss|[[CGS]] unit of [[auxiliary]] [[magnetic field]]}} {{rfdef|lang=ru}}
 
 ====Declension====
 {{ru-noun-table|эрсте́д|or||(2)}}
@@ -174,14 +233,16 @@
 {{ru-noun-table|c|про́вод|(1)}}
 
 =====Synonyms=====
-*[[проволока]]
-*[[шнур]]
+*{{l|ru|проволока}}
+*{{l|ru|шнур}}
 
 =====Related terms=====
-*[[проводок]]
-*[[проводка]], [[проводник]]
-*[[проводной]], [[беспроводной]]
-*[[проводить]], [[провести]], [[водить]], [[вести]]
+*{{l|ru|проводок}}
+*{{l|ru|проводка}}, {{l|ru|проводник}}
+*{{l|ru|проводной}}, {{l|ru|беспроводной}}
+*{{l|ru|проводить}}, {{l|ru|провести}}, {{l|ru|водить}}, {{l|ru|вести}}
+
+===Etymology 2===
 
 ====Pronunciation====
 * {{ru-IPA|прово́д}}
@@ -191,7 +252,7 @@
 
 # (проведение) {{rfdef|lang=ru}}
 
-====Declension===
+=====Declension====
 {{ru-noun-table|прово́д}}
 
 год
@@ -367,7 +428,7 @@ ro|*sod-}}.
 
 ===Pronunciation===
 * {{ru-IPA}}
-* Homophones: [[прут]]
+* Homophones: {{l|ru|прут}}
 
 ===Noun===
 {{ru-noun+|b,c}}
@@ -378,16 +439,16 @@ ro|*sod-}}.
 {{ru-noun-table|b,c|loc=+}}
 
 ====Synonyms====
-* [[озерцо]]
+* {{l|ru|озерцо}}
 
 ====Related terms====
-* [[прудик]]
-* [[прудовик]]
-* [[прудок]]
-* [[запруда]]
-* [[прудить]]
-* [[запрудить]]
-* [[пруд пруди]]
+* {{l|ru|прудик}}
+* {{l|ru|прудовик}}
+* {{l|ru|прудок}}
+* {{l|ru|запруда}}
+* {{l|ru|прудить}}
+* {{l|ru|запрудить}}
+* {{l|ru|пруд пруди}}
 
 остриё
 
@@ -406,7 +467,7 @@ ro|*sod-}}.
 {{ru-noun-table||(2)}}
 
 ====Related terms====
-* [[острый]]
+* {{l|ru|острый}}
 
 деревце
 
@@ -471,9 +532,9 @@ ro|*sod-}}.
 {{ru-noun-table|c|кру́жево|gen_pl=кру́жев}}
 
 ====Related terms====
-*[[кружевце]], [[кружавчик]]
-*[[кружевник]], [[кружевница]]
-*[[кружевной]]
+*{{l|ru|кружевце}}, {{l|ru|кружавчик}}
+*{{l|ru|кружевник}}, {{l|ru|кружевница}}
+*{{l|ru|кружевной}}
 
 ружьё
 
@@ -1467,8 +1528,8 @@ mwl|tr=*samōr}}.
 {{ru-noun-table|c|то́поль|m(1)|or|pltail=*|notes=* Poetic.}}
 
 ====Related terms====
-*[[тополёк]]
-*[[тополевый]], [[тополиный]]
+*{{l|ru|тополёк}}
+*{{l|ru|тополевый}}, {{l|ru|тополиный}}
 
 [[Category:ru:Trees]]
 
@@ -1492,7 +1553,7 @@ mwl|tr=*samōr}}.
 # [[wharf]], [[pier]]
 
 =====Synonyms=====
-* [[причал]], [[пирс]]
+* {{l|ru|причал}}, {{l|ru|пирс}}
 
 =====Declension=====
 {{ru-noun-table|e,a|при́стань|f}}
@@ -1505,7 +1566,7 @@ mwl|tr=*samōr}}.
 ====Verb====
 {{head|ru|verb form|head=приста́нь}}
 
-# imperative singular of [[пристать]]
+# {{inflection of|lang=ru|пристать||impv|s}}
 
 [[Category:ru:Nautical]]
 
@@ -1550,10 +1611,10 @@ mwl|tr=*samōr}}.
 {{ru-noun-table|e||f|loc=в +}}
 
 ====Related terms====
-* [[затенять]], [[затенить]]
-* [[оттенок]]
-* [[теневой]]
-* [[тенистый]]
+* {{l|ru|затенять}}, {{l|ru|затенить}}
+* {{l|ru|оттенок}}
+* {{l|ru|теневой}}
+* {{l|ru|тенистый}}
 
 ===Noun===
 {{ru-noun+|a,e||f|a=both}}
@@ -1625,14 +1686,14 @@ From {{etyl|orv|ru}} {{m|orv|сѧжень}}, from {{etyl|sla-pro|ru}} {{m|sla-pr
 {{ru-noun-table|саже́нь|f|or|e|са́жень|f|gen_pl=саже́ней,сажене́й,са́жен}}
 
 ====Derived terms====
-* [[саженный]]
+* {{l|ru|саженный}}
 
 ====Related terms====
-* [[сигать]], [[сягать]]
-* [[досуг]]
+* {{l|ru|сигать}}, {{l|ru|сягать}}
+* {{l|ru|досуг}}
 
 ====See also====
-* [[аршин]]
+* {{l|ru|аршин}}
 
 [[Category:ru:Units of measure]]
 
@@ -1747,12 +1808,12 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*lěkarь}}.
 {{ru-noun-table|пе́карь|m|or|c||m(1)|a=an}}
 
 ====Synonyms====
-*[[хлебопёк]]
+*{{l|ru|хлебопёк}}
 
 ====Related terms====
-*[[пекарня]], [[пекарша]]
-*[[пекарский]], [[пекарный]]
-*[[печь]], [[выпекать]], [[запекать]]
+*{{l|ru|пекарня}}, {{l|ru|пекарша}}
+*{{l|ru|пекарский}}, {{l|ru|пекарный}}
+*{{l|ru|печь}}, {{l|ru|выпекать}}, {{l|ru|запекать}}
 
 токарь
 
@@ -1844,13 +1905,13 @@ Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 {{ru-noun-table|c|ла́герь|m(1)}}
 
 ====Synonyms====
-*[[стоянка]]
-*[[каторга]]
-*[[союз]], [[коалиция]]
+*{{l|ru|стоянка}}
+*{{l|ru|каторга}}
+*{{l|ru|союз}}, {{l|ru|коалиция}}
 
 ====Related terms====
-*[[концлагерь]]
-*[[лагерный]]
+*{{l|ru|концлагерь}}
+*{{l|ru|лагерный}}
 
 ===References===
 * {{R:ru:Vasmer|лагерь}}
@@ -1918,10 +1979,10 @@ Later borrowing from {{etyl|de|ru}} {{m|de|Lager||camp}}.
 {{ru-noun-table||m|or|ви́хорь|*m|nom_sg_tail=*|notes=* Poetic.}}
 
 ====Related terms====
-* [[вихревой]]
-* [[вихрить]]
-* [[вихриться]]
-* [[завихрение]]
+* {{l|ru|вихревой}}
+* {{l|ru|вихрить}}
+* {{l|ru|вихриться}}
+* {{l|ru|завихрение}}
 
 нетопырь [should I include archaic forms in the headword?]
 
@@ -1942,7 +2003,7 @@ From {{etyl|sla-pro|ru}} {{m|sla-pro|*netopyrjь}}, a compound which first part 
 {{ru-noun-table|b|нетопы́рь|m|or|не́топырь|sgtail=*|pltail=*|notes=* Archaic.|a=an}}
 
 ====Synonyms====
-* [[летучая мышь]]
+* {{l|ru|летучая мышь}}
 
 псалтырь
 
