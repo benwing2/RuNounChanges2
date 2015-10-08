@@ -476,6 +476,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
           else:
             was_stressed = ru.is_stressed(decl)
             decl = ru.make_unstressed(decl)
+            newlemma = lemma
             if decl in ["", u"ъ", u"й", u"ь-m", u"ь-f"]:
               if bare:
                 pagemsg("WARNING: Not converting lemma %s with explicit bare %s to plural: %s" % (
@@ -747,6 +748,600 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
             (u"копьё", u"{{ru-noun-table|4|ко́п|ьё}}"),
             (u"житие", u"{{ru-noun-table|2|жити́|е́}}"),
             (u"ворота", u"{{ru-noun-table|1|воро́т|о|n=p}}"),
+
+	# misc to check
+	(u"ветла", u"{{ru-noun-table|4|вётл|а|вётел}}"),
+        (u"кошма", u"{{ru-noun-table|4|ко́шм|а|ко́шем|or|6||а}}"),
+        (u"кошма", u"{{ru-noun-table|4|ко́шм|а|ко́шем}}"),
+        # masculine reducibles
+        (u"свёкор", u"{{ru-noun-table|1|свёкр||свёкор|a=an}}"),
+        (u"бубен", u"{{ru-noun-table|1|бу́бн||бу́бен}}"),
+        # following is irreg in accent on nom sg
+        (u"заём", u"{{ru-noun-table|1|за́йм||заём}}"),
+        (u"бугор", u"{{ru-noun-table|2|бугр||буго́р}}"),
+        (u"угол", u"{{ru-noun-table|2|угл||у́гол|loc=углу́}}"),
+        (u"котёл", u"{{ru-noun-table|2|котл||котёл}}"),
+        (u"хребет", u"{{ru-noun-table|2|хребт||хребе́т}}"),
+        # following is irreg in accent on nom sg
+        (u"узел", u"{{ru-noun-table|2|узл||у́зел}}"),
+        # following is irreg in fill vowel, can't reduce: 1b or 1*b
+        (u"кочан", u"{{ru-noun-table|2|кочн||коча́н}}"),
+        (u"лёд", u"{{ru-noun-table|2|льд||лёд|loc=льду́}}"),
+        (u"лев", u"{{ru-noun-table|2|льв||лев|a=an}}"),
+        # following is 1*e or 1*a or poetical 1*c(1) [occurs down below]
+        (u"ветер", u"{{ru-noun-table|5,1|ве́тр||ве́тер|par=ве́тру|loc=ветру́}}"),
+        (u"дёготь", u"{{ru-noun-table|дёгт|ь-m|дёготь}}"),
+        (u"дёготь", u"{{ru-noun-table||m*}}"),
+        (u"ливень", u"{{ru-noun-table|1|ли́вн|ь-m|ли́вень}}"),
+        (u"увалень", u"{{ru-noun-table|у́вальнь|m|у́балень}}"),
+        (u"огонь", u"{{ru-noun-table|2|огн|ь-m|ого́нь}}"),
+        # following is ломо́ть 2*b or ло́моть 2*e
+        (u"ломоть", u"{{ru-noun-table|2|ломот|ь-m|ломо́ть}}"),
+        # following is irreg in accent on nom sg
+        (u"угорь", u"{{ru-noun-table|2|угр|ь-m|у́горь|a=an}}"),
+        (u"ремень", u"{{ru-noun-table|2|ремн|ь-m|реме́нь}}"),
+        (u"ноготь", u"{{ru-noun-table|5|но́гт|ь-m|но́готь}}"),
+        (u"корень", u"{{ru-noun-table|5|ко́рн|ь-m|ко́рень}}"),
+        (u"корень", u"{{ru-noun-old|5|ко́рн|ь-m|ко́рень}}"),
+        (u"кубок", u"{{ru-noun-table|1|ку́бк||ку́бок}}"),
+        (u"кусочек", u"{{ru-noun-table|1|кусо́чк||кусо́чек}}"),
+        (u"перешеек", u"{{ru-noun-table|1|переше́йк||переше́ек}}"),
+        (u"кусок", u"{{ru-noun-table|2|куск||кусо́к}}"),
+        (u"хорёк", u"{{ru-noun-table|2|хорьк||хорёк|a=an}}"),
+        (u"паёк", u"{{ru-noun-table|2|пайк||паёк}}"),
+        (u"немец", u"{{ru-noun-table|1|не́мц||не́мец|a=an}}"),
+        (u"палец", u"{{ru-noun-table|1|па́льц||па́лец}}"),
+        (u"китаец", u"{{ru-noun-table|1|кита́йц||кита́ец|a=an}}"),
+        # following is irreg in fill vowel, can't reduce: 5*a
+        (u"заяц", u"{{ru-noun-table|за́йц|nom_sg=за́яц|a=an}}"),
+        (u"заяц", u"{{ru-noun-table|a|за́йц||за́яц|a=an}}"),
+        (u"конец", u"{{ru-noun-table|2|конц||коне́ц}}"),
+        (u"жилец", u"{{ru-noun-table|2|жильц||жиле́ц}}"),
+        (u"боец", u"{{ru-noun-table|2|бойц||бое́ц|a=an}}"),
+        (u"улей", u"{{ru-noun-table|1|у́ль|й|у́лей}}"),
+        (u"ручей", u"{{ru-noun-table|2|ручь|й|руче́й}}"),
+        (u"ручей", u"{{ru-noun-old|2|ручь|й|руче́й}}"),
+        (u"муравей", u"{{ru-noun-table|2|муравь|й|мураве́й|a=an}}"),
+        (u"щенок", u"{{ru-noun-table|b|щено́к|*|or|d||*(1)(2)||щеня́т|a=an}}"),
+        # special (1)
+        (u"промысел", u"{{ru-noun-table|1|про́мысл||про́мысел}}"),
+        (u"промысел", u"{{ru-noun-table|3|про́мысл|-а|про́мысел}}"),
+        (u"ветер", u"{{ru-noun-table|3|ве́тр|-а|ве́тер|par=ве́тру|loc=ветру́}}"),
+        # special (2)
+        (u"ботинок", u"{{ru-noun-table|боти́нок|*(2)}}"),
+        (u"ботинок", u"{{ru-noun-table|1|боти́нк|(2)|боти́нок}}"),
+        (u"ботиночек", u"{{ru-noun-table|1|боти́ночк|(2)|боти́ночек}}"),
+        (u"чулок", u"{{ru-noun-table|b|чуло́к|*(2)}}"),
+        (u"чулок", u"{{ru-noun-table|b|чулк|(2)|чуло́к}}"),
+        (u"глазок", u"{{ru-noun-table|d|глазо́к|*(2)}}"),
+        (u"глазок", u"{{ru-noun-table|4|глазк|(2)|глазо́к}}"),
+        (u"глазок", u"{{ru-noun-table|b|глазо́к|*}}"),
+        (u"глазок", u"{{ru-noun-table|2|глазк||глазо́к}}"),
+        (u"рожок", u"{{ru-noun-table|d|рожо́к|*(2)}}"),
+        (u"рожок", u"{{ru-noun-table|d|рожк|(2)|рожо́к}}"),
+        # special optional (2)
+        (u"черевичек", u"{{ru-noun-table|череви́чк|(2)|череви́чек}}"),
+        # reducible pl-only
+        (u"плавни", u"{{ru-noun-table|пла́вни|*m}}"),
+        # following is 2*a // 2*e
+        (u"дровни", u"{{ru-noun-table|a,e|дро́вни|*m}}"),
+        (u"останки", u"{{ru-noun-table|оста́нки|*m}}"),
+        (u"останки", u"{{ru-noun-table|оста́нк||оста́нок|n=pl}}"),
+        (u"очки", u"{{ru-noun-table|2|очк|n=pl}}"),
+        (u"очки", u"{{ru-noun-table|2|очк||оче́к|n=pl}}"),
+        (u"очки", u"{{ru-noun-table|2|оче́к|*|n=pl}}"),
+        (u"очки", u"{{ru-noun-table|2|очки|*m}}"),
+        (u"очки", u"{{ru-noun-table|очки́|m}}"),
+        (u"плоскозыбцы", u"{{ru-noun-table|плоскозу́бцы|*m}}"),
+        (u"щипцы", u"{{ru-noun-table|2|щипц|n=pl}}"),
+        (u"щипцы", u"{{ru-noun-table|2|шипц||щипе́ц|n=pl}}"),
+        (u"щипцы", u"{{ru-noun-table|шипцы́|m}}"),
+
+        # feminine reducibles
+        (u"царевна", u"{{ru-noun-table|1|царе́вн|а|царе́вен|a=an}}"),
+        # the following is bianimate
+        (u"кукла", u"{{ru-noun-table|1|ку́кл|а|ку́кол|a=bo}}"),
+        (u"свадьба", u"{{ru-noun-table|1|сва́дьб|а|сва́деб}}"),
+        # the following has irreg dereduced form тем
+        (u"княжна", u"{{ru-noun-table|2|княжн|а|княжо́н|a=an}}"),
+        (u"тьма", u"{{ru-noun-table|2|тьм|а|тем|n=s}}"),
+        (u"кайма", u"{{ru-noun-table|2|кайм|а|каём}}"),
+        (u"сосна", u"{{ru-noun-table|4|со́сн|а|со́сен}}"),
+        # the following is type 1*d // 1f
+        (u"кошма", u"{{ru-noun-table|4|ко́шм|а|ко́шем}}"),
+        # the following is masc anim or fem anim
+        (u"чухна", u"{{ru-noun-table|4|чу́хн|а|чу́хон|a=an}}"),
+        (u"чухна", u"{{ru-noun-table|4|чу́хна|m|чу́хон|a=an}}"),
+        (u"тюрьма", u"{{ru-noun-table|4|тю́рьм|а|тю́рем}}"),
+        # the following is type 1*a // 1*e
+        (u"бубна", u"{{ru-noun-table|бу́бна||бу́бен}}"),
+        (u"бубна", u"{{ru-noun-table|e|бу́бна||бубён}}"),
+        (u"бубна", u"{{ru-noun-table|1,5|бу́бна|*}}"),
+        # the following is type 1*f // 1*d
+        (u"копна", u"{{ru-noun-table|6|копн|а|копён}}"),
+        (u"копна", u"{{ru-noun-table|4|копна|ко́пен}}"),
+        (u"копна", u"{{ru-noun-table|6,4|копн|а*}}"),
+        (u"песня", u"{{ru-noun-table|1|пе́сн|я|пе́сен}}"),
+        (u"капля", u"{{ru-noun-table|1|ка́пл|я|ка́пель}}"),
+        (u"башня", u"{{ru-noun-table|1|ба́шн|я|ба́шен}}"),
+        # the following has irreg dereduced form ку́хонь
+        (u"кухня", u"{{ru-noun-table|ку́хня|gen_pl=ку́хонь}}"),
+        (u"кухня", u"{{ru-noun-table|1|ку́хн|я|ку́хонь}}"),
+        (u"спальня", u"{{ru-noun-table|1|спа́льн|я|спа́лен}}"),
+        (u"бойня", u"{{ru-noun-table|1|бо́йн|я|бо́ен}}"),
+        # the following has irreg dereduced form шестерён
+        (u"шестерня", u"{{ru-noun-table|2|шестерн|я|gen_pl=шестерён}}"),
+        (u"шестерня", u"{{ru-noun-table|2|шестерн|я|шестерён}}"),
+        # the following is type пе́тля 2*a [// петля́ 2*d]
+        (u"петля", u"{{ru-noun-table|1,4|пе́тл|я|пе́тель}}"),
+        (u"земля", u"{{ru-noun-table|d'|земля́|gen_pl=земе́ль}}"),
+        (u"земля", u"{{ru-noun-old|4*|земл|я́|gen_pl=земе́ль}}"),
+        (u"деревня", u"{{ru-noun-table|5|дере́вн|я|gen_pl=дереве́нь}}"),
+        (u"деревня", u"{{ru-noun-table|5|дере́вн|я|дереве́нь}}"),
+        (u"сказка", u"{{ru-noun-table|1|ска́зк|а|ска́зок}}"),
+        (u"точка", u"{{ru-noun-table|1|то́чк|а|то́чек}}"),
+        (u"нивхка", u"{{ru-noun-table|1|нивхк|а|ни́вхок}}"),
+        (u"шпилька", u"{{ru-noun-table|1|шпи́льк|а|шпи́лек}}"),
+        (u"чайка", u"{{ru-noun-table|1|ча́йк|а|ча́ек|a=a}}"),
+        (u"кабарга", u"{{ru-noun-table|2|кабарг|а|кабаро́г|a=an}}"),
+        (u"кишка", u"{{ru-noun-table|2|кишк|а|кишо́к}}"),
+        # the following is sg-only; theoretical gen pl *таёг
+        (u"тайга", u"{{ru-noun-table|2|тайг|а|n=sg}}"),
+        (u"тайга", u"{{ru-noun-table|2|тайг|а|таёг}}"),
+        # the following is type 3*d // 3*b with irreg dereduced form ки́рок (b only)
+        (u"кирка", u"{{ru-noun-table|4,2|кирк|а́|*|gen_pl=ки́рок}}"),
+        # the following is type 3*f // 3*d with irreg dereduced form серёг (f only)
+        (u"серьга", u"{{ru-noun-table|f,d|серьга́|gen_pl=серёг}}"),
+        (u"серьга", u"{{ru-noun-table|6,4|серьг|а́|серёг}}"),
+        # the following is type 3*f' // 3*d
+        (u"доска", u"{{ru-noun-table|4|до́ск|а|до́сок}}"),
+        (u"дверца", u"{{ru-noun-table|1|две́рц|а|две́рец}}"),
+        (u"крепостца", u"{{ru-noun-table|крепостц|а́|крепосте́ц"),
+        # the following has irreg dereduced form ове́ц
+        (u"овца", u"{{ru-noun-table|d|овца́|gen_pl=ове́ц|a=an}}"),
+        (u"овца", u"{{ru-noun-table|4|обц|а́|ове́ц|a=an}}"),
+        (u"гостья", u"{{ru-noun-table|1|го́ст|ья|a=an}}"),
+        (u"гостья", u"{{ru-noun-table|1|го́ст|ья|го́стий|a=an}}"),
+        (u"вайя", u"{{ru-noun-table|1|вай|я|ва́ий}}"),
+        (u"статья", u"{{ru-noun-table|2|стат|ья}}"),
+        # the following has irreg dereduced form свине́й [but apparently
+        # this is normal in decl ья in d and d', and we handle it as normal]
+        (u"свинья", u"{{ru-noun-table|4|сви́н|ья|a=an}}"),
+        (u"любовь", u"{{ru-noun-table|b'|любо́вь|f*}}"),
+        (u"любовь", u"{{ru-noun-table|2|любв|ь-f|любо́вь}}"),
+        (u"вошь", u"{{ru-noun-table|b'||f*|a=an}}"),
+        (u"вошь", u"{{ru-noun-table|2|вш|ь-f|вошь|a=an}}"),
+        (u"церковь", u"{{ru-noun-table|5|це́ркв|ь-f|це́рковь|ins_sg=це́рковью|dat_pl=церквя́м,церква́м|ins_pl=церквя́ми,церква́ми|pre_pl=церквя́х,церква́х}}"),
+        # special (2)
+        (u"сходня", u"{{ru-noun-table|2|сходн|я(2)}}"),
+        # optional special (2)
+        (u"путля", u"{{ru-noun-table|пу́тля|*|or||*(2)}}"),
+        (u"путля", u"{{ru-noun-table|1|пу́тл|я|пу́тель}}"),
+        (u"лютня", u"{{ru-noun-table|лю́тня|*|or||*(2)}}"),
+        # special ё
+        (u"весна", u"{{ru-noun-table|4|вёсн|а|вёсен}}"),
+        (u"весна", u"{{ru-noun-old|4|вёсн|а|вёсенъ}}"),
+        # pl-only
+        (u"козлы", u"{{ru-noun-table|1|козл|а|ко́зел|n=p}}"),
+        (u"мохны", u"{{ru-noun-table|мохн|а́|мохо́н|n=plr}}"),
+        # the following is но́жны type 1*a with archaic ножны́ type 1*b
+        (u"ножны", u"{{ru-noun-table|1|но́жны|f*|n=p}}"),
+        (u"ножны", u"{{ru-noun-table|b|ножна||ножо́н|n=p}}"),
+        # the following is type 1*a // 1*e
+        (u"бубны", u"{{ru-noun-table|бу́бн|а|бу́бен}}"),
+        (u"бубны", u"{{ru-noun-table|5|бу́бн|а|бубён}}"),
+        (u"капли", u"{{ru-noun-table|1|ка́пл|я|ка́пель|n=ppp}}"),
+        # the following has irreg gen pl form полдён or полдне́й
+        (u"полдни", u"{{ru-noun-table|e|полдня||полдён|n=pl}}"),
+        (u"санки", u"{{ru-noun-table|санк|a|са́нок|n=p}}"),
+        (u"штанишки", u"{{ru-noun-table|штани́шки|f*}}"),
+        (u"штанишки", u"{{ru-noun-table|штани́шки|f*|n=pl}}"),
+        (u"штанишки", u"{{ru-noun-table|1|штани́шк|а|штани́шек|n=pl}}"),
+        (u"грабельки", u"{{ru-noun-table|гра́бельки|f*|n=ppp}}"),
+        (u"грабельки", u"{{ru-noun-table|гра́бельк|а|гра́белек|n=ppp}}"),
+        (u"обойки", u"{{ru-noun-table|a|обо́йк|а|обо́ек|n-p}}"),
+        # the following is masc or fem, type 5*a
+        (u"портки", u"{{ru-noun-table|портки́|m*|n=pl}}"),
+        (u"портки", u"{{ru-noun-table|b||f*}}"),
+        (u"портки", u"{{ru-noun-table|b|портк|а|порто́к|n=p}}"),
+        # the following is type 3*e // archaic 3*a with irreg gen pl form де́нег (a only)
+        (u"деньги", u"{{ru-noun-table|5,1|деньг|а|де́нег|n=pl}}"),
+        (u"деньги", u"{{ru-noun-table|5|деньг|а|де́нег|n=pl}}"),
+        (u"деньги", u"{{ru-noun-table|1|деньг|а|де́нег|n=pl}}"),
+        # the following is fem or masc, type 5*a
+        (u"пяльцы", u"{{ru-noun-table|пяльц|а|пя́лец|n=plur}}"),
+        (u"пяльцы", u"{{ru-noun-table|пя́льец||пя́льц|n=plur}}"),
+        # we purposely put the stress oddly in the following to see what happens
+        (u"пяльцы", u"{{ru-noun-table|1|пяльцы́|f*|a}}"),
+
+        # neuter reducibles
+        (u"кресло", u"{{ru-noun-table|1|кре́сл|о|кре́сел}}"),
+        (u"брашно", u"{{ru-noun-table|брашн|о|бра́шен}}"),
+        # the following is 1*a // 1a
+        (u"тягло", u"{{ru-noun-table|тягл|o|тя́гол}}"),
+        # the following has irreg dereduced form зол
+        (u"зло", u"{{ru-noun-table|зло́|gen_pl=зо́л|pltailall=*|notes=* The plural forms are not used, except for the genitive plural [[зол]].}}"),
+        (u"зло", u"{{ru-noun-table|||зол}}"),
+        # the following has irreg dereduced form ма́сел
+        (u"масло", u"{{ru-noun-table|c|ма́сло|*|gen_pl=ма́сел}}"),
+        (u"масло", u"{{ru-noun-table|c|ма́сл|о|ма́сел}}"),
+        (u"полотно", u"{{ru-noun-table|4|поло́тн|о|поло́тен}}"),
+        # accent in stem omitted; should be put back correctly
+        (u"полотно", u"{{ru-noun-table|4|полотн|о|поло́тен}}"),
+        (u"окно", u"{{ru-noun-table|4|о́кн|о|о́кон}}"),
+        (u"окно", u"{{ru-noun-old|4|о́кн|о|о́конъ}}"),
+        (u"письмо", u"{{ru-noun-table|4|пи́сьм|о|пи́сем}}"),
+        (u"блюдце", u"{{ru-noun-table|1|блю́дц|о|блю́дец}}"),
+        (u"зеркальце", u"{{ru-noun-table|1|зе́ркальце||зе́ркалец}}"),
+        (u"словцо", u"{{ru-noun-table|словц|о́|слове́ц}}"),
+        (u"сельцо", u"{{ru-noun-table|2|се́льц|о|селе́ц}}"),
+        (u"сердце", u"{{ru-noun-table|3|се́рдц|о|серде́ц}}"),
+        (u"сердце", u"{{ru-noun-old|3|се́рдц|о|серде́цъ}}"),
+        (u"долотцо", u"{{ru-noun-table|4|долотцо||доло́тец}}"),
+        (u"долотцо", u"{{ru-noun-table|4|долотц|о́|доло́тец}}"),
+        (u"долотцо", u"{{ru-noun-table|4|доло́тц|о́|доло́тец}}"),
+        (u"долотцо", u"{{ru-noun-table|4|доло́тц|о|доло́тец}}"),
+        # the following has irreg dereduced form коле́ц
+        (u"кольцо", u"{{ru-noun-table|4|кольц|о|коле́ц}}"),
+        # the following has irreg dereduced form яи́ц
+        (u"яйцо", u"{{ru-noun-table|d|яйцо́|gen_pl=яи́ц}}"),
+        (u"яйцо", u"{{ru-noun-table|4|яйц|о́|яи́ц}}"),
+        (u"крыльцо", u"{{ru-noun-table|6|крыльц|о|крыле́ц}}"),
+        (u"ущелье", u"{{ru-noun-table|1|уще́л|ье}}"),
+        (u"питьё", u"{{ru-noun-table|2|пит|ьё}}"),
+        (u"питьё", u"{{ru-noun-old|2|пит|ьё}}"),
+        (u"копьё", u"{{ru-noun-table|4|ко́п|ьё}}"),
+        # special case (1)
+        (u"ведёрко", u"{{ru-noun-table|1|ведёрк|о-и|ведёрок}}"),
+        (u"окошко", u"{{ru-noun-table|1|око́шк|о-и|око́шек}}"),
+        # the following is у́шко 3*a(1) [// ушко́ 3*d(1)]
+        (u"ушко", u"{{ru-decl-noun|a,d|у́шко|*(1)}}"),
+        (u"ушко", u"{{ru-decl-noun|1,4|у́шко|*(1)}}"),
+        (u"ушко", u"{{ru-decl-noun|4|у́шк|о-и|у́шек}}"),
+        # special case (2)
+        (u"облачко", u"{{ru-decl-noun|3|о́блачко|(2)}}"),
+        (u"болотце", u"{{ru-decl-noun|боло́тц|о(2)}}"),
+        (u"платье", u"{{ru-noun-table|пла́тье|(2)}}"),
+        (u"платье", u"{{ru-noun-table|1|плат|ье(2)}}"),
+        (u"жнивьё", u"{{ru-noun-table|d}}"),
+        (u"жнивьё", u"{{ru-noun-table|4|жнив|ьё}}"),
+        # optional special case (2)
+        (u"волоконце", u"{{ru-noun-table|волоко́нц|е(2)"),
+        (u"волоконце", u"{{ru-noun-table|волоко́нц|е|волоко́нец"),
+        (u"деревце", u"{{ru-noun-table|1|де́ревц|о|де́ревец}}"),
+        (u"деревцо", u"{{ru-noun-table|2|деревцо́||дереве́ц}}"),
+        (u"верховье", u"{{ru-noun-table|1|верхо́в|ье|верхо́вий}}"),
+        # special case (1)(2)
+        # the following is дре́вко 3*a(1)(2) [// древко́ 3*b(1)(2)]
+        (u"древко", u"{{ru-noun-table|1,2|дре́вко|о-и}}"),
+        (u"древко", u"{{ru-noun-table|1,2|дре́вко|*о-и}}"),
+        (u"древко", u"{{ru-noun-table|2|дре́вко|о-и}}"),
+        (u"очко", u"{{ru-noun-table|очк|о́-и|*(2)}}"),
+        # special case ё
+        (u"весло", u"{{ru-noun-table|4|вёсл|о|вёсел}}"),
+        (u"весло", u"{{ru-noun-old|4|вёсл|о|вёселъ}}"),
+        (u"стекло", u"{{ru-noun-table|4|стёкл|о|стёкол}}"),
+        (u"озерцо", u"{{ru-noun-table|4|озёрц|e|озёрец}}"),
+        # masculine neuter-form
+        # special case (1)
+        (u"сиверко", u"{{ru-noun-table|си́верк|о-и|си́верок}}"),
+        (u"народишко", u"{{ru-noun-table|наро́дишк|о-и|наро́дишек}}"),
+        (u"домишко", u"{{ru-noun-table|доми́шко|(1)|доми́шек}}"),
+        (u"соловейко", u"{{ru-noun-table|1|солове́йко|(1)|солове́ек|a=an}}"),
+        # special case (1)(2)
+        (u"воронко", u"{{ru-noun-table|воронкó|(1)(2)|a=an}}"),
+        (u"воронко", u"{{ru-noun-table|воронк|ó-и(2)|a=an"),
+        # special case (2)
+        (u"подмастерье", u"{{ru-noun-table|1|подмасте́р|ье(2)|a=an}}"),
+        # pl-only
+        (u"кросна", u"{{ru-noun-table|1|кросн|о|кро́сен|n=pl}}"),
+        (u"воротца", u"{{ru-noun-table|воро́тц|о|воро́тец|n=pl}}"),
+        (u"воротца", u"{{ru-noun-table|воро́тца|n|воро́тец}}"),
+        (u"перильца", u"{{ru-noun-table|пери́льц|о|пери́лец|n=pl}}"),
+        (u"перильца", u"{{ru-noun-table|пери́льца|n|пери́лец}}"),
+        # special case (2)
+        (u"хлопья", u"{{ru-noun-table|1|хло́п|ье(2)|n=pl}}"),
+        (u"хлопья", u"{{ru-noun-table|хло́пья|n(2)|n=pl}}"),
+        (u"хлопья", u"{{ru-noun-table|хло́пья|*n(2)}}"),
+
+        # masculine non-reducibles
+        # accent a
+        (u"завод", u"{{ru-noun-table|1|заво́д}}"),
+        (u"артист", u"{{ru-noun-table|1|арти́ст|a=an}}"),
+        (u"портфель", u"{{ru-noun-table|1|портфе́л|ь-m}}"),
+        (u"житель", u"{{ru-noun-table|1|жи́тел|ь-m|a=an}}"),
+        (u"чайник", u"{{ru-noun-table|ча́йник|a=both}}"),
+        (u"чайник", u"{{ru-noun-table|1|ча́йник|a=both}}"),
+        (u"бульдог", u"{{ru-noun-table|1|бульдо́г|a=an}}"),
+        (u"марш", u"{{ru-noun-table|1|ма́рш}}"),
+        (u"товарищ", u"{{ru-noun-table|1|това́рищ|a=an}}"),
+        (u"месяц", u"{{ru-noun-table|1|ме́сяц}}"),
+        (u"принц", u"{{ru-noun-table|1|при́нц|a=an}}"),
+        (u"случай", u"{{ru-noun-table|1|слу́ча|й}}"),
+        (u"случай", u"{{ru-noun-old|1|слу́ча|й}}"),
+        (u"герой", u"{{ru-noun-table|1|геро́|й|a=an}}"),
+        (u"сценарий", u"{{ru-noun-table|1|сцена́ри|й}}"),
+        (u"викарий", u"{{ru-noun-table|1|вика́ри|й|a=an}}"),
+        # accent b
+        (u"топор", u"{{ru-noun-table|b|топо́р}}"),
+        (u"бегун", u"{{ru-noun-table|2|бегу́н|a=an}}"),
+        (u"словарь", u"{{ru-noun-table|2|слова́р|ь-m}}"),
+        (u"карась", u"{{ru-noun-table|2|карас|ь-m|кара́сь|a=an}}"),
+        (u"пирог", u"{{ru-noun-table|2|пиро́г}}"),
+        (u"рыбак", u"{{ru-noun-table|2|рыба́к|a=an}}"),
+        (u"нож", u"{{ru-noun-table|2|но́ж}}"),
+        (u"богач", u"{{ru-noun-table|2|бога́ч|a=an}}"),
+        (u"кострец", u"{{ru-noun-table|b|костре́ц}}"),
+        (u"кузнец", u"{{ru-noun-table|2|кузне́ц||a=a}}"),
+        (u"лишай", u"{{ru-noun-table|b|лиша́й}}"),
+        (u"холуй", u"{{ru-noun-table|b|холу́й|a=an}}"),
+        (u"кий", u"{{ru-noun-table|3,2|ки́|й|pre_sg=ки́и,ки́е,кие́}}"),
+        # accent c
+        (u"дар", u"{{ru-noun-table|3|да́р}}"),
+        (u"плуг", u"{{ru-noun-table|3|плу́г}}"),
+        (u"харч", u"{{ru-noun-table|c||||a=in}}"),
+        (u"буй", u"{{ru-noun-table|3|бу́|й}}"),
+        # accent d
+        (u"кол", u"{{ru-noun-table|4|ко́л|-ья|or|2|loc=на +}}"),
+        (u"казак", u"{{ru-noun-table|2,4|казак|||a=an}}"),
+        # accent e
+        (u"зуб", u"{{ru-noun-table|5|зу́б|or||-ья|pltail=*|notes=* Technical.}}"),
+        (u"голубь", u"{{ru-noun-table|5|го́луб|ь-m|a=an}}"),
+        (u"волк", u"{{ru-noun-table|5|во́лк|a=an}}"),
+        (u"обруч", u"{{ru-noun-table|5|о́бруч}}"),
+        # accent f
+        (u"конь", u"{{ru-noun-table|6|кон|ь-f|a=aaa}}"),
+        (u"путь", u"{{ru-noun-table|2|пу́т|ь-f|ins_sg=путём}}"),
+        # suffixal (1°, 3°)
+        (u"римлянин", u"{{ru-noun-table|1|ри́млян|ин|a=an}}"),
+        (u"южанин", u"{{ru-noun-table|1|южа́н|ин|a=an}}"),
+        (u"армянин", u"{{ru-noun-table|4|армя́н|ин|a=an}}"),
+        (u"боярин", u"{{ru-noun-table|1|боя́р|ин|a=an}}"),
+        # the following is also special case (1)
+        (u"господин", u"{{ru-noun-table|2|госпо́д|ин|a=an|nom_pl=господа́}}"),
+        # the following is 1°c (c ∆) // 1a [first plural in -ья]
+        (u"шурин", u"{{ru-noun-table|3|шу́рин|-ья||шур|a=an}}"),
+        (u"маслёнок", u"{{ru-noun-table|2|масл|ёнок}}"),
+        (u"опёнок", u"{{ru-noun-table|опёнок}}"),
+        (u"цыплёнок", u"{{ru-noun-table|2|цыпл|ёнок|a=an}}"),
+        (u"мышонок", u"{{ru-noun-table|2|мыш|онок|a=an}}"),
+        (u"цыплёночек", u"{{ru-noun-table|b|цыплёночек|a=a}}"),
+        (u"мышоночек", u"{{ru-noun-table|2|мыш|о́ночек|a=an}}"),
+        # the following is 3*b//3°d (c ∆)
+        (u"щенок", u"{{ru-noun-table|b|щено́к|*|or|d||*(1)(2)||щеня́т|a=an}}"),
+        # special case (1)
+        (u"рукав", u"{{ru-noun-table|2|рука́в|-а}}"),
+        (u"мастер", u"{{ru-noun-table|3|ма́стер|-а|a=an}}"),
+        (u"якорь", u"{{ru-noun-table|3|я́кор|ь-я}}"),
+        (u"обшлаг", u"{{ru-noun-table|2|обшла́г|(1)}}"),
+        (u"округ", u"{{ru-noun-table|3|о́круг|-а}}"),
+        (u"сторож", u"{{ru-noun-table|3|сто́рож|-а|a=an}}"),
+        (u"край", u"{{ru-noun-table|3|кра́|й-я|par=кра́ю|loc=краю́}}"),
+        # special case (2)
+        (u"грузин", u"{{ru-noun-table|1|грузи́н|(2)|a=an}}"),
+        (u"раз", u"{{ru-noun-table|c|раз|(2)|par=+}}"),
+        (u"волос", u"{{ru-noun-table|5|во́лос|(2)}}"),
+        (u"сапог", u"{{ru-noun-table|b|сапо́г|(2)}}"),
+        (u"герц", u"{{ru-noun-table|1|ге́рц|(2)}}"),
+        # optional special case (2)
+        (u"мадьяр", u"{{ru-noun-table|1|мадья́р|or||(2)"),
+        (u"чувяк", u"{{ru-noun-table|3|чувя́к|or||(2)"),
+        # special cases (1)(2)
+        (u"глаз", u"{{ru-noun-table|3|гла́з|(1)(2)|loc=+}}"),
+        # ё special
+        (u"осётр", u"{{ru-noun-table|2|осётр|a=an}}"),
+        (u"мёд", u"{{ru-noun-table|3|мёд|par=+|loc=+}}"),
+        (u"чёрт", u"{{ru-noun-table|5|чёрт|/ь-m|nom_pl=че́рти|a=an|acc_sg=чёрта|gen_sg=чёрта,черта́*|notes=&lt;sup>*&lt;/sup> Only in the expression ''ни черта́''.}}"),
+        (u"жёлудь", u"{{ru-noun-table|5|жёлуд|ь-m}}"),
+        (u"ёж", u"{{ru-noun-table|2|ёж}}"),
+        (u"жёрнов", u"{{ru-noun-table|3|жёрнов|-а}}"),
+        (u"шёлк", u"{{ru-noun-table|3|шёлк|-а}}"),
+        # plural only
+        (u"анналы", u"{{ru-noun-table|1|анна́л|n=pl}}"),
+        (u"весы", u"{{ru-noun-table|2|вес|n=pl}}"),
+        (u"дебри", u"{{ru-noun-table|1|де́брь|m|n=pl}}"),
+        (u"кочкари", u"{{ru-noun-table|2|кочкари|m|n=plural}}"),
+        (u"сани", u"{{ru-noun-table|5|са́нь|m|n=pl}}"),
+        (u"трусики", u"{{ru-noun-table|3|тру́сик|n=pl}}"),
+        (u"духи", u"{{ru-noun-table|2|дух|n=pl}}"),
+        (u"пассатижи", u"{{ru-noun-table|1|пассати́ж|n=pl}}"),
+        (u"щи", u"{{ru-noun-table|2|щ|ь-f|n=p}}"),
+        (u"щи", u"{{ru-noun-old|2|щ|ь-f|n=p}}"),
+        (u"дрожжи", u"{{ru-noun-table|6|дро́жж|а|n=pl}}"),
+        (u"помои", u"{{ru-noun-table|помо́|й|n=pl}}"),
+        (u"прелиминарии", u"{{ru-noun-table|1|прелимина́рий|n=p}}"),
+        # plural only, special case (1)
+        (u"леса", u"{{ru-noun-table|2|лес|-а|n=pl}}"),
+        # singular feminine that we should also handle correctly
+        (u"леса", u"{{ru-noun-table|4|лёс|а}}"),
+        (u"зеленя", u"{{ru-noun-table|2|зелен|ь-я|n=pl}}"),
+        (u"торока", u"{{ru-noun-table|торок|-а́|n=pl}}"),
+
+        # feminine non-reducibles
+        # accent a
+        (u"карта", u"{{ru-noun-table|1|ка́рт|а}}"),
+        (u"корова", u"{{ru-noun-table|a|коро́ва|a=an}}"),
+        (u"неделя", u"{{ru-noun-table|1|неде́л|я}}"),
+        (u"богиня", u"{{ru-noun-table|1|боги́н|я|a=an}}"),
+        (u"книга", u"{{ru-noun-table|1|кни́г|а}}"),
+        (u"собака", u"{{ru-noun-table|1|соба́к|а|a=an}}"),
+        (u"туча", u"{{ru-noun-table|1|ту́ч|а}}"),
+        (u"кассирша", u"{{ru-noun-table|1|касси́рш|а|a=an}}"),
+        (u"улица", u"{{ru-noun-table|1|у́лиц|а}}"),
+        (u"улица", u"{{ru-noun-old|1|у́лиц|а}}"),
+        (u"волчица", u"{{ru-noun-table|1|волчи́ц|а|a=an}}"),
+        (u"статуя", u"{{ru-noun-table|1|ста́ту|я}}"),
+        (u"фея", u"{{ru-noun-table|фе́я|a=an}}"),
+        (u"линия", u"{{ru-noun-table|1|ли́ни|я}}"),
+        (u"фурия", u"{{ru-noun-table|1|фу́ри|я́}}"),
+        (u"секвойя", u"{{ru-noun-table|1|секво́й|я}"),
+        # accent b
+        (u"похвала", u"{{ru-noun-table|2|похва́л|а}}"),
+        (u"гюрза", u"{{ru-noun-table|2|гю́рз|а|a=an}}"),
+        (u"стезя", u"{{ru-noun-table|2|стез|я}}"),
+        (u"тля", u"{{ru-noun-table|2|тл|я|a=an}}"),
+        (u"тля", u"{{ru-noun-table|a=an}}"),
+        (u"острога", u"{{ru-noun-table|2|остро́г|а}}"),
+        (u"карга", u"{{ru-noun-table|2|ка́рг|а|a=an}}"),
+        (u"каланча", u"{{ru-noun-table|2|каланч|а}}"),
+        (u"ханжа", u"{{ru-noun-table|2|ханж|а|a=an}}"),
+        (u"маца", u"{{ru-noun-table|2|мац|а}}"),
+        (u"колея", u"{{ru-noun-table|колея́}}"),
+        (u"швея", u"{{ru-noun-table|швея́|a=an}}"),
+        (u"лития", u"{{ru-noun-table|лити|я́}}"),
+        # accent d
+        (u"сирота", u"{{ru-noun-table|4|сиро́т|а|a=an}}"),
+        (u"заря", u"{{ru-noun-table|d|заря́|||зор|dat_pl=зо́рям,заря́м*|ins_pl=зо́рями,заря́ми*|pre_pl=зо́рях,заря́х*|notes=* Archaic.}}"),
+        (u"дуга", u"{{ru-noun-table|4|ду́г|а}}"),
+        (u"межа", u"{{ru-noun-table|4|ме́ж|а}}"),
+        (u"змея", u"{{ru-noun-table|4|зме́|я|a=a}}"),
+        # accent d'
+        (u"спина", u"{{ru-noun-table|4|спи́н|а|acc_sg=спи́ну}}"),
+        (u"дрога", u"{{ru-noun-table|4*|дрог|а}}"),
+        (u"душа", u"{{ru-noun-table|4*|душ|а́}}"),
+        # accent e
+        (u"доля", u"{{ru-noun-table|5|до́л|я}}"),
+        # accent f
+        (u"губа", u"{{ru-noun-table|6|гу́б|а}}"),
+        (u"слобода", u"{{ru-noun-table|f|слобода́}}"),
+        (u"ноздря", u"{{ru-noun-table|6|но́здр|я́}}"),
+        (u"простыня", u"{{ru-noun-table|6|про́стын|я|gen_pl=просты́нь}}"),
+        (u"слега", u"{{ru-noun-table|6,4|слег|а́}}"),
+        (u"вожжа", u"{{ru-noun-table|6|во́жж|а}}"),
+        # accent f'
+        (u"гора", u"{{ru-noun-table|6*|го́р|а}}"),
+        (u"борода", u"{{ru-noun-table|f'|борода́}}"),
+        (u"рука", u"{{ru-noun-table|6*|ру́к|а}}"),
+        (u"рука", u"{{ru-noun-old|6*|ру́к|а}}"),
+        # accent a, 3rd decl
+        (u"тетрадь", u"{{ru-noun-table|1|тетра́д|ь-f}}"),
+        (u"лань", u"{{ru-noun-table|1|ла́н|ь-f|a=an}}"),
+        (u"пустошь", u"{{ru-noun-table|1|пу́стош|ь-f}}"),
+        # accent e, 3rd decl
+        (u"площадь", u"{{ru-noun-table|5|пло́щад|ь-f}}"),
+        (u"стерлядь", u"{{ru-noun-table|5|сте́рляд|ь-f|a=an}}"),
+        (u"ночь", u"{{ru-noun-table|5|но́ч|ь-f|loc=ночи́}}"),
+        (u"ночь", u"{{ru-noun-old|5|но́ч|ь-f|loc=ночи́}}"),
+        (u"мышь", u"{{ru-noun-table|5|мы́ш|ь-f|a=an}}"),
+        # accent f'', 3rd decl
+        (u"грудь", u"{{ru-noun-table|6|гру́д|ь-f}}"),
+        (u"грудь", u"{{ru-noun-table|5|гру́д|ь-f|title=Dated declension of {{lang|ru|гру́дь}}}}"),
+        (u"грудь", u"{{ru-noun-old|6,5|гру́д|ь-f}}"),
+        (u"глушь", u"{{ru-noun-table|6|глушь|f|n=sing}}"),
+        # special case (2)
+        # the following is given as masc anim or fem anim
+        (u"рохля", u"{{ru-noun-table|ро́хля|m(2)|a=an}}"),
+        (u"корча", u"{{ru-noun-table|ко́рча|(2)}}"),
+        # optional special case (2)
+        # the following is given as masc anim or fem anim
+        (u"растеря", u"{{ru-noun-table|расте́ря|or||(2)|a=an}}"),
+        (u"верша", u"{{ru-noun-table|ве́рша|or||(2)}}"),
+        # ё special
+        (u"пелена", u"{{ru-noun-table|2|пелён|а}}"),
+        (u"звезда", u"{{ru-noun-table|4|звезд|а́;ё}}"),
+        (u"слеза", u"{{ru-noun-table|6|слёз|а}}"),
+        (u"железа", u"{{ru-noun-table|6|железа́|;ё}}"),
+        (u"середа", u"{{ru-noun-table|6*|серед|а;ё}}"),
+        (u"стега", u"{{ru-noun-table|стега́|;ё}}"),
+        # The following is 3f' // 3f
+        (u"щека", u"""{{ru-noun-table|6*,4|щёк|а|acc_sg=щёку,щеку́1|dat_pl=щека́м,щёкам1|acc_pl=щеки́,щёки|ins_pl=щека́ми,щёками2|pre_pl=щека́х,щёках1|notes=
+            # Obsolete
+            # Colloquial
+            }}"""),
+        # The following is 4b // 4f
+        (u"дежа", u"{{ru-noun-table|2,6|дежа́|;ё}}"),
+        (u"щёлочь", u"{{ru-noun-table|5|щёлоч|ь-f}}"),
+        # masculine fem-type words, all animate
+        (u"мужчина", u"{{ru-noun-table|1|мужчи́н|а|a=a}}"),
+        (u"мужчина", u"{{ru-noun-old|1|мужчи́н|а|a=a}}"),
+        (u"дядя", u"{{ru-noun-table|дя́дя|(2)|a=an}}"),
+        (u"дядя", u"{{ru-noun-table|c|дя́дя|-ья|a=an}}"),
+        (u"судия", u"{{ru-noun-table|судия́|a=an|dat_sg=судии́|pre_sg=судии́|ins_sg=судие́й|gen_pl=су́дий}}"),
+        # pl-only words
+        (u"вилы", u"{{ru-noun-table|1|ви́л|а|n=pl}}"),
+        (u"бразды", u"{{ru-noun-table|2|бразд|а́|n=pl}}"),
+        (u"похороны", u"{{ru-noun-table|e|по́хороны|f|n=plur}}"),
+        (u"брюки", u"{{ru-noun-table|1|брю́к|а|n=pl}}"),
+        (u"ладоши", u"{{ru-noun-table|ладо́ши|f}}"),
+        (u"ножницы", u"{{ru-noun-table|1|но́жница|n=pl}}"),
+        (u"сатурналии", u"{{ru-noun-table|сатурна́ли|а|n=p}}"),
+
+        # neuter non-reducible
+        # accent a
+        (u"болото", u"{{ru-noun-table|1|боло́т|о}}"),
+        (u"чадо", u"{{ru-noun-table|1|ча́д|о|a=a}}"),
+        (u"чадо", u"{{ru-noun-old|1|ча́д|о|a=a}}"),
+        (u"горе", u"{{ru-noun-table|1|го́р|е}}"),
+        (u"благо", u"{{ru-noun-table|1|бла́г|о}}"),
+        (u"жилище", u"{{ru-noun-table|1|жили́щ|о}}"),
+        (u"чудовище", u"{{ru-noun-table|1|чудо́вищ|о|a=a}}"),
+        (u"чудовище", u"{{ru-noun-old|1|чудо́вищ|о|a=a}}"),
+        (u"солнце", u"{{ru-noun-table|1|со́лнц|о}}"),
+        (u"здание", u"{{ru-noun-table|1|зда́ни|е}}"),
+        # accent b
+        (u"вещество", u"{{ru-noun-table|2|веще́ств|о}}"),
+        (u"ружьецо", u"{{ru-noun-table|2|ружье́ц|о}}"),
+        (u"житие", u"{{ru-noun-table|2|жити́|е́}}"),
+        (u"бытие", u"{{ru-noun-table|2|быти́|е́}}"),
+        # accent c
+        (u"место", u"{{ru-noun-table|3|ме́ст|о}}"),
+        (u"поле", u"{{ru-noun-table|3|по́л|е}}"),
+        (u"войско", u"{{ru-noun-table|3|во́йск|о}}"),
+        # accent d
+        (u"вино", u"{{ru-noun-table|4|ви́н|о}}"),
+        (u"лицо", u"{{ru-noun-table|4|ли́ц|о}}"),
+        (u"лицо", u"{{ru-noun-old|4|ли́ц|о}}"),
+        # accent e
+        (u"ухо", u"{{ru-noun-table|e||(1)||уш|notes=''Note on irregular forms — '''''{{lang|ru|у́ши}}''''' is actually an old nominative [[dual]] form for neuter nouns.}}"),
+        # accent f
+        (u"тавро", u"{{ru-noun-table|4,6|та́вр|о́}}"),
+        # 8°a, ё (c ∆) [the whole plural]
+        (u"знамя", u"{{ru-noun-table|зна́|мя/о||знамён}}"),
+        (u"знамя", u"{{ru-noun-old|зна́|мя/о||знамён}}"),
+        # 8°c, ё
+        (u"имя", u"{{ru-noun-table|3|и́|мя}}"),
+        (u"имя", u"{{ru-noun-old|3|и́|мя}}"),
+        # 8°c, ё (c ∆) [gen pl]
+        (u"семя", u"{{ru-noun-table|3|се́|мя|gen_pl=семя́н}}"),
+        # special case (1)
+        (u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
+        (u"молоко", u"{{ru-noun-table|2|моло́к|о|n=s}}"),
+        # the following has irregular gen pl
+        (u"плечо", u"{{ru-noun-table|6|пле́ч|о-и|gen_pl=пле́ч}}"),
+        (u"плечо", u"{{ru-noun-old|6|пле́ч|о-и|gen_pl=пле́чъ}}"),
+        # special case (2)
+        (u"облако", u"{{ru-noun-table|c|о́блако|(2)}}"),
+        (u"остриё", u"{{ru-noun-table|остриё|(2)}}"),
+        # special case (1)(2), animate, neuter or masculine
+        (u"мазло", u"{{ru-noun-table|мазл|о́-и(2)}}"),
+        (u"личико", u"{{ru-noun-table|ли́чик|о(1)(2)}}"),
+        # ё special
+        (u"веретено", u"{{ru-noun-table|4|веретён|о}}"),
+        # masc neut-type words
+        # the following is optionally special case (1), and animate
+        (u"сверлило", u"{{ru-noun-table|1|сверли́ло|m}}"),
+        # the following is special case (1)
+        (u"когтище", u"{{ru-noun-table|a|когти́щ|о-и}}"),
+        # the following is optionally special case (1)
+        (u"домище", u"{{ru-noun-table|1|доми́щ|о-и}}"),
+        (u"домище", u"{{ru-noun-table|1|доми́що}}"),
+        (u"домище", u"{{ru-noun-table|a|доми́щ|о}}"),
+        (u"домище", u"{{ru-noun-table|1|доми́щ|о́}}"),
+        (u"домище", u"{{ru-noun-table|1|доми́щ|е}}"),
+        # the following is animate and special case (1); this one, and likely
+        # the two before it, have additional colloquial feminine endings in
+        # the singular; see section 4, page 74
+        (u"волчище", u"{{ru-noun-table|1|волчи́щ|о-и|a=an}}"),
+        # pl only
+        (u"ворота", u"{{ru-noun-table|1|воро́т|о|n=p}}"),
+        (u"ворота", u"{{ru-noun-old|1|воро́т|о|n=p}}"),
+        (u"уста", u"{{ru-noun-table|2|у́ст|о|n=pl}}"),
+        (u"войска", u"{{ru-noun-table|2|войска́|n|n=p}}"),
+        (u"прения", u"{{ru-noun-table|1|пре́ни|е|n=plu}}"),
+        # the following is also ё special
+        (u"письмена", u"{{ru-noun-table|2|письмёна|n}}"),
+        (u"письмена", u"{{ru-noun-table|2|письмёно|n=ppp}}"),
+        (u"письмена", u"{{ru-noun-table|письмён|о́|n=ppp}}"),
     ]
 
 if pargs.test:
