@@ -88,6 +88,8 @@ def process_page(index, page):
         return
       if re.search(r"^===Etymology===$", sections[j], re.M):
         newtext = re.sub(r"(^===Etymology===\n.*?\n)(==)", r"\1%s\2" % pronunsection, text, re.M, 1)
+      elif re.search(r"^===Alternative forms===$", sections[j], re.M):
+        newtext = re.sub(r"(^===Alternative forms===\n.*?\n)(==)", r"\1%s\2" % pronunsection, text, re.M, 1)
       else:
         newtext = re.sub(r"(^\n*)", r"\1%s" % pronunsection, text)
 
