@@ -60,15 +60,13 @@ def process_page(index, page):
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
     return
-  if len(headword_pronuns) > 1:
-    pagemsg("WARNING: Found multiple pronunciations, can't handle yet: %s" %
-        ", ".join(headword_pronuns))
-    # FIXME, should simply put multiple pronunciations in section
-    return
-  pronun = list(headword_pronuns)[0]
-  if ru.needs_accents(pronun):
-    pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
-    return
+  headword_pronuns = sorted(list(headword_pronuns))
+  pronun_lines = []
+  for pronun in headword_pronuns:
+    if ru.needs_accents(pronun):
+      pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
+      return
+    pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
 
   foundrussian = False
   sections = re.split("(^==[^=]*==\n)", text, 0, re.M)
@@ -79,17 +77,20 @@ def process_page(index, page):
         pagemsg("WARNING: Found multiple Russian sections")
         return
       foundrussian = True
-      m = re.search(r"(\{\{ru-IPA\|([^}]*)\}\})", sections[j])
-      if m:
+      foundpronuns = []
+      for m in re.finditer(r"(\{\{ru-IPA\|([^}]*)\}\})", sections[j]):
         pagemsg("Already found pronunciation template: %s" % m.group(1))
-        if m.group(2) != pronun:
+        foundpronuns.append(m.group(2))
+      foundpronuns = sorted(foundpronuns)
+      if foundpronuns:
+        if foundpronuns != headword_pronuns:
           pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
-              (m.group(2), pronun))
+                (",".join(foundpronuns), ",".join(headword_pronuns)))
         return
       if re.search(r"^===+Pronunciation===+$", sections[j], re.M):
         pagemsg("WARNING: Found pronunciation section without ru-IPA")
         return
-      pronunsection = "===Pronunciation===\n* {{ru-IPA|%s}}\n\n" % pronun
+      pronunsection = "===Pronunciation===\n%s\n" % "".join(pronun_lines)
       if re.search(r"^===Etymology [0-9]+===$", sections[j], re.M):
         pagemsg("WARNING: Found multiple etymology sections, can't handle yet")
         return
@@ -112,7 +113,7 @@ def process_page(index, page):
   if verbose:
     pagemsg("Replacing [[%s]] with [[%s]]" % (text, newtext))
 
-  comment = "Add pronunciation %s" % pronun
+  comment = "Add pronunciation %s" % ",".join(headword_pronuns)
   if save:
     pagemsg("Saving with comment = %s" % comment)
     page.text = newtext
