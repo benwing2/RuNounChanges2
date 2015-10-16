@@ -5,6 +5,12 @@ import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, 
 
 site = pywikibot.Site()
 
+def remove_links(text):
+	text = re.sub(r"\[\[[^\[\]|]*\|", "", text)
+	text = re.sub(r"\[\[", "", text)
+	text = re.sub(r"\]\]", "", text)
+	return text
+
 def parse_text(text):
 	return mwparserfromhell.parser.Parser().parse(text, skip_style_tags=True)
 
