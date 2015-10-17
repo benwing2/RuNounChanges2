@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, json
+import pywikibot, re, sys, codecs, argparse
 
 import blib
 from blib import getparam, rmparam
@@ -9,8 +9,6 @@ from blib import getparam, rmparam
 import rulib as ru
 
 site = pywikibot.Site()
-save = False
-verbose = True
 
 def msg(text):
   print text.encode("utf-8")
@@ -18,7 +16,7 @@ def msg(text):
 def errmsg(text):
   print >>sys.stderr, text.encode("utf-8")
 
-def process_page(index, page):
+def process_page(index, page, save, verbose):
   pagetitle = unicode(page.title())
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
@@ -104,7 +102,8 @@ def process_page(index, page):
       elif re.search(r"^===Alternative forms===$", sections[j], re.M):
         sections[j] = re.sub(r"(^===Alternative forms===\n.*?\n)(==)", r"\1%s\2" % pronunsection, sections[j], 1, re.M | re.S)
       else:
-        sections[j] = re.sub(r"(^\n*)", r"\1%s" % pronunsection, sections[j])
+        sections[j] = re.sub(r"(^===)", r"%s\1" % pronunsection, sections[j], 1, re.M)
+      sections[j] = re.sub("^===", "\n===", sections[j], 1)
       newtext = "".join(sections)
 
   if not foundrussian:
@@ -126,13 +125,16 @@ def process_page(index, page):
   else:
     pagemsg("Would save with comment = %s" % comment)
 
+parser = argparse.ArgumentParser(description="Add pronunciation sections to Russian Wiktionary entries")
+parser.add_argument('pagefile', help="File containing pages to process, one per line")
+parser.add_argument('start', help="Starting page index", nargs="?")
+parser.add_argument('end', help="Ending page index", nargs="?")
+parser.add_argument('--save', action="store_true", help="Save results")
+parser.add_argument('--verbose', action="store_true", help="More verbose output")
+args = parser.parse_args()
+start, end = blib.get_args(args.start, args.end)
 
-assert sys.argv[1]
-pages = [x.strip() for x in codecs.open(sys.argv[1], "r", "utf-8")]
-i = 0
-for page in pages:
-  i += 1
+pages = [x.strip() for x in codecs.open(args.pagefile, "r", "utf-8")]
+for i, page in blib.iter_items(pages, start, end):
   msg("Page %s %s: Processing" % (i, page))
-  if i % 50 == 0:
-    errmsg("[%s]" % i)
-  process_page(i, pywikibot.Page(site, page))
+  process_page(i, pywikibot.Page(site, page), args.save, args.verbose)
