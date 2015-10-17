@@ -33,12 +33,24 @@ def process_page(index, page):
   # Get the headword pronunciation(s)
   headword_pronuns = set()
   for t in parsed.filter_templates():
-    if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj"]:
+    found_template = False
+    if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb", "ru-phrase"]:
       headword_pronuns.add(blib.remove_links(getparam(t, "1") or pagetitle))
+      found_template = True
+    elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
+      headword_pronuns.add(blib.remove_links(getparam(t, "head") or pagetitle))
+      found_template = True
+    elif unicode(t.name) == "ru-noun+":
+      pagemsg("WARNING: Don't know how to handle ru-noun+ yet: %s" % unicode(t))
+      # FIXME, we should use ru-generate-form to extract the lemma; this
+      # means we need to create ru-generate-form and add "lemma" as a possible
+      # value
+      return
+    if found_template:
       for i in xrange(2, 10):
-        headn = blib.remove_links(getparam(t, "head" + str(i)))
+        headn = getparam(t, "head" + str(i))
         if headn:
-          headword_pronuns.add(headn)
+          headword_pronuns.add(blib.remove_links(headn))
       if getparam(t, "tr"):
         # FIXME, ru-IPA should take a tr parameter and use it in preference to
         # the Cyrillic
@@ -50,13 +62,6 @@ def process_page(index, page):
           pagemsg("WARNING: Don't know how to handle tr%s= param yet: %s" % (
             i, unicode(t)))
           return
-
-    elif unicode(t.name) == "ru-noun+":
-      pagemsg("WARNING: Don't know how to handle ru-noun+ yet: %s" % unicode(t))
-      # FIXME, we should use ru-generate-form to extract the lemma; this
-      # means we need to create ru-generate-form and add "lemma" as a possible
-      # value
-      return
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
     return
@@ -128,4 +133,6 @@ i = 0
 for page in pages:
   i += 1
   msg("Page %s %s: Processing" % (i, page))
+  if i % 50 == 0:
+    errmsg("[%s]" % i)
   process_page(i, pywikibot.Page(site, page))
