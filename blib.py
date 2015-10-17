@@ -39,10 +39,10 @@ def do_edit(page, func=None, null=False):
 		try:
 			if func:
 				new, comment = func(page, mwparserfromhell.parser.Parser().parse(page.text, skip_style_tags=True))
-				
+
 				if new:
 					new = unicode(new)
-					
+
 					if page.text != new:
 						page.text = new
 						page.save(comment = comment)
@@ -67,137 +67,172 @@ def do_edit(page, func=None, null=False):
 		except:
 			pywikibot.output(u'Error on [[{0}]]'.format(page.title()))
 			raise
-		
+
 		break
 
 def references(page, startsort = None, endsort = None, namespaces = None, includelinks = False):
 	if isinstance(page, basestring):
 		page = pywikibot.Page(site, page)
-	
+
 	i = 0
 	t = None
 	steps = 50
-	
+
 	for current in page.getReferences(onlyTemplateInclusion = not includelinks, namespaces = namespaces):
 		i += 1
-		
+
 		if endsort != None and i > endsort:
 			break
-		
+
 		if startsort != None and i <= startsort:
 			continue
-		
+
 		if endsort != None and not t:
 			t = datetime.datetime.now()
-		
+
 		yield i, current
-		
+
 		if i % steps == 0:
 			tdisp = ""
-			
+
 			if endsort != None:
 				told = t
 				t = datetime.datetime.now()
 				pagesleft = (endsort - i) / steps
 				tfuture = t + (t - told) * pagesleft
 				tdisp = ", est. " + tfuture.strftime("%X")
-			
+
 			pywikibot.output(str(i) + "/" + str(endsort) + tdisp)
 
 
 def cat_articles(page, startsort = None, endsort = None):
 	if isinstance(page, basestring):
 		page = pywikibot.Category(site, "Category:" + page)
-	
+
 	i = 0
-	
+
 	for current in page.articles(startsort = startsort if not isinstance(startsort, int) else None):
 		i += 1
-		
+
 		if startsort != None and isinstance(startsort, int) and i <= startsort:
 			continue
-		
+
 		if endsort != None:
 			if isinstance(endsort, int):
 				if i > endsort:
 					break
 			elif current.title(withNamespace=False) >= endsort:
 				break
-		
-		yield i, current
 
+		yield i, current
 
 def cat_subcats(page, startsort = None, endsort = None):
 	if isinstance(page, basestring):
 		page = pywikibot.Category(site, "Category:" + page)
-	
+
 	i = 0
-	
+
 	for current in page.subcategories(startsort = startsort if not isinstance(startsort, int) else None):
 		i += 1
-		
+
 		if startsort != None and isinstance(startsort, int) and i <= startsort:
 			continue
-		
+
 		if endsort != None:
 			if isinstance(endsort, int):
 				if i > endsort:
 					break
 			elif current.title() >= endsort:
 				break
-		
+
 		yield i, current
 
 
 def prefix(prefix, startsort = None, endsort = None, namespace = None):
 	i = 0
-	
+
 	for current in site.prefixindex(prefix, namespace):
 		i += 1
-		
+
 		if startsort != None and i <= startsort:
 			continue
-		
+
 		if endsort != None and i > endsort:
 			break
-		
+
 		yield i, current
 
 def stream(st, startsort = None, endsort = None):
 	i = 0
-	
+
 	for name in st:
 		i += 1
-		
+
 		if startsort != None and i <= startsort:
 			continue
 		if endsort != None and i > endsort:
 			break
-		
+
 		if type(name) == str:
 			name = str.decode(name, "utf-8")
-		
+
 		name = re.sub(ur"^[#*] *\[\[(.+)]]$", ur"\1", name, flags=re.UNICODE)
-		
+
 		yield i, pywikibot.Page(site, name)
 
+def get_page_name(page):
+	if isinstance(page, basestring):
+		return page
+	return unicode(page.title())
 
-def get_args():
-	startsort = None
-	endsort = None
-	
-	if len(sys.argv) >= 2:
+def iter_items(items, startsort = None, endsort = None, get_name = get_page_name):
+	i = 0
+	t = None
+	steps = 50
+
+	for current in items:
+		i += 1
+
+		if startsort != None and isinstance(startsort, int) and i < startsort:
+			continue
+
+		if endsort != None:
+			if isinstance(endsort, int):
+				if i > endsort:
+					break
+			elif get_page_name(current) >= endsort:
+				break
+
+		if isinstance(endsort, int) and not t:
+			t = datetime.datetime.now()
+
+		yield i, current
+
+		if i % steps == 0:
+			tdisp = ""
+
+			if isinstance(endsort, int):
+				told = t
+				t = datetime.datetime.now()
+				pagesleft = (endsort - i) / steps
+				tfuture = t + (t - told) * pagesleft
+				tdisp = ", est. " + tfuture.strftime("%X")
+
+			pywikibot.output(str(i) + "/" + str(endsort) + tdisp)
+
+def get_args(startsort, endsort):
+	if startsort:
 		try:
-			startsort = int(sys.argv[1])
+			startsort = int(startsort)
 		except ValueError:
-			startsort = str.decode(sys.argv[1], "utf-8")
-	
-	if len(sys.argv) >= 3:
+			startsort = str.decode(startsort, "utf-8")
+
+	if endsort:
 		try:
-			endsort = int(sys.argv[2])
+			endsort = int(endsort)
 		except ValueError:
-			endsort = str.decode(sys.argv[2], "utf-8")
-	
+			endsort = str.decode(endsort, "utf-8")
+
 	return (startsort, endsort)
 
 languages = None
@@ -229,11 +264,11 @@ def getData():
 
 def getLanguageData():
 	global languages, languages_byCode, languages_byCanonicalName
-	
+
 	languages = json.loads(site.expand_text("{{#invoke:User:MewBot|getLanguageData}}"))
 	languages_byCode = {}
 	languages_byCanonicalName = {}
-	
+
 	for lang in languages:
 		languages_byCode[lang["code"]] = lang
 		languages_byCanonicalName[lang["canonicalName"]] = lang
@@ -241,11 +276,11 @@ def getLanguageData():
 
 def getFamilyData():
 	global families, families_byCode, families_byCanonicalName
-	
+
 	families = json.loads(site.expand_text("{{#invoke:User:MewBot|getFamilyData}}"))
 	families_byCode = {}
 	families_byCanonicalName = {}
-	
+
 	for fam in families:
 		families_byCode[fam["code"]] = fam
 		families_byCanonicalName[fam["canonicalName"]] = fam
@@ -253,11 +288,11 @@ def getFamilyData():
 
 def getScriptData():
 	global scripts, scripts_byCode, scripts_byCanonicalName
-	
+
 	scripts = json.loads(site.expand_text("{{#invoke:User:MewBot|getScriptData}}"))
 	scripts_byCode = {}
 	scripts_byCanonicalName = {}
-	
+
 	for sc in scripts:
 		scripts_byCode[sc["code"]] = sc
 		scripts_byCanonicalName[sc["canonicalName"]] = sc
@@ -265,11 +300,11 @@ def getScriptData():
 
 def getEtymLanguageData():
 	global etym_languages, etym_languages_byCode, etym_languages_byCanonicalName
-	
+
 	etym_languages = json.loads(site.expand_text("{{#invoke:User:MewBot|getEtymLanguageData}}"))
 	etym_languages_byCode = {}
 	etym_languages_byCanonicalName = {}
-	
+
 	for etyl in etym_languages:
 		etym_languages_byCode[etyl["code"]] = etyl
 		etym_languages_byCanonicalName[etyl["canonicalName"]] = etyl
