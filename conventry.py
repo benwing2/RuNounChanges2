@@ -122,18 +122,25 @@ def lemma_to_stem_decl(lemma, decl):
       return None, "bad"
   m = re.search(u"^(.*?)([ъйаяеёо]́?)$", lemma)
   if m:
-    return m.groups()
+    stem, decl = m.groups()
+    # Convert е to о after sibilant/ц or we will have problems in bare tracking
+    if decl == u"е" and re.search("[" + ru.sib_c + "]$", stem):
+      decl = u"о"
+    return stem, decl
   return lemma, ""
 
 def is_suffixed(lemma):
   return re.search(u"([яа]нин|[ёо]нок|[ёо]ночек|мя)ъ?$", ru.remove_accents(lemma))
 
 def process_page(index, page, save=False, verbose=False):
+  pagetitle = unicode(page.title())
+  def pagemsg(txt):
+    msg("Page %s %s: %s" % (index, pagetitle, txt))
+
   if not page.exists():
     pagemsg("WARNING: Page doesn't exist")
     return
 
-  pagetitle = unicode(page.title())
   pagetext = unicode(page.text)
   newtext, comment = process_page_data(index, pagetitle, pagetext, save, verbose)
   if newtext != pagetext:
@@ -148,6 +155,18 @@ def process_page(index, page, save=False, verbose=False):
 def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, offline=False):
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
+
+  def expand_text(txt):
+    if verbose:
+      pagemsg("Expanding text: %s" % txt)
+    result = site.expand_text(txt, title=pagetitle)
+    if verbose:
+      pagemsg("Raw result is %s" % result)
+    if result.startswith('<strong class="error">'):
+      result = re.sub("<.*?>", "", result)
+      pagemsg("WARNING: Got error: %s" % result)
+      return False
+    return result
 
   newtext = pagetext
   parsed = blib.parse_text(pagetext)
@@ -313,14 +332,22 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
               the_stress = newstress[0]
             if decl != u"е́":
               decl = ru.make_unstressed(decl)
-            bare_result = site.expand_text("{{#invoke:ru-noun|bare_tracking|%s|%s|%s|%s%s}}" % (
-              stem, bare, decl, the_stress, old and "|yes" or ""))
-            if not bare_result:
+            restressed_stem = stem
+            if ru.is_monosyllabic(restressed_stem):
+              restressed_stem = ru.make_ending_stressed(restressed_stem)
+            elif ru.is_unstressed(restressed_stem):
+              if re.search("^[bd]", the_stress):
+                restressed_stem = ru.make_ending_stressed(restressed_stem)
+              elif re.search("^f", the_stress):
+                restressed_stem = ru.make_beginning_stressed(restressed_stem)
+            bare_result = expand_text("{{#invoke:ru-noun|bare_tracking|%s|%s|%s|%s%s}}" % (
+              restressed_stem, bare, decl, the_stress, old and "|yes" or ""))
+            if bare_result == "remove":
               bare = ""
-            elif bare_result == "*":
+            elif bare_result == "remove-star":
               bare = ""
               newdecl += "*"
-            elif bare_result == "**":
+            elif bare_result == "sub-star":
               lemma = bare
               bare = ""
               newdecl += "*"
@@ -512,6 +539,9 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
                 else:
                   newlemma = stem + u"я"
                 newgender = "n"
+              elif decl in [u"ье", u"ьё"]:
+                newlemma = stem + u"ья"
+                newgender = "n"
               else:
                 pagemsg("WARNING: Strange decl %s for lemma %s: %s" % (
                   decl, lemma, unicode(t)))
@@ -545,6 +575,12 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
       if lemma == pagetitle:
         lemma = ""
 
+      def get_template_args(ttext):
+        if ttext.startswith("{{ru-noun-old"):
+          ttext = re.sub("\}\}$", "|old=y}}", ttext)
+        t = list(blib.parse_text(ttext).filter_templates())[0]
+        return "<!>".join(("%s<->%s" % (unicode(x.name), unicode(x.value)) if x.showkey else unicode(x.value)) for x in t.params)
+
       # Compare the old declension with the new one and make sure the
       # output is the same.
       old_template = unicode(t)
@@ -571,22 +607,23 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
         if verbose:
           pagemsg("Comparing output of %s and %s" % (old_template, new_template))
         if not offline:
-          raw_result = site.expand_text("{{#invoke:ru-noun|generate_multi_forms|%s|%s}}" % (
-            old_template.replace("=", "<->").replace("|", "<!>"),
-            new_template.replace("=", "<->").replace("|", "<!>")))
-          if verbose:
-            pagemsg("Raw result is %s" % raw_result)
+          raw_result = expand_text("{{#invoke:ru-noun|generate_multi_forms|%s|%s}}" % (
+            get_template_args(old_template),
+            get_template_args(new_template)))
+          if not raw_result:
+            continue
           old_result, new_result = re.split("<!>", raw_result)
-          old_vals = dict(re.split("=", x) for x in re.split(r"\|", old_result))
-          new_vals = dict(re.split("=", x) for x in re.split(r"\|", new_result))
-          keys = set(old_vals.keys())|set(new_vals.keys())
-          for key in keys:
-            oval = old_vals.get(key, "")
-            nval = new_vals.get(key, "")
-            if oval != nval:
-              pagemsg("WARNING: For key %s, old value %s different from new %s" % (
-                key, oval, nval))
-              vals_differ = True
+          vals_differ = old_result != new_result
+          #old_vals = dict(re.split("=", x) for x in re.split(r"\|", old_result))
+          #new_vals = dict(re.split("=", x) for x in re.split(r"\|", new_result))
+          #keys = set(old_vals.keys())|set(new_vals.keys())
+          #for key in keys:
+          #  oval = old_vals.get(key, "")
+          #  nval = new_vals.get(key, "")
+          #  if oval != nval:
+          #    pagemsg("WARNING: For key %s, old value %s different from new %s" % (
+          #      key, oval, nval))
+          #    vals_differ = True
         if vals_differ:
           pagemsg("WARNING: Template %s and replacement %s don't give same declension" % (old_template, new_template))
         else:
@@ -629,7 +666,11 @@ def yield_pages(fn):
   i = 0
   for page in pages:
     i += 1
-    yield i, page
+    if pargs.start and i < pargs.start:
+      continue
+    if pargs.end and i > pargs.end:
+      break
+    yield i, pywikibot.Page(site, page)
 
 def yield_ref_pages():
   for i, page in blib.references("Template:ru-noun-table", pargs.start or None,
@@ -773,7 +814,7 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"дёготь", u"{{ru-noun-table|дёгт|ь-m|дёготь}}"),
         (u"дёготь", u"{{ru-noun-table||m*}}"),
         (u"ливень", u"{{ru-noun-table|1|ли́вн|ь-m|ли́вень}}"),
-        (u"увалень", u"{{ru-noun-table|у́вальнь|m|у́балень}}"),
+        (u"увалень", u"{{ru-noun-table|у́вальнь|m|у́валень}}"),
         (u"огонь", u"{{ru-noun-table|2|огн|ь-m|ого́нь}}"),
         # following is ломо́ть 2*b or ло́моть 2*e
         (u"ломоть", u"{{ru-noun-table|2|ломот|ь-m|ломо́ть}}"),
@@ -834,7 +875,7 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"очки", u"{{ru-noun-table|очки́|m}}"),
         (u"плоскозыбцы", u"{{ru-noun-table|плоскозу́бцы|*m}}"),
         (u"щипцы", u"{{ru-noun-table|2|щипц|n=pl}}"),
-        (u"щипцы", u"{{ru-noun-table|2|шипц||щипе́ц|n=pl}}"),
+        (u"щипцы", u"{{ru-noun-table|2|щипц||щипе́ц|n=pl}}"),
         (u"щипцы", u"{{ru-noun-table|шипцы́|m}}"),
 
         # feminine reducibles
@@ -859,7 +900,7 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"бубна", u"{{ru-noun-table|1,5|бу́бна|*}}"),
         # the following is type 1*f // 1*d
         (u"копна", u"{{ru-noun-table|6|копн|а|копён}}"),
-        (u"копна", u"{{ru-noun-table|4|копна|ко́пен}}"),
+        (u"копна", u"{{ru-noun-table|4|копна||ко́пен}}"),
         (u"копна", u"{{ru-noun-table|6,4|копн|а*}}"),
         (u"песня", u"{{ru-noun-table|1|пе́сн|я|пе́сен}}"),
         (u"капля", u"{{ru-noun-table|1|ка́пл|я|ка́пель}}"),
@@ -899,7 +940,7 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"крепостца", u"{{ru-noun-table|крепостц|а́|крепосте́ц"),
         # the following has irreg dereduced form ове́ц
         (u"овца", u"{{ru-noun-table|d|овца́|gen_pl=ове́ц|a=an}}"),
-        (u"овца", u"{{ru-noun-table|4|обц|а́|ове́ц|a=an}}"),
+        (u"овца", u"{{ru-noun-table|4|овц|а́|ове́ц|a=an}}"),
         (u"гостья", u"{{ru-noun-table|1|го́ст|ья|a=an}}"),
         (u"гостья", u"{{ru-noun-table|1|го́ст|ья|го́стий|a=an}}"),
         (u"вайя", u"{{ru-noun-table|1|вай|я|ва́ий}}"),
@@ -933,7 +974,7 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"капли", u"{{ru-noun-table|1|ка́пл|я|ка́пель|n=ppp}}"),
         # the following has irreg gen pl form полдён or полдне́й
         (u"полдни", u"{{ru-noun-table|e|полдня||полдён|n=pl}}"),
-        (u"санки", u"{{ru-noun-table|санк|a|са́нок|n=p}}"),
+        (u"санки", u"{{ru-noun-table|a|санк|а|са́нок|n=p}}"),
         (u"штанишки", u"{{ru-noun-table|штани́шки|f*}}"),
         (u"штанишки", u"{{ru-noun-table|штани́шки|f*|n=pl}}"),
         (u"штанишки", u"{{ru-noun-table|1|штани́шк|а|штани́шек|n=pl}}"),
@@ -949,16 +990,16 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"деньги", u"{{ru-noun-table|5|деньг|а|де́нег|n=pl}}"),
         (u"деньги", u"{{ru-noun-table|1|деньг|а|де́нег|n=pl}}"),
         # the following is fem or masc, type 5*a
-        (u"пяльцы", u"{{ru-noun-table|пяльц|а|пя́лец|n=plur}}"),
-        (u"пяльцы", u"{{ru-noun-table|пя́льец||пя́льц|n=plur}}"),
+        (u"пяльцы", u"{{ru-noun-table|пя́льц|а|пя́лец|n=plur}}"),
+        (u"пяльцы", u"{{ru-noun-table|пя́лец||пя́льц|n=plur}}"),
         # we purposely put the stress oddly in the following to see what happens
-        (u"пяльцы", u"{{ru-noun-table|1|пяльцы́|f*|a}}"),
+        (u"пяльцы", u"{{ru-noun-table|1|пяльцы́|f*}}"),
 
         # neuter reducibles
         (u"кресло", u"{{ru-noun-table|1|кре́сл|о|кре́сел}}"),
-        (u"брашно", u"{{ru-noun-table|брашн|о|бра́шен}}"),
+        (u"брашно", u"{{ru-noun-table|1|брашн|о|бра́шен}}"),
         # the following is 1*a // 1a
-        (u"тягло", u"{{ru-noun-table|тягл|o|тя́гол}}"),
+        (u"тягло", u"{{ru-noun-table|тя́гл|о|тя́гол}}"),
         # the following has irreg dereduced form зол
         (u"зло", u"{{ru-noun-table|зло́|gen_pl=зо́л|pltailall=*|notes=* The plural forms are not used, except for the genitive plural [[зол]].}}"),
         (u"зло", u"{{ru-noun-table|||зол}}"),
@@ -1013,15 +1054,15 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"верховье", u"{{ru-noun-table|1|верхо́в|ье|верхо́вий}}"),
         # special case (1)(2)
         # the following is дре́вко 3*a(1)(2) [// древко́ 3*b(1)(2)]
-        (u"древко", u"{{ru-noun-table|1,2|дре́вко|о-и}}"),
-        (u"древко", u"{{ru-noun-table|1,2|дре́вко|*о-и}}"),
-        (u"древко", u"{{ru-noun-table|2|дре́вко|о-и}}"),
-        (u"очко", u"{{ru-noun-table|очк|о́-и|*(2)}}"),
+        (u"древко", u"{{ru-noun-table|1,2|дре́вк|о-и}}"),
+        (u"древко", u"{{ru-noun-table|1,2|дре́вк|*о-и}}"),
+        (u"древко", u"{{ru-noun-table|2|дре́вк|о-и}}"),
+        (u"очко", u"{{ru-noun-table|очк|о́-и*(2)}}"),
         # special case ё
         (u"весло", u"{{ru-noun-table|4|вёсл|о|вёсел}}"),
         (u"весло", u"{{ru-noun-old|4|вёсл|о|вёселъ}}"),
         (u"стекло", u"{{ru-noun-table|4|стёкл|о|стёкол}}"),
-        (u"озерцо", u"{{ru-noun-table|4|озёрц|e|озёрец}}"),
+        (u"озерцо", u"{{ru-noun-table|4|озёрц|е|озёрец}}"),
         # masculine neuter-form
         # special case (1)
         (u"сиверко", u"{{ru-noun-table|си́верк|о-и|си́верок}}"),
@@ -1348,6 +1389,10 @@ if pargs.test:
   i = 0
   for title, text in testdata:
     i += 1
+    if pargs.start and i < pargs.start:
+      continue
+    if pargs.end and i > pargs.end:
+      break
     process_page_data(i, title, text, save=pargs.save, verbose=pargs.verbose, offline=pargs.offline)
 else:
   if pargs.file:
@@ -1355,5 +1400,5 @@ else:
   else:
     do_pages = yield_ref_pages()
   for i, page in do_pages:
-      msg("Page %s %s: Processing" % (i, page))
-      process_page(i, pywikibot.Page(site, page), save=pargs.save, verbose=pargs.verbose)
+      msg("Page %s %s: Processing" % (i, unicode(page.title())))
+      process_page(i, page, save=pargs.save, verbose=pargs.verbose)
