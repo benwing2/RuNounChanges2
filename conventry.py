@@ -3,20 +3,21 @@
 
 # TODO:
 # 1. Canonicalize a=a etc. to a=an; remove a=i etc.; similarly for n=s, n=p.
+#    (DONE)
 # 2. Consider handling е́. One way is to destress it with a special variable
 #    indicating that it needs restressing as е́ not ё. Another way is just
 #    not to handle these cases and do them manually since there are only
-#    maybe 3 or 4.
-# 3. FIX: d|армянин generates армя́нин, should be d|армяни́н
-# 3a. FIX: b with ёнок and variants should be removed
-# 3b. Finish testing masculine additions
+#    maybe 3 or 4. (WON'T DO)
+# 3. d|армянин generates армя́нин, should be d|армяни́н (DONE)
+# 3a. b with ёнок and variants should be removed (DONE)
+# 3b. Finish testing masculine additions (DONE)
 # 4. Add reducible test cases. Implement some mockup of bare handling
-#    for offline testing.
-# 5. Add test cases with -а, -й, ь-я, -ья, о-ья, ъ-ья, etc. (PARTLY DONE)
-# 6. Add some adjectival test cases; at least make sure nothing changes.
-# 7. Make sure invariable cases are correctly handled.
-# 8. Test for real (online).
-# 9. Do a big run.
+#    for offline testing. (DONE)
+# 5. Add test cases with -а, -й, ь-я, -ья, ъ-ья, etc. (DONE)
+# 6. Add some adjectival test cases; at least make sure nothing changes. (DONE)
+# 7. Make sure invariable cases are correctly handled. (DONE)
+# 8. Test for real (online). (DONE)
+# 9. Do a big run. (DONE)
 
 import pywikibot, re, sys, codecs, argparse
 
@@ -60,7 +61,6 @@ conv_decl = {
     u"о":[u"о"],
     u"о-ы":[u"о", "(1)"],
     u"о-и":[u"о", "(1)"],
-    u"о-ья":[u"о", u"-ья"],
     u"е":[u"е"],
     u"е́":[u"е́"],
     u"ё":[u"ё"],
@@ -180,10 +180,16 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
       # Punt if multi-arg-set, can't handle yet
       should_continue = False
       for param in t.params:
-        if unicode(param.value) == "or":
-          pagemsg("WARNING: Can't handle multi-decl templates: %s" % unicode(t))
-          should_continue = True
-          break
+        if not param.showkey:
+          val = unicode(param.value)
+          if val == "or":
+            pagemsg("WARNING: Can't handle multi-decl templates: %s" % unicode(t))
+            should_continue = True
+            break
+          if val == "-" or val == "_" or val.startswith("join:"):
+            pagemsg("WARNING: Can't handle multi-word templates: %s" % unicode(t))
+            should_continue = True
+            break
       if should_continue:
         continue
 
@@ -208,6 +214,15 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
       if "$" in decl:
         pagemsg("WARNING: Skipping invariable decl: %s" % unicode(t))
         continue
+      if "+" in decl:
+        pagemsg("WARNING: Skipping adjectival decl: %s" % unicode(t))
+        continue
+      if "//" in lemma:
+        pagemsg("WARNING: Skipping lemma with manual translit: %s" % unicode(t))
+        continue
+      if lemma.startswith("*"):
+        pagemsg("WARNING: Skipping lemma marked as no-accent: %s" % unicode(t))
+        continue
 
       # Extract specials from decl, put into newdecl
       newdecl = ""
@@ -227,8 +242,9 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
 
       explicit_decl = False
       ending_stressed = False
-      # If remaining decl is new format (opt. GENDER then opt. -ья), do nothing
-      m = re.search(u"^([mfn]|3f|)(-ья)?$", decl)
+      # If remaining decl is new format (opt. GENDER then opt. decl variant,
+      # do nothing
+      m = re.search(u"^([mfn]|3f|)(-ья|-ин|-ишко|-ище)?$", decl)
       if m:
         newdecl = decl + newdecl
       # If slash decl, also do nothing
@@ -259,7 +275,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
           # -ин is only recognized as special when animate and in combination
           # with -анин or -янин.
           if declconv[0] in [u"ин", u"инъ"] and (not re.search("^a", getparam(t, "a"))
-              or not re.search(u"[яа́?]н", lemma.lower())):
+              or not re.search(u"[яа]́?н$", lemma.lower())):
             pagemsg("Keeping explicit decl %s: %s" % (declconv[0], unicode(t)))
             explicit_decl = True
             newdecl = declconv[0] + newdecl
@@ -349,6 +365,10 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
               newdecl += "*"
             elif bare_result == "sub-star":
               lemma = bare
+              if re.search(u"^ь", decl) and not re.search(u"ь$", lemma):
+                lemma += u"ь"
+              elif re.search(u"^ъ", decl) and not re.search(u"ъ$", lemma):
+                lemma += u"ъ"
               bare = ""
               newdecl += "*"
             else:
@@ -460,8 +480,17 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
           if newstress == ["b"]:
             newstress = []
 
+      # Remove stress b from lemmas in -ёнок and variants
+      if newstress == ["b"] and re.search(u"ёно(че)?къ?$|[" + ru.sib_c + u"]о́но(че)?къ?$", lemma.lower()):
+        newstress = []
+
+      # Convert d|армя́нин and d|гра́жданин to be ending-stressed
+      if (newstress == ["d"] and re.search(u"[яа]́?ни́?нъ?$", lemma.lower()) and
+          re.search("^a", getparam(t, "a"))):
+        lemma = ru.make_ending_stressed(lemma)
+
       # Handle spelling rules for ё/е/о after sibilants and ц
-      lemma, nsubs = re.subn("([" + ru.sib_c + u"])ё(нок|ночек|)$", ur"\1о́\2", lemma)
+      lemma, nsubs = re.subn("([" + ru.sib_c + u"])ё(нокъ?|ночекъ?|)$", ur"\1о́\2", lemma)
       if nsubs:
         pagemsg(u"Converted -ё after sibilant/ц to -о́ in %s: %s" % (
           lemma, unicode(t)))
@@ -486,7 +515,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
           pagemsg("WARNING: Not converting lemma %s with special (1) to plural: %s" % (
             lemma, unicode(t)))
         elif u"-ья" in newdecl:
-          pagemsg("WARNING: Not converting lemma %s with special -ья to plural: %s" % (
+          pagemsg(u"WARNING: Not converting lemma %s with special -ья to plural: %s" % (
             lemma, unicode(t)))
         else:
           stem, decl = lemma_to_stem_decl(lemma, newdecl)
@@ -498,7 +527,7 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
                 (lemma, unicode(t)))
             remove_n = True
           elif decl == u"е́":
-            pagemsg("WARNING: Not converting lemma %s with -е́ to plural: %s" % (
+            pagemsg(u"WARNING: Not converting lemma %s with -е́ to plural: %s" % (
               lemma, unicode(t)))
           else:
             was_stressed = ru.is_stressed(decl)
@@ -584,6 +613,31 @@ def process_page_data(index, pagetitle, pagetext, save=False, verbose=False, off
       # Compare the old declension with the new one and make sure the
       # output is the same.
       old_template = unicode(t)
+
+      # Canonicalize animacy and number while we're at it.
+      anim = getparam(t, "a")
+      if not anim:
+        pass
+      elif re.search("^a", anim):
+        t.add("a", "an")
+      elif re.search("^i", anim):
+        rmparam(t, "a")
+      elif re.search("^b", anim):
+        t.add("a", "bi")
+      else:
+        pagemsg("WARNING: Strange animacy value %s: %s" % (anim, unicode(t)))
+      num = getparam(t, "n")
+      if not num:
+        pass
+      elif re.search("^s", num):
+        t.add("n", "sg")
+      elif re.search("^p", num):
+        t.add("n", "pl")
+      elif re.search("^b", num):
+        rmparam(t, "n")
+      else:
+        pagemsg("WARNING: Strange number value %s: %s" % (num, unicode(t)))
+
       if newstress:
         new_values = [",".join(newstress), lemma, newdecl, bare, plstem]
       else:
@@ -1383,7 +1437,16 @@ testdata = [(u"яблоко", u"{{ru-noun-table|1|я́блок|о-и}}"),
         (u"письмена", u"{{ru-noun-table|2|письмёна|n}}"),
         (u"письмена", u"{{ru-noun-table|2|письмёно|n=ppp}}"),
         (u"письмена", u"{{ru-noun-table|письмён|о́|n=ppp}}"),
+        # adjectival nouns
+        (u"целко́вый", u"{{ru-noun-table|целко́вый|+}}"),
     ]
+
+def ignore_page(page):
+  if not isinstance(page, basestring):
+    page = unicode(page.title())
+  if re.search(r"^(Template|Template talk|Appendix|Appendix talk|User|User talk|Talk):", page):
+    return True
+  return False
 
 if pargs.test:
   i = 0
@@ -1400,5 +1463,8 @@ else:
   else:
     do_pages = yield_ref_pages()
   for i, page in do_pages:
+    if ignore_page(page):
+      msg("Page %s %s: Skipping due to namespace" % (i, unicode(page.title())))
+    else:
       msg("Page %s %s: Processing" % (i, unicode(page.title())))
       process_page(i, page, save=pargs.save, verbose=pargs.verbose)
