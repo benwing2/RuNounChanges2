@@ -84,7 +84,7 @@ def references(page, startsort = None, endsort = None, namespaces = None, includ
 		if endsort != None and i > endsort:
 			break
 
-		if startsort != None and i <= startsort:
+		if startsort != None and i < startsort:
 			continue
 
 		if endsort != None and not t:
@@ -114,7 +114,7 @@ def cat_articles(page, startsort = None, endsort = None):
 	for current in page.articles(startsort = startsort if not isinstance(startsort, int) else None):
 		i += 1
 
-		if startsort != None and isinstance(startsort, int) and i <= startsort:
+		if startsort != None and isinstance(startsort, int) and i < startsort:
 			continue
 
 		if endsort != None:
@@ -135,7 +135,7 @@ def cat_subcats(page, startsort = None, endsort = None):
 	for current in page.subcategories(startsort = startsort if not isinstance(startsort, int) else None):
 		i += 1
 
-		if startsort != None and isinstance(startsort, int) and i <= startsort:
+		if startsort != None and isinstance(startsort, int) and i < startsort:
 			continue
 
 		if endsort != None:
@@ -154,7 +154,7 @@ def prefix(prefix, startsort = None, endsort = None, namespace = None):
 	for current in site.prefixindex(prefix, namespace):
 		i += 1
 
-		if startsort != None and i <= startsort:
+		if startsort != None and i < startsort:
 			continue
 
 		if endsort != None and i > endsort:
@@ -168,7 +168,7 @@ def stream(st, startsort = None, endsort = None):
 	for name in st:
 		i += 1
 
-		if startsort != None and i <= startsort:
+		if startsort != None and i < startsort:
 			continue
 		if endsort != None and i > endsort:
 			break
