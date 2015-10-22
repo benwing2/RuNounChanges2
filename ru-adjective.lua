@@ -903,7 +903,7 @@ construct_bare_and_short_stem = function(args, short_accent, short_stem,
 	if not args.allow_unaccented then
 		if com.is_monosyllabic(short_stem) then
 			short_stem = com.make_ending_stressed(short_stem)
-		elseif com.need_accents(short_stem) then
+		elseif com.needs_accents(short_stem) then
 			error("Explicit short stem " .. short_stem .. " needs an accent")
 		end
 	end
