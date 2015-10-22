@@ -33,10 +33,18 @@ def process_page(index, page, save, verbose):
   for t in parsed.filter_templates():
     found_template = False
     if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb", "ru-phrase"]:
-      headword_pronuns.add(blib.remove_links(getparam(t, "1") or pagetitle))
+      tr = getparam(t, "tr")
+      if tr:
+        headword_pronuns.add("phon=" + tr)
+      else:
+        headword_pronuns.add(blib.remove_links(getparam(t, "1") or pagetitle))
       found_template = True
     elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
-      headword_pronuns.add(blib.remove_links(getparam(t, "head") or pagetitle))
+      tr = getparam(t, "tr")
+      if tr:
+        headword_pronuns.add("phon=" + tr)
+      else:
+        headword_pronuns.add(blib.remove_links(getparam(t, "head") or pagetitle))
       found_template = True
     elif unicode(t.name) == "ru-noun+":
       pagemsg("WARNING: Don't know how to handle ru-noun+ yet: %s" % unicode(t))
@@ -46,20 +54,13 @@ def process_page(index, page, save, verbose):
       return
     if found_template:
       for i in xrange(2, 10):
-        headn = getparam(t, "head" + str(i))
-        if headn:
-          headword_pronuns.add(blib.remove_links(headn))
-      if getparam(t, "tr"):
-        # FIXME, ru-IPA should take a tr parameter and use it in preference to
-        # the Cyrillic
-        pagemsg("WARNING: Don't know how to handle tr= param yet: %s" % unicode(t))
-        return
-      for i in xrange(2, 10):
         trn = getparam(t, "tr" + str(i))
         if trn:
-          pagemsg("WARNING: Don't know how to handle tr%s= param yet: %s" % (
-            i, unicode(t)))
-          return
+          headword_pronuns.add("phon=" + trn)
+        else:
+          headn = getparam(t, "head" + str(i))
+          if headn:
+            headword_pronuns.add(blib.remove_links(headn))
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
     return
