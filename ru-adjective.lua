@@ -198,6 +198,10 @@ for case, _ in pairs(short_cases) do
 	table.insert(old_cases, case)
 end
 
+-- If enabled, compare this module with new version of module to make
+-- sure all declensions are the same.
+local test_new_ru_adjective_module = true
+
 -- Forward references to functions
 local tracking_code
 local categorize
@@ -214,11 +218,13 @@ local decline_short
 --------------------------------------------------------------------------
 
 -- Implementation of main entry point
-local function generate_forms(args, old, manual)
-	PAGENAME = mw.title.getCurrentTitle().text
-	SUBPAGENAME = mw.title.getCurrentTitle().subpageText
-	NAMESPACE = mw.title.getCurrentTitle().nsText
+function export.do_generate_forms(args, old, manual)
+	local orig_args
+	if test_new_ru_adjective_module then
+		orig_args = mw.clone(args)
+	end
 
+    local SUBPAGENAME = mw.title.getCurrentTitle().subpageText
 	args.forms = {}
 	old = old or args.old
 	args.old = old
@@ -235,14 +241,7 @@ local function generate_forms(args, old, manual)
 	manual = manual or args[2] == "manual"
 	local decl_types = manual and "$" or args[2] or ""
 	for _, decl_type in ipairs(rsplit(decl_types, ",")) do
-		local lemma
-		if manual then
-			lemma = "-"
-		elseif not args[1] then
-			error("Lemma (first argument) must be specified")
-		else
-			lemma = args[1]
-		end
+		local lemma = manual and "-" or args[1] or SUBPAGENAME
 
 		-- Auto-detect actual decl type, and get short accent and overriding
 		-- short stem, if specified.
@@ -308,7 +307,7 @@ local function generate_forms(args, old, manual)
 			-- in that case we need to reduce rather than dereduce to get
 			-- the stem.
 			if short_accent or short_stem then
-				error("Cannot specify short accent or short stem with declension type " .. decl_type ..  ", as short forms aren't allowed")
+				error("Cannot specify short accent or short stem with declension type " .. decl_type .. ", as short forms aren't allowed")
 			end
 			if args[3] or args[4] or args[5] or args[6] or args.short_m or
 				args.short_f or args.short_n or args.short_p then
@@ -360,13 +359,30 @@ local function generate_forms(args, old, manual)
 
 	handle_forms_and_overrides(args, overall_short_forms_allowed)
 
+	-- Test code to compare existing module to new one.
+	if test_new_ru_adjective_module then
+		local m_new_ru_adjective = require("Module:User:Benwing2/ru-adjective")
+		local newargs = m_new_ru_adjective.do_generate_forms(orig_args, old, manual)
+		for _, case in ipairs(old_cases) do
+			local arg = args[case]
+			local newarg = newargs[case]
+			if not ut.equals(arg, newarg) then
+				-- Uncomment this to display the particular case and
+				-- differing forms.
+				--error(case .. " " .. (arg and table.concat(arg, ",") or "nil") .. " || " .. (newarg and table.concat(newarg, ",") or "nil"))
+				track("different-decl")
+			end
+			break
+		end
+	end
+
 	return args
 end
 
 -- Implementation of main entry point
 local function do_show(frame, old, manual)
 	local args = clone_args(frame)
-	local args = generate_forms(args, old, manual)
+	local args = export.do_generate_forms(args, old, manual)
 	return make_table(args) .. m_utilities.format_categories(args.categories, lang)
 end
 
@@ -428,14 +444,14 @@ function export.get_nominal_decl(decl, gender, old)
 	local intable = old and internal_notes_table_old or internal_notes_table
 	local ingenders = old and internal_notes_genders_old or internal_notes_genders
 	-- FIXME, what if there are multiple internal notes? See comment in
-	-- generate_forms().
+	-- do_generate_forms().
 	local internal_notes = ingenders[decl] and ut.contains(ingenders[decl], gender) and intable[decl]
 	return n, internal_notes
 end
 
 local function get_form(forms)
 	local canon_forms = {}
-	for _, form in forms do
+	for _, form in ipairs(forms) do
 		local entry, notes = m_table_tools.get_notes(form)
 		ut.insert_if_not(canon_forms, m_links.remove_links(entry))
 	end
@@ -445,7 +461,7 @@ end
 -- The entry point for 'ru-adj-forms' to generate all adjective forms.
 function export.generate_forms(frame)
 	local args = clone_args(frame)
-	local args = generate_forms(args, false)
+	local args = export.do_generate_forms(args, false)
 	local ins_text = {}
 	for _, case in ipairs(old_cases) do
 		if args.forms[case] then
@@ -465,7 +481,7 @@ function export.generate_form(frame)
 	if not ut.contains(old_cases, form) then
 		error("Unrecognized form " .. form)
 	end
-	local args = generate_forms(args, false)
+	local args = export.do_generate_forms(args, false)
 	if not args.forms[form] then
 		return ""
 	else
@@ -836,7 +852,7 @@ end
 
 -- Construct bare form. Return nil if unable.
 local function dereduce_stem(accented_stem, short_accent, old, decl)
-	local ret = com.dereduce_stem(accented_stem, rfind(short_accent, "^b"))
+	local ret = com.dereduce_stem(accented_stem, nil, rfind(short_accent, "^b"))
 	if not ret then
 		return nil
 	end
@@ -1057,25 +1073,26 @@ declensions["ой"] = {
 	["pre_p"] = "ы́х",
 }
 
+-- These can be stressed in ничья́ "draw, tie (in sports)".
 declensions["ьий"] = {
-	["nom_m"] = "ий",
-	["nom_n"] = "ье",
-	["nom_f"] = "ья",
-	["nom_p"] = "ьи",
-	["gen_m"] = "ьего",
-	["gen_f"] = "ьей",
-	["gen_p"] = "ьих",
-	["dat_m"] = "ьему",
-	["dat_f"] = "ьей",
-	["dat_p"] = "ьим",
-	["acc_f"] = "ью",
-	["acc_n"] = "ье",
-	["ins_m"] = "ьим",
-	["ins_f"] = {"ьей", "ьею"},
-	["ins_p"] = "ьими",
-	["pre_m"] = "ьем",
-	["pre_f"] = "ьей",
-	["pre_p"] = "ьих",
+	["nom_m"] = "и́й",
+	["nom_n"] = "ье́",
+	["nom_f"] = "ья́",
+	["nom_p"] = "ьи́",
+	["gen_m"] = "ье́го",
+	["gen_f"] = "ье́й",
+	["gen_p"] = "ьи́х",
+	["dat_m"] = "ье́му",
+	["dat_f"] = "ье́й",
+	["dat_p"] = "ьи́м",
+	["acc_f"] = "ью́",
+	["acc_n"] = "ье́",
+	["ins_m"] = "ьи́м",
+	["ins_f"] = {"ье́й", "ье́ю"},
+	["ins_p"] = "ьи́ми",
+	["pre_m"] = "ье́м",
+	["pre_f"] = "ье́й",
+	["pre_p"] = "ьи́х",
 }
 
 declensions["short"] = {
