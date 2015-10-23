@@ -18,6 +18,14 @@ def msg(text):
 def errmsg(text):
   print >>sys.stderr, text.encode("utf-8")
 
+def arg1_is_stress(arg1):
+  if not arg1:
+    return False
+  for arg in re.split(",", arg1):
+    if not (re.search("^[a-f]'?'?$", arg) or re.search(r"^[1-6]\*?$", arg)):
+      return False
+  return True
+
 def process_page(templates, index, page, save=False, verbose=False):
   pagetitle = unicode(page.title())
   def pagemsg(txt):
@@ -32,6 +40,7 @@ def process_page(templates, index, page, save=False, verbose=False):
   should_save = False
 
   for t in parsed.filter_templates():
+
     if unicode(t.name) in templates:
       origt = unicode(t)
       # Punt if multi-arg-set, can't handle yet
@@ -50,19 +59,25 @@ def process_page(templates, index, page, save=False, verbose=False):
       if should_continue:
         continue
 
-      plstem = getparam(t, "5")
+      if arg1_is_stress(getparam(t, "1")):
+        oldplarg = "5"
+        newplarg = "4"
+      else:
+        oldplarg = "4"
+        newplarg = "3"
+      plstem = getparam(t, oldplarg)
       if plstem:
-        if getparam(t, "4"):
-          pagemsg("WARNING: Something wrong, found args in both positions 4 and 5: %s" %
-              unicode(t))
+        if getparam(t, newplarg):
+          pagemsg("WARNING: Something wrong, found args in both positions %s and %s: %s" %
+              (newplarg, oldplarg, unicode(t)))
           continue
-        rmparam(t, "5")
-        t.add("4", plstem)
+        rmparam(t, oldplarg)
+        t.add(newplarg, plstem)
         should_save = True
         pagemsg("Replacing %s with %s" % (origt, unicode(t)))
 
   if should_save:
-    comment = "Move plstem from 5th argument to 4th"
+    comment = "Move plstem from 5th/4th argument to 4th/3rd"
     if save:
       pagemsg("Saving with comment = %s" % comment)
       page.text = unicode(parsed)
