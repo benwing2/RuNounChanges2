@@ -122,3 +122,34 @@ def make_beginning_stressed(word):
   word = make_unstressed_once_at_beginning(word)
   word = re.sub("^([^" + vowel + "]*)([" + vowel_no_jo + "])", ur"\1\2́", word)
   return correct_grave_acute_clash(word)
+
+def try_to_stress(word):
+  if is_unstressed(word) and is_monosyllabic(word):
+    return make_ending_stressed(word)
+  else:
+    return word
+
+def add_soft_sign(stem):
+  if re.search("[" + vowels + "]$", stem):
+    return stem + u"й"
+  else:
+    return stem + u"ь"
+
+def add_hard_neuter(stem):
+  if re.search("[" + sib_c + "]$", stem):
+    return stem + u"е"
+  else:
+    return stem + u"о"
+
+def do_assert(cond, msg=None):
+  if msg:
+    assert cond, msg
+  else:
+    assert cond
+  return True
+
+def remove_links(text):
+  # eliminate [[FOO| in [[FOO|BAR]], and then remaining [[ and ]]
+  text = re.sub(r"\[\[[^|\[\]]*\|", "", text)
+  text = re.sub(r"\[\[|\]\]", "", text)
+  return text
