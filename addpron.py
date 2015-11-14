@@ -10,6 +10,10 @@ import rulib as ru
 
 site = pywikibot.Site()
 
+vowel_list = u"aeiouyɛəäëöü"
+ipa_vowel_list = vowel_list + u"ɐɪʊɨæɵʉ"
+non_ipa_vowels_re = "[^" + ipa_vowel_list + "]"
+
 def msg(text):
   print text.encode("utf-8")
 
@@ -116,9 +120,34 @@ def process_page(index, page, save, verbose):
             pronun)
     pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
 
+  def compute_ipa():
+    computed_ipa = {}
+    for pronun in headword_pronuns:
+      result = expand_text("{{#invoke:ru-pron|ipa|%s}}" % pronun)
+      if not result:
+        return False
+      computed_ipa[pronun] = result
+    return computed_ipa
+
+  def ipa_matches(headword, manual, auto):
+    orig_auto = auto
+    orig_manual = manual
+    manual = re.sub(r"[\[\]/.]", "", manual)
+    if auto == manual:
+      return True
+    if (len(re.sub(non_ipa_vowels_re, "", manual)) == 1 and
+        len(re.sub(non_ipa_vowels_re, "", auto)) == 1):
+      auto = re.sub(u"ˈ", "", auto)
+      manual = re.sub(u"ˈ", "", manual)
+      if auto == manual:
+        return True
+    return "For headword %s, auto %s%s not same as manual %s%s" % (
+      headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
+      manual, orig_manual != manual and " (%s)" % orig_manual or "")
+
   foundrussian = False
   sections = re.split("(^==[^=]*==\n)", text, 0, re.M)
-  newtext = text
+  orig_text = text
   for j in xrange(2, len(sections), 2):
     if sections[j-1] == "==Russian==\n":
       if foundrussian:
@@ -126,6 +155,52 @@ def process_page(index, page, save, verbose):
         return
       foundrussian = True
       foundpronuns = []
+      parsed = blib.parse_text(sections[j])
+      ipa_templates = []
+      for t in parsed.filter_templates():
+        if unicode(t.name) == "ru-pre-reform":
+          pagemsg("Found pre-reform template, skipping")
+          return
+        if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
+          ipa_templates.append(t)
+      if ipa_templates:
+        computed_ipa = compute_ipa()
+        num_replaced = 0
+        if not computed_ipa:
+          # Error occurred computing IPA of headwords
+          return
+        for ipa_template in ipa_templates:
+          mismatch_msgs = []
+          for headword, autoipa in computed_ipa.items():
+            retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa)
+            if retval == True:
+              orig_ipa_template = unicode(ipa_template)
+              rmparam(ipa_template, "lang")
+              rmparam(ipa_template, "1")
+              if len(ipa_template.params) > 0:
+                pagemsg("WARNING: IPA template has extraneous parameters, skipping: %s" %
+                    orig_ipa_template)
+                return
+              ipa_template.name = "ru-IPA"
+              ipa_template.add("1", headword)
+              pagemsg("Replaced %s with %s" % (
+                orig_ipa_template, unicode(ipa_template)))
+              num_replaced += 1
+              mismatch_msgs = []
+              break
+            else:
+              mismatch_msgs.append(retval)
+          if mismatch_msgs:
+            for m in mismatch_msgs:
+              pagemsg(m)
+        if num_replaced > 0:
+          sections[j] = unicode(parsed)
+          text = "".join(sections)
+        if num_replaced < len(ipa_templates):
+          pagemsg("Unable to replace %s of %s raw IPA template(s)" % (
+            len(ipa_templates) - num_replaced, len(ipa_templates)))
+        continue
+
       for m in re.finditer(r"(\{\{ru-IPA\|([^}]*)\}\})", sections[j]):
         pagemsg("Already found pronunciation template: %s" % m.group(1))
         foundpronuns.append(m.group(2))
@@ -147,6 +222,12 @@ def process_page(index, page, save, verbose):
       if re.search(r"^===Etymology [0-9]+===$", sections[j], re.M):
         pagemsg("WARNING: Found multiple etymology sections, can't handle yet")
         return
+
+      if latin_char_msgs:
+        for latinmsg in latin_char_msgs:
+          pagemsg(latinmsg)
+          return
+
       if re.search(r"^===Etymology===$", sections[j], re.M):
         sections[j] = re.sub(r"(^===Etymology===\n.*?\n)(==)", r"\1%s\2" % pronunsection, sections[j], 1, re.M | re.S)
       elif re.search(r"^===Alternative forms===$", sections[j], re.M):
@@ -155,28 +236,26 @@ def process_page(index, page, save, verbose):
         sections[j] = re.sub(r"(^===)", r"%s\1" % pronunsection, sections[j], 1, re.M)
       sections[j] = re.sub("^===", "\n===", sections[j], 1)
       newtext = "".join(sections)
-      if latin_char_msgs:
-        for latinmsg in latin_char_msgs:
-          pagemsg(latinmsg)
+      if newtext == text:
+        pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
+        return
+      text = newtext
 
   if not foundrussian:
     pagemsg("WARNING: Can't find Russian section")
     return
 
-  if text == newtext:
-    pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
-    return
+  if orig_text != text:
+    if verbose:
+      pagemsg("Replacing [[%s]] with [[%s]]" % (orig_text, text))
 
-  if verbose:
-    pagemsg("Replacing [[%s]] with [[%s]]" % (text, newtext))
-
-  comment = "Add pronunciation %s" % ",".join(headword_pronuns)
-  if save:
-    pagemsg("Saving with comment = %s" % comment)
-    page.text = newtext
-    page.save(comment=comment)
-  else:
-    pagemsg("Would save with comment = %s" % comment)
+    comment = "Add pronunciation %s" % ",".join(headword_pronuns)
+    if save:
+      pagemsg("Saving with comment = %s" % comment)
+      page.text = text
+      page.save(comment=comment)
+    else:
+      pagemsg("Would save with comment = %s" % comment)
 
 parser = argparse.ArgumentParser(description="Add pronunciation sections to Russian Wiktionary entries")
 parser.add_argument('--pagefile', help="File containing pages to process, one per line")
