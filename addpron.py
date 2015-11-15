@@ -24,6 +24,12 @@ def errmsg(text):
 def contains_latin(text):
   return re.search(u"[0-9a-zščžáéíóúýàèìòùỳɛ]", text.lower())
 
+def contains_non_cyrillic(text):
+  # 0300 = grave, 0301 = acute, 0302 = circumflex, 0308 = diaeresis
+  # We also include basic punctuation as well as IPA chars ɣ ɕ ʑ, which
+  # we allow in Cyrillic pronunciation
+  return re.sub(ur"[\u0300\u0301\u0302\u0308 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗ]", "", text) != ""
+
 def process_page(index, page, save, verbose):
   pagetitle = unicode(page.title())
   def pagemsg(txt):
@@ -120,6 +126,10 @@ def process_page(index, page, save, verbose):
       latin_char_msgs.append(
           "WARNING: Pronunciation %s to be added contains Latin chars" %
             pronun)
+    elif contains_non_cyrillic(pronun):
+      latin_char_msgs.append(
+          "WARNING: Pronunciation %s to be added contains non-Cyrillic non-Latin chars" %
+            pronun)
     pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
 
   def compute_ipa():
@@ -147,6 +157,10 @@ def process_page(index, page, save, verbose):
     manual = re.sub(u"ɐː", u"ɐɐ", manual)
     manual = re.sub(u"ɛ̝", u"ɛ", manual)
     manual = re.sub(u"e̞", u"e", manual)
+    # Convert regular g to IPA ɡ (looks same but different char)
+    manual = re.sub("g", u"ɡ", manual)
+    # Both ɡ's below are IPA ɡ's
+    manual = re.sub(u"ŋɡ", u"nɡ", manual)
     manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
     # If both auto and manual are monosyllabic, canonicalize by
     # removing primary accent
@@ -199,6 +213,9 @@ def process_page(index, page, save, verbose):
         if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
           ipa_templates.append(t)
       if ipa_templates:
+        pagemsg("Processing raw IPA %s for headword(s) %s" % (
+          "++".join([unicode(x) for x in ipa_templates]),
+          "++".join(headword_pronuns)))
         computed_ipa = compute_ipa()
         num_replaced = 0
         if not computed_ipa:
