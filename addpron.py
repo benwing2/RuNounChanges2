@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pywikibot, re, sys, codecs, argparse
+import difflib
 
 import blib
 from blib import getparam, rmparam
@@ -108,6 +109,7 @@ def process_page(index, page, save, verbose):
     pagemsg("WARNING: Can't find headword template")
     return
   headword_pronuns = sorted(list(headword_pronuns))
+  subbed_ipa_pronuns = []
   pronun_lines = []
   latin_char_msgs = []
   for pronun in headword_pronuns:
@@ -134,16 +136,49 @@ def process_page(index, page, save, verbose):
     orig_manual = manual
     manual = re.sub(r"[\[\]/.]", "", manual)
     if auto == manual:
+      pagemsg("For headword %s, %s equal to %s" % (headword,
+        "auto %s" % auto if auto == orig_auto else
+          "canon auto %s (orig %s)" % (auto, orig_auto),
+        "manual" if manual == orig_manual else
+          "canon manual (orig %s)" % (orig_manual)))
       return True
+    manual = re.sub(u"ᵻ", u"ɨ", manual)
+    manual = re.sub(u"(^| )ə", ur"\1ɐ", manual)
+    manual = re.sub(u"ɐː", u"ɐɐ", manual)
+    manual = re.sub(u"ɛ̝", u"ɛ", manual)
+    manual = re.sub(u"e̞", u"e", manual)
+    manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
+    # If both auto and manual are monosyllabic, canonicalize by
+    # removing primary accent
     if (len(re.sub(non_ipa_vowels_re, "", manual)) == 1 and
         len(re.sub(non_ipa_vowels_re, "", auto)) == 1):
       auto = re.sub(u"ˈ", "", auto)
       manual = re.sub(u"ˈ", "", manual)
-      if auto == manual:
-        return True
-    return "For headword %s, auto %s%s not same as manual %s%s" % (
+    # Canonicalize by moving stress at the beginning of all consonant
+    # clusters
+    auto = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", auto)
+    manual = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manual)
+    if auto == manual:
+      pagemsg("For headword %s, %s equal to %s" % (headword,
+        "auto %s" % auto if auto == orig_auto else
+          "canon auto %s (orig %s)" % (auto, orig_auto),
+        "manual" if manual == orig_manual else
+          "canon manual (orig %s)" % (orig_manual)))
+      return True
+    seqmatch = difflib.SequenceMatcher(None, auto, manual)
+    changes = []
+    for tag, i1, i2, j1, j2 in seqmatch.get_opcodes():
+      if tag == "delete":
+        changes.append("delete %s at %s" % (auto[i1:i2], i1))
+      elif tag == "replace":
+        changes.append("replace %s -> %s at %s" % (auto[i1:i2], manual[j1:j2],
+          i1))
+      elif tag == "insert":
+        changes.append("insert %s at %s" % (manual[j1:j2], i1))
+    return "WARNING: For headword %s, auto %s%s not same as manual %s%s: %s" % (
       headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
-      manual, orig_manual != manual and " (%s)" % orig_manual or "")
+      manual, orig_manual != manual and " (%s)" % orig_manual or "",
+      ", ".join(changes))
 
   foundrussian = False
   sections = re.split("(^==[^=]*==\n)", text, 0, re.M)
@@ -187,6 +222,7 @@ def process_page(index, page, save, verbose):
                 orig_ipa_template, unicode(ipa_template)))
               num_replaced += 1
               mismatch_msgs = []
+              subbed_ipa_pronuns.append(headword)
               break
             else:
               mismatch_msgs.append(retval)
@@ -249,7 +285,11 @@ def process_page(index, page, save, verbose):
     if verbose:
       pagemsg("Replacing [[%s]] with [[%s]]" % (orig_text, text))
 
-    comment = "Add pronunciation %s" % ",".join(headword_pronuns)
+    if subbed_ipa_pronuns:
+      comment = "Replace {{IPA|...}} with {{ru-IPA|...}} for %s" % (
+          ",".join(subbed_ipa_pronuns))
+    else:
+      comment = "Add pronunciation %s" % ",".join(headword_pronuns)
     if save:
       pagemsg("Saving with comment = %s" % comment)
       page.text = text
