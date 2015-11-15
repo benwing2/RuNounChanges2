@@ -13,7 +13,16 @@ site = pywikibot.Site()
 
 vowel_list = u"aeiouyɛəäëöü"
 ipa_vowel_list = vowel_list + u"ɐɪʊɨæɵʉ"
+ipa_vowels_re = "[" + ipa_vowel_list + "]"
+ipa_vowels_c = "([" + ipa_vowel_list + "])"
 non_ipa_vowels_re = "[^" + ipa_vowel_list + "]"
+
+cons_assim_palatal = {
+    'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ',
+      u't͡ssʲ', u'd͡zzʲ']),
+    'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'tnʲ', u'dnʲ',
+      u'nsʲ', u'nzʲ'])
+}
 
 def msg(text):
   print text.encode("utf-8")
@@ -30,14 +39,9 @@ def contains_non_cyrillic(text):
   # we allow in Cyrillic pronunciation
   return re.sub(ur"[\u0300\u0301\u0302\u0308 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗ]", "", text) != ""
 
-def process_page(index, page, save, verbose):
-  pagetitle = unicode(page.title())
+def process_page_text(index, text, pagetitle, verbose):
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
-
-  if not page.exists():
-    pagemsg("WARNING: Page doesn't exist")
-    return
 
   def expand_text(tempcall):
     if verbose:
@@ -51,7 +55,6 @@ def process_page(index, page, save, verbose):
       return False
     return result
 
-  text = unicode(page.text)
   parsed = blib.parse_text(text)
 
   # Get the headword pronunciation(s)
@@ -86,7 +89,7 @@ def process_page(index, page, save, verbose):
       generate_result = expand_text(generate_template)
       if not generate_result:
         pagemsg("WARNING: Error generating noun forms")
-        return
+        return None, None
       args = {}
       for arg in re.split(r"\|", generate_result):
         name, value = re.split("=", arg)
@@ -113,7 +116,7 @@ def process_page(index, page, save, verbose):
             headword_pronuns.add(blib.remove_links(headn))
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
-    return
+    return None, None
   headword_pronuns = sorted(list(headword_pronuns))
   subbed_ipa_pronuns = []
   pronun_lines = []
@@ -121,7 +124,7 @@ def process_page(index, page, save, verbose):
   for pronun in headword_pronuns:
     if ru.needs_accents(pronun):
       pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
-      return
+      return None, None
     if contains_latin(pronun):
       latin_char_msgs.append(
           "WARNING: Pronunciation %s to be added contains Latin chars" %
@@ -154,24 +157,78 @@ def process_page(index, page, save, verbose):
       return True
     manual = re.sub(u"ᵻ", u"ɨ", manual)
     manual = re.sub(u"(^| )ə", ur"\1ɐ", manual)
-    manual = re.sub(u"ɐː", u"ɐɐ", manual)
+    manual = re.sub(u"[ɐə]ː", u"ɐɐ", manual)
     manual = re.sub(u"ɛ̝", u"ɛ", manual)
     manual = re.sub(u"e̞", u"e", manual)
+    manual = re.sub(u"ɪ̝", u"ɪ", manual)
+    manual = re.sub(u"ɘ", u"ə", manual)
+    manual = re.sub(u"'", u"ˈ", manual)
+    manual = re.sub(u"ɑ", "a", manual)
     # Convert regular g to IPA ɡ (looks same but different char)
     manual = re.sub("g", u"ɡ", manual)
     # Both ɡ's below are IPA ɡ's
     manual = re.sub(u"ŋɡ", u"nɡ", manual)
     manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
+
+    # Convert some instances of ˈ (earlier converted from to ') to ʲ --
+    # after a palatalizable consonant, before a vowel or end of word;
+    # ɡ is IPA ɡ
+    manual = re.sub(ur"([dtbpkɡszfvrlmn])ˈ(ː?)($| |" + ipa_vowels_re + ")", ur"\1ʲ\2\3", manual)
+
     # If both auto and manual are monosyllabic, canonicalize by
     # removing primary accent
     if (len(re.sub(non_ipa_vowels_re, "", manual)) == 1 and
         len(re.sub(non_ipa_vowels_re, "", auto)) == 1):
       auto = re.sub(u"ˈ", "", auto)
       manual = re.sub(u"ˈ", "", manual)
+
+    
     # Canonicalize by moving stress at the beginning of all consonant
     # clusters
     auto = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", auto)
     manual = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manual)
+
+    # Fix bug in auto
+    auto = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", auto)
+
+    # palatalization and gemination need to be in the right order
+    # Fix bug in auto
+    auto = re.sub(u"ːʲ", u"ʲː", auto)
+    manual = re.sub(u"ːʲ", u"ʲː", manual)
+
+    # palatalization needed before high vowels and ɵ; note, ɡ is IPA ɡ
+    manual = re.sub(ur"([dtbpkɡszfvrlmn])(ː?[ɪiɵæ])", ur"\1ʲ\2", manual)
+
+    # Apply optional and compulsory palatal assimilation to manual
+    def apply_tn_dn_assim_palatal(m):
+      a, b, c = m.groups()
+      if a == '':
+         return a + b + u'ʲ' + c
+      else:
+        return a + b + u'⁽ʲ⁾' + c
+
+    # Optional (j) before ɪ
+    manual = re.sub(u"(^| )jɪ", ur"\1(j)ɪ", manual)
+    manual = re.sub(ipa_vowels_c + u"([‿-]?)jɪ", ur"\1\2(j)ɪ", manual)
+
+    # consonant assimilative palatalisation of tn/dn, depending on
+    # whether [rl] precedes
+    manual = re.sub(u'([rl]?)([ˈˌ]?[dt])([ˈˌ]?nʲ)', apply_tn_dn_assim_palatal,
+        manual)
+
+    def apply_assim_palatal(m):
+      a, b, c = m.groups()
+      if a + c in cons_assim_palatal['compulsory']:
+        return a + u'ʲ' + b + c
+      elif a + c in cons_assim_palatal['optional']:
+        return a + u'⁽ʲ⁾' + b + c
+      else:
+        return a + b + c
+
+    #apply general consonant assimilative palatalisation
+    manual = re.sub(u'(t͡s|d͡z|[szntd])([ˈˌ]?)(t͡ɕ|[tdǰɕlnsz]ʲ?)', apply_assim_palatal,
+      manual)
+
     if auto == manual:
       pagemsg("For headword %s, %s equal to %s" % (headword,
         "auto %s" % auto if auto == orig_auto else
@@ -201,7 +258,7 @@ def process_page(index, page, save, verbose):
     if sections[j-1] == "==Russian==\n":
       if foundrussian:
         pagemsg("WARNING: Found multiple Russian sections")
-        return
+        return None, None
       foundrussian = True
       foundpronuns = []
       parsed = blib.parse_text(sections[j])
@@ -209,7 +266,7 @@ def process_page(index, page, save, verbose):
       for t in parsed.filter_templates():
         if unicode(t.name) == "ru-pre-reform":
           pagemsg("Found pre-reform template, skipping")
-          return
+          return None, None
         if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
           ipa_templates.append(t)
       if ipa_templates:
@@ -220,7 +277,7 @@ def process_page(index, page, save, verbose):
         num_replaced = 0
         if not computed_ipa:
           # Error occurred computing IPA of headwords
-          return
+          return None, None
         for ipa_template in ipa_templates:
           mismatch_msgs = []
           for headword, autoipa in computed_ipa.items():
@@ -232,7 +289,7 @@ def process_page(index, page, save, verbose):
               if len(ipa_template.params) > 0:
                 pagemsg("WARNING: IPA template has extraneous parameters, skipping: %s" %
                     orig_ipa_template)
-                return
+                return None, None
               ipa_template.name = "ru-IPA"
               ipa_template.add("1", headword)
               pagemsg("Replaced %s with %s" % (
@@ -267,19 +324,19 @@ def process_page(index, page, save, verbose):
           if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
             pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit" %
                 (joined_foundpronuns, joined_headword_pronuns))
-        return
+        return None, None
       if re.search(r"^===+Pronunciation===+$", sections[j], re.M):
         pagemsg("WARNING: Found pronunciation section without ru-IPA")
-        return
+        return None, None
       pronunsection = "===Pronunciation===\n%s\n" % "".join(pronun_lines)
       if re.search(r"^===Etymology [0-9]+===$", sections[j], re.M):
         pagemsg("WARNING: Found multiple etymology sections, can't handle yet")
-        return
+        return None, None
 
       if latin_char_msgs:
         for latinmsg in latin_char_msgs:
           pagemsg(latinmsg)
-          return
+          return None, None
 
       if re.search(r"^===Etymology===$", sections[j], re.M):
         sections[j] = re.sub(r"(^===Etymology===\n.*?\n)(==)", r"\1%s\2" % pronunsection, sections[j], 1, re.M | re.S)
@@ -291,31 +348,47 @@ def process_page(index, page, save, verbose):
       newtext = "".join(sections)
       if newtext == text:
         pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
-        return
+        return None, None
       text = newtext
 
   if not foundrussian:
     pagemsg("WARNING: Can't find Russian section")
+    return None, None
+
+  if subbed_ipa_pronuns:
+    comment = "Replace {{IPA|...}} with {{ru-IPA|...}} for %s" % (
+        ",".join(subbed_ipa_pronuns))
+  else:
+    comment = "Add pronunciation %s" % ",".join(headword_pronuns)
+  return text, comment
+
+def process_page(index, page, save, verbose):
+  pagetitle = unicode(page.title())
+
+  def pagemsg(txt):
+    msg("Page %s %s: %s" % (index, pagetitle, txt))
+
+  if not page.exists():
+    pagemsg("WARNING: Page doesn't exist")
     return
 
-  if orig_text != text:
-    if verbose:
-      pagemsg("Replacing [[%s]] with [[%s]]" % (orig_text, text))
+  text = unicode(page.text)
+  newtext, comment = process_page_text(index, text, pagetitle, verbose)
 
-    if subbed_ipa_pronuns:
-      comment = "Replace {{IPA|...}} with {{ru-IPA|...}} for %s" % (
-          ",".join(subbed_ipa_pronuns))
-    else:
-      comment = "Add pronunciation %s" % ",".join(headword_pronuns)
+  if newtext and newtext != text:
+    if verbose:
+      pagemsg("Replacing [[%s]] with [[%s]]" % (text, newtext))
+
     if save:
       pagemsg("Saving with comment = %s" % comment)
-      page.text = text
+      page.text = newtext
       page.save(comment=comment)
     else:
       pagemsg("Would save with comment = %s" % comment)
 
 parser = argparse.ArgumentParser(description="Add pronunciation sections to Russian Wiktionary entries")
 parser.add_argument('--pagefile', help="File containing pages to process, one per line")
+parser.add_argument('--tempfile', help="File containing templates and headwords for quick offline reprocessing, one per line")
 parser.add_argument('start', help="Starting page index", nargs="?")
 parser.add_argument('end', help="Ending page index", nargs="?")
 parser.add_argument('--save', action="store_true", help="Save results")
@@ -328,6 +401,32 @@ if args.pagefile:
   for i, page in blib.iter_items(pages, start, end):
     msg("Page %s %s: Processing" % (i, page))
     process_page(i, pywikibot.Page(site, page), args.save, args.verbose)
+
+elif args.tempfile:
+  lines = [x.strip() for x in codecs.open(args.tempfile, "r", "utf-8")]
+  for line in lines:
+    m = re.search(r"^Page ([0-9]+) (.*?): Processing raw IPA (.*) for headword\(s\) (.*)$", line)
+    if not m:
+      msg("WARNING: Unrecognized line: %s" % line)
+    else:
+      index, pagetitle, ipa_templates, headwords = m.groups()
+      ipa_templates = re.split(r"\+\+", ipa_templates)
+      headwords = re.split(r"\+\+", headwords)
+      headword_args = []
+      for i in xrange(len(headwords)):
+        if i == 0:
+          headword_args.append(headwords[i])
+        else:
+          headword_args.append("head%s=%s" % (i+1, headwords[i]))
+      text = """
+==Russian==
+
+%s
+
+{{ru-noun|%s}}
+""" % ("\n".join(ipa_templates), "|".join(headword_args))
+      process_page_text(index, text, pagetitle, args.verbose)
+
 else:
   for category in ["Russian lemmas", "Russian non-lemma forms"]:
     msg("Processing category: %s" % category)
