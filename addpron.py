@@ -15,7 +15,8 @@ vowel_list = u"aeiouyɛəäëöü"
 ipa_vowel_list = vowel_list + u"ɐɪʊɨæɵʉ"
 ipa_vowels_re = "[" + ipa_vowel_list + "]"
 ipa_vowels_c = "([" + ipa_vowel_list + "])"
-non_ipa_vowels_re = "[^" + ipa_vowel_list + "]"
+non_ipa_vowels_re = "[^ " + ipa_vowel_list + "]"
+non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 
 cons_assim_palatal = {
     'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ',
@@ -61,7 +62,7 @@ def process_page_text(index, text, pagetitle, verbose):
   headword_pronuns = set()
   for t in parsed.filter_templates():
     found_template = False
-    if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb", "ru-phrase"]:
+    if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb", "ru-phrase", "ru-noun form"]:
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
@@ -144,7 +145,7 @@ def process_page_text(index, text, pagetitle, verbose):
       computed_ipa[pronun] = result
     return computed_ipa
 
-  def ipa_matches(headword, manual, auto):
+  def ipa_matches(headword, manual, auto, ipa_templates_msg):
     orig_auto = auto
     orig_manual = manual
     manual = re.sub(r"[\[\]/.]", "", manual)
@@ -155,79 +156,125 @@ def process_page_text(index, text, pagetitle, verbose):
         "manual" if manual == orig_manual else
           "canon manual (orig %s)" % (orig_manual)))
       return True
+
     manual = re.sub(u"ᵻ", u"ɨ", manual)
-    manual = re.sub(u"(^| )ə", ur"\1ɐ", manual)
-    manual = re.sub(u"[ɐə]ː", u"ɐɐ", manual)
     manual = re.sub(u"ɛ̝", u"ɛ", manual)
     manual = re.sub(u"e̞", u"e", manual)
     manual = re.sub(u"ɪ̝", u"ɪ", manual)
+    manual = re.sub(u"ɨ̞", u"ɨ", manual)
     manual = re.sub(u"ɘ", u"ə", manual)
-    manual = re.sub(u"'", u"ˈ", manual)
     manual = re.sub(u"ɑ", "a", manual)
+    manual = re.sub(u"ʌ", u"ɐ", manual)
+    manual = re.sub(u"'", u"ˈ", manual)
+    manual = re.sub(u"ɫ", "l", manual)
     # Convert regular g to IPA ɡ (looks same but different char)
     manual = re.sub("g", u"ɡ", manual)
     # Both ɡ's below are IPA ɡ's
     manual = re.sub(u"ŋɡ", u"nɡ", manual)
     manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
+    manual = re.sub(u"ntsk", u"n(t)sk", manual)
+    # Canonicalize spaces and hyphens in manual
+    manual = re.sub(r"^[\s\-]+", "", manual)
+    manual = re.sub(r"[\s\-]+$", "", manual)
+    manual = re.sub(r"[\s\-]+", " ", manual)
 
-    # Convert some instances of ˈ (earlier converted from to ') to ʲ --
-    # after a palatalizable consonant, before a vowel or end of word;
-    # ɡ is IPA ɡ
-    manual = re.sub(ur"([dtbpkɡszfvrlmn])ˈ(ː?)($| |" + ipa_vowels_re + ")", ur"\1ʲ\2\3", manual)
+    autowords = re.split(" ", auto)
+    manwords = re.split(" ", manual)
+    if len(autowords) != len(manwords):
+      return "WARNING: For headword %s, auto %s%s not same as manual %s%s: different number of words (auto %s vs manual %s): %s" % (
+        headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
+        manual, orig_manual != manual and " (%s)" % orig_manual or "",
+        len(autowords), len(manwords), ipa_templates_msg)
+    for j in xrange(len(autowords)):
+      autoword = autowords[j]
+      manword = manwords[j]
+      auto_monosyllabic = len(re.sub(non_ipa_vowels_re, "", autoword)) == 1
+      man_monosyllabic = len(re.sub(non_ipa_vowels_re, "", manword)) == 1
 
-    # If both auto and manual are monosyllabic, canonicalize by
-    # removing primary accent
-    if (len(re.sub(non_ipa_vowels_re, "", manual)) == 1 and
-        len(re.sub(non_ipa_vowels_re, "", auto)) == 1):
-      auto = re.sub(u"ˈ", "", auto)
-      manual = re.sub(u"ˈ", "", manual)
+      # If both auto and manual are monosyllabic, canonicalize by
+      # removing primary accent
+      if auto_monosyllabic and man_monosyllabic:
+        autoword = re.sub(u"ˈ", "", autoword)
+        manword = re.sub(u"ˈ", "", manword)
 
-    
-    # Canonicalize by moving stress at the beginning of all consonant
-    # clusters
-    auto = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", auto)
-    manual = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manual)
+      # Convert some instances of ˈ (earlier converted from to ') to ʲ --
+      # after a palatalizable consonant, before a vowel or end of word;
+      # ɡ is IPA ɡ; do this before moving stress to beginning of cons clusters
+      manword = re.sub(ur"([dtbpkɡszfvrlmn])ˈ(ː?)($|" + ipa_vowels_re + ")",
+          ur"\1ʲ\2\3", manword)
 
-    # Fix bug in auto
-    auto = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", auto)
+      # Canonicalize by moving stress at the beginning of all consonant
+      # clusters
+      autoword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", autoword)
+      manword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manword)
 
-    # palatalization and gemination need to be in the right order
-    # Fix bug in auto
-    auto = re.sub(u"ːʲ", u"ʲː", auto)
-    manual = re.sub(u"ːʲ", u"ʲː", manual)
+      # ɐ vs. ə fixes
+      manword = re.sub(u"(^| )ə", ur"\1ɐ", manword)
+      manword = re.sub(u"[ɐə]ː", u"ɐɐ", manword)
+      manword = re.sub(u"[ɐə][ɐə]", u"ɐɐ", manword)
+      manword = re.sub(u"əˈ", u"ɐˈ", manword)
 
-    # palatalization needed before high vowels and ɵ; note, ɡ is IPA ɡ
-    manual = re.sub(ur"([dtbpkɡszfvrlmn])(ː?[ɪiɵæ])", ur"\1ʲ\2", manual)
+      # i vs. ɪ fixes: i when stressed, ɪ otherwise; same for u vs. ʊ
+      if not man_monosyllabic:
+        # Convert all i to ɪ, then back to i in stressed syllables
+        manword = re.sub(u"i", u"ɪ", manword)
+        manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ɪ", r"\1i", manword)
+        # Convert all u to ʊ, then back to u in stressed syllables
+        manword = re.sub(u"u", u"ʊ", manword)
+        manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ʊ", r"\1u", manword)
 
-    # Apply optional and compulsory palatal assimilation to manual
-    def apply_tn_dn_assim_palatal(m):
-      a, b, c = m.groups()
-      if a == '':
-         return a + b + u'ʲ' + c
-      else:
-        return a + b + u'⁽ʲ⁾' + c
+      # Fix bug in auto
+      autoword = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", autoword)
 
-    # Optional (j) before ɪ
-    manual = re.sub(u"(^| )jɪ", ur"\1(j)ɪ", manual)
-    manual = re.sub(ipa_vowels_c + u"([‿-]?)jɪ", ur"\1\2(j)ɪ", manual)
+      # palatalization and gemination need to be in the right order
+      # Fix bug in auto
+      autoword = re.sub(u"ːʲ", u"ʲː", autoword)
+      manword = re.sub(u"ːʲ", u"ʲː", manword)
 
-    # consonant assimilative palatalisation of tn/dn, depending on
-    # whether [rl] precedes
-    manual = re.sub(u'([rl]?)([ˈˌ]?[dt])([ˈˌ]?nʲ)', apply_tn_dn_assim_palatal,
-        manual)
+      # front vowel variants
+      manword = re.sub(u"([ʲjɕ]ː?)a", ur"\1æ", manword)
+      manword = re.sub(u"([ʲjɕ]ː?)u", ur"\1ʉ", manword)
+      manword = re.sub(u"([ʲjɕ]ː?)o", ur"\1ɵ", manword)
 
-    def apply_assim_palatal(m):
-      a, b, c = m.groups()
-      if a + c in cons_assim_palatal['compulsory']:
-        return a + u'ʲ' + b + c
-      elif a + c in cons_assim_palatal['optional']:
-        return a + u'⁽ʲ⁾' + b + c
-      else:
-        return a + b + c
+      # palatalization needed before high vowels and ɵ; note, ɡ is IPA ɡ
+      manword = re.sub(ur"([dtbpkɡszfvrlmn])(ː?[ɪiɵæ])", ur"\1ʲ\2", manword)
 
-    #apply general consonant assimilative palatalisation
-    manual = re.sub(u'(t͡s|d͡z|[szntd])([ˈˌ]?)(t͡ɕ|[tdǰɕlnsz]ʲ?)', apply_assim_palatal,
-      manual)
+      # Apply optional and compulsory palatal assimilation to manword
+      def apply_tn_dn_assim_palatal(m):
+        a, b, c = m.groups()
+        if a == '':
+           return a + b + u'ʲ' + c
+        else:
+          return a + b + u'⁽ʲ⁾' + c
+
+      # Optional (j) before ɪ
+      manword = re.sub(u"(^| )jɪ", ur"\1(j)ɪ", manword)
+      manword = re.sub(ipa_vowels_c + u"([‿-]?)jɪ", ur"\1\2(j)ɪ", manword)
+
+      # consonant assimilative palatalisation of tn/dn, depending on
+      # whether [rl] precedes
+      manword = re.sub(u'([rl]?)([ˈˌ]?[dt])([ˈˌ]?nʲ)',
+          apply_tn_dn_assim_palatal, manword)
+
+      def apply_assim_palatal(m):
+        a, b, c = m.groups()
+        if a + c in cons_assim_palatal['compulsory']:
+          return a + u'ʲ' + b + c
+        elif a + c in cons_assim_palatal['optional']:
+          return a + u'⁽ʲ⁾' + b + c
+        else:
+          return a + b + c
+
+      #apply general consonant assimilative palatalisation
+      manword = re.sub(u'(t͡s|d͡z|[szntd])([ˈˌ]?)(t͡ɕ|[tdǰɕlnsz]ʲ?)',
+          apply_assim_palatal, manword)
+
+      # END OF PER-WORD PROCESSING
+      autowords[j] = autoword
+      manwords[j] = manword
+
+    auto = " ".join(autowords)
+    manual = " ".join(manwords)
 
     if auto == manual:
       pagemsg("For headword %s, %s equal to %s" % (headword,
@@ -246,10 +293,10 @@ def process_page_text(index, text, pagetitle, verbose):
           i1))
       elif tag == "insert":
         changes.append("insert %s at %s" % (manual[j1:j2], i1))
-    return "WARNING: For headword %s, auto %s%s not same as manual %s%s: %s" % (
+    return "WARNING: For headword %s, auto %s%s not same as manual %s%s: %s: %s" % (
       headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
       manual, orig_manual != manual and " (%s)" % orig_manual or "",
-      ", ".join(changes))
+      ", ".join(changes), ipa_templates_msg)
 
   foundrussian = False
   sections = re.split("(^==[^=]*==\n)", text, 0, re.M)
@@ -270,9 +317,11 @@ def process_page_text(index, text, pagetitle, verbose):
         if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
           ipa_templates.append(t)
       if ipa_templates:
-        pagemsg("Processing raw IPA %s for headword(s) %s" % (
+        ipa_templates_msg = (
+          "Processing raw IPA %s for headword(s) %s" % (
           "++".join([unicode(x) for x in ipa_templates]),
           "++".join(headword_pronuns)))
+        pagemsg(ipa_templates_msg)
         computed_ipa = compute_ipa()
         num_replaced = 0
         if not computed_ipa:
@@ -281,7 +330,8 @@ def process_page_text(index, text, pagetitle, verbose):
         for ipa_template in ipa_templates:
           mismatch_msgs = []
           for headword, autoipa in computed_ipa.items():
-            retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa)
+            retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
+                ipa_templates_msg)
             if retval == True:
               orig_ipa_template = unicode(ipa_template)
               rmparam(ipa_template, "lang")
