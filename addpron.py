@@ -21,8 +21,7 @@ non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 cons_assim_palatal = {
     'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ',
       u't͡ssʲ', u'd͡zzʲ']),
-    'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'tnʲ', u'dnʲ',
-      u'nsʲ', u'nzʲ'])
+    'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'nsʲ', u'nzʲ'])
 }
 
 def msg(text):
@@ -162,9 +161,17 @@ def process_page_text(index, text, pagetitle, verbose):
     manual = re.sub(u"[\u031d\u031e]", u"", manual)
     manual = re.sub(u"ʲɛ", u"ʲe", manual)
     manual = re.sub(u"ɘ", u"ə", manual)
+    # ə vs. ɐ fixes, part 1; need to do this before moving stress to beginning
+    # of consonant clusters, below
+    manual = re.sub(u"[ɐə]ː", u"ɐɐ", manual)
+    manual = re.sub(u"[ɐə][ɐə]", u"ɐɐ", manual)
+    # need to do this before moving stress to beginning of consonant clusters
+    manual = re.sub(u"ɪː", u"ɪɪ", manual)
+    manual = re.sub(u"ɞ", u"ə", manual)
     manual = re.sub(u"ɑ", "a", manual)
     manual = re.sub(u"ʌ", u"ɐ", manual)
     manual = re.sub(u"'", u"ˈ", manual)
+    manual = re.sub(u"ˈˈ", u"ˈ", manual)
     manual = re.sub(u"ɫ", "l", manual)
     manual = re.sub(u"t͡ʃ|tʃ", u"t͡ɕ", manual)
     # Convert regular g to IPA ɡ (looks same but different char)
@@ -173,6 +180,7 @@ def process_page_text(index, text, pagetitle, verbose):
     manual = re.sub(u"ŋɡ", u"nɡ", manual)
     manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
     manual = re.sub(u"ntsk", u"n(t)sk", manual)
+    manual = re.sub(u"st([ln])", r"s\1", manual)
     # Canonicalize spaces and hyphens in manual
     manual = re.sub(r"^[\s\-]+", "", manual)
     manual = re.sub(r"[\s\-]+$", "", manual)
@@ -206,7 +214,7 @@ def process_page_text(index, text, pagetitle, verbose):
       # Convert some instances of ˈ (earlier converted from to ') to ʲ --
       # after a palatalizable consonant, before a vowel or end of word;
       # ɡ is IPA ɡ; do this before moving stress to beginning of cons clusters
-      manword = re.sub(ur"([dtbpkɡszfvrlmn])ˈ(ː?)($|" + ipa_vowels_re + ")",
+      manword = re.sub(ur"([dtbpkɡszfvxrlmn])ˈ(ː?)($|" + ipa_vowels_re + ")",
           ur"\1ʲ\2\3", manword)
 
       # Canonicalize by moving stress at the beginning of all consonant
@@ -220,14 +228,16 @@ def process_page_text(index, text, pagetitle, verbose):
       manword = re.sub(u"tːs", u"t͡sː", manword)
       manword = re.sub(u"tʲ?t͡ɕ", u"t͡ɕː", manword)
       manword = re.sub(u"tːɕ", u"t͡ɕː", manword)
-      # with -т(ь)ся after stressed syllable, need "t͡sː"
+      # with -т(ь)ся after stressed syllable, need "t͡sː"; after unstressed,
+      # need just t͡s
       if re.search(u"\u0301ть?ся$", hword):
         manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ə$", ur"\1t͡sːə", manword)
+      elif re.search(u"ть?ся$", hword):
+        manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ːə$", ur"\1t͡sə", manword)
 
-      # ɐ vs. ə fixes
+      # ɐ vs. ə fixes; part 2
       manword = re.sub(u"(^| )ə", ur"\1ɐ", manword)
-      manword = re.sub(u"[ɐə]ː", u"ɐɐ", manword)
-      manword = re.sub(u"[ɐə][ɐə]", u"ɐɐ", manword)
+      # need to do this after moving stress to beginning of consonant clusters
       manword = re.sub(u"əˈ", u"ɐˈ", manword)
 
       # i vs. ɪ fixes: i when stressed, ɪ otherwise; same for u vs. ʊ
@@ -249,7 +259,7 @@ def process_page_text(index, text, pagetitle, verbose):
 
       # front vowel variants
       manword = re.sub(u"([ʲjɕ]ː?)a", ur"\1æ", manword)
-      manword = re.sub(u"([ʲjɕ]ː?)u", ur"\1ʉ", manword)
+      manword = re.sub(u"([ʲjɕ]ː?)[ʊu]", ur"\1ʉ", manword)
       manword = re.sub(u"([ʲjɕ]ː?)o", ur"\1ɵ", manword)
 
       # ɕ that's not geminate and not in t͡ɕ (with or without tie bar)
@@ -277,8 +287,10 @@ def process_page_text(index, text, pagetitle, verbose):
       if re.search(u"t͡ɕ", autoword):
         manword = re.sub(u"tɕ", u"t͡ɕ", manword)
 
-      # palatalization needed before high vowels and ɵ; note, ɡ is IPA ɡ
-      manword = re.sub(ur"([dtbpkɡszfvrlmn])(ː?[ɪiɵæ])", ur"\1ʲ\2", manword)
+      # palatalization needed before front vowels; note, ɡ is IPA ɡ
+      # we don't do this before e because the lack of palatalization might
+      # be legitimate (although should be written with ɛ)
+      manword = re.sub(ur"([dtbpkɡszfvxrlmn])(ː?[ɪiɵæʉ])", ur"\1ʲ\2", manword)
 
       # Apply optional and compulsory palatal assimilation to manword
       def apply_tn_dn_assim_palatal(m):
@@ -294,7 +306,7 @@ def process_page_text(index, text, pagetitle, verbose):
 
       # consonant assimilative palatalisation of tn/dn, depending on
       # whether [rl] precedes
-      manword = re.sub(u'([rl]?)([ˈˌ]?[dt])ʲ?([ˈˌ]?nʲ)',
+      manword = re.sub(u"([rl]?)([ˈˌ]?[dt])ʲ?([ˈˌ]?nʲ)",
           apply_tn_dn_assim_palatal, manword)
 
       def apply_assim_palatal(m):
@@ -324,6 +336,15 @@ def process_page_text(index, text, pagetitle, verbose):
         "manual" if manual == orig_manual else
           "canon manual (orig %s)" % (orig_manual)))
       return True
+
+    if u"ˈ" not in manual and re.sub(u"ˈ", "", auto) == manual:
+      pagemsg("WARNING: For headword %s, missing stress mark in %s compared to %s, accepting" % (headword,
+        "manual" if manual == orig_manual else
+          "canon manual (orig %s)" % (orig_manual),
+        "auto %s" % auto if auto == orig_auto else
+          "canon auto %s (orig %s)" % (auto, orig_auto)))
+      return True
+
     seqmatch = difflib.SequenceMatcher(None, auto, manual)
     changes = []
     for tag, i1, i2, j1, j2 in seqmatch.get_opcodes():
