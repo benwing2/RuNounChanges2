@@ -21,7 +21,8 @@ non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 cons_assim_palatal = {
     'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ',
       u't͡ssʲ', u'd͡zzʲ']),
-    'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'nsʲ', u'nzʲ'])
+    'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'nsʲ', u'nzʲ',
+      u'mpʲ', u'mbʲ', u'mfʲ', u'fmʲ'])
 }
 
 def msg(text):
@@ -318,9 +319,17 @@ def process_page_text(index, text, pagetitle, verbose):
         else:
           return a + b + c
 
-      #apply general consonant assimilative palatalisation
-      manword = re.sub(u'(t͡s|d͡z|[szntd])ʲ?([ˈˌ]?)(t͡ɕ|[tdǰɕlnsz]ʲ?)',
+      #apply general consonant assimilative palatalisation, repeatedly for
+      #recursive assimilation
+      while True:
+        new_manword = re.sub(u'(t͡s|d͡z|[szntdmbpf])ʲ?([ˈˌ]?)(t͡ɕ|[tdǰɕlnszmpbf]ʲ)',
           apply_assim_palatal, manword)
+        if new_manword == manword:
+          break
+        manword = new_manword
+
+      # optional palatal assimilation of вп, вб only word-initially
+      manword = re.sub(u'^([ˈˌ]?[fv])ʲ?([ˈˌ]?[pb]ʲ)', ur'\1⁽ʲ⁾\2', manword)
 
       # END OF PER-WORD PROCESSING
       autowords[j] = autoword
