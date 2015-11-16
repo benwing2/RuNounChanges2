@@ -161,14 +161,11 @@ def process_page_text(index, text, pagetitle, verbose):
     # Get rid of raising/lowering diacritics
     manual = re.sub(u"[\u031d\u031e]", u"", manual)
     manual = re.sub(u"ʲɛ", u"ʲe", manual)
-    manual = re.sub(u"ɘ", u"ə", manual)
-    # ə vs. ɐ fixes, part 1; need to do this before moving stress to beginning
-    # of consonant clusters, below
+    manual = re.sub(u"[ɘɞ]", u"ə", manual)
+    # expand long vowels; need to do this before moving stress to beginning
+    # of consonant clusters, below, as ː is treated as a consonant
     manual = re.sub(u"[ɐə]ː", u"ɐɐ", manual)
-    manual = re.sub(u"[ɐə][ɐə]", u"ɐɐ", manual)
-    # need to do this before moving stress to beginning of consonant clusters
     manual = re.sub(u"ɪː", u"ɪɪ", manual)
-    manual = re.sub(u"ɞ", u"ə", manual)
     manual = re.sub(u"ɑ", "a", manual)
     manual = re.sub(u"ʌ", u"ɐ", manual)
     manual = re.sub(u"'", u"ˈ", manual)
@@ -236,19 +233,28 @@ def process_page_text(index, text, pagetitle, verbose):
       elif re.search(u"ть?ся$", hword):
         manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ːə$", ur"\1t͡sə", manword)
 
-      # ɐ vs. ə fixes; part 2
-      manword = re.sub(u"(^| )ə", ur"\1ɐ", manword)
+      # ɐ vs. ə fixes; ɐ at beginning of word or directly before the stress
+      # or in ɐɐ sequences, else ə
+      manword = re.sub(u"ɐ", u"ə", manword)
+      manword = re.sub(u"^ə", u"ɐ", manword)
+      manword = re.sub(u"[ɐə][ɐə]", u"ɐɐ", manword)
       # need to do this after moving stress to beginning of consonant clusters
       manword = re.sub(u"əˈ", u"ɐˈ", manword)
 
       # i vs. ɪ fixes: i when stressed, ɪ otherwise; same for u vs. ʊ
-      if not man_monosyllabic:
+      if not man_monosyllabic and re.search(u"ˈ", manword):
         # Convert all i to ɪ, then back to i in stressed syllables
         manword = re.sub(u"i", u"ɪ", manword)
         manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ɪ", r"\1i", manword)
         # Convert all u to ʊ, then back to u in stressed syllables
         manword = re.sub(u"u", u"ʊ", manword)
         manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ʊ", r"\1u", manword)
+      # If monosyllabic, i and u unless word is accentless
+      if man_monosyllabic and headword not in (
+          [u"без", u"близ", u"из", u"меж", u"пред", u"при", u"не", u"ли"]):
+        manword = re.sub(u"ɪ", u"i", manword)
+      if man_monosyllabic and headword != u"у":
+        manword = re.sub(u"ʊ", u"u", manword)
 
       # Fix bug in auto
       autoword = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", autoword)
