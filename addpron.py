@@ -428,6 +428,14 @@ def process_page_text(index, text, pagetitle, verbose):
         for ipa_template in ipa_templates:
           mismatch_msgs = []
           for headword, autoipa in computed_ipa.items():
+            if contains_latin(headword):
+              pagemsg("WARNING: Headword %s to be used to replace manual IPA contains Latin chars, skipping" %
+                    headword)
+              return None, None
+            elif contains_non_cyrillic(headword):
+              pagemsg("WARNING: Headword %s to be used to replace manual IPA contains non-Cyrillic non-Latin chars, skipping" %
+                    headword)
+              return None, None
             retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
                 ipa_templates_msg)
             if retval == True:
@@ -437,14 +445,6 @@ def process_page_text(index, text, pagetitle, verbose):
               if len(ipa_template.params) > 0:
                 pagemsg("WARNING: IPA template has extra parameters, skipping: %s" %
                     orig_ipa_template)
-                return None, None
-              if contains_latin(headword):
-                pagemsg("WARNING: Headword %s to be subbed into ru-IPA contains Latin chars, skipping" %
-                      headword)
-                return None, None
-              elif contains_non_cyrillic(headword):
-                pagemsg("WARNING: Headword %s to be subbed into ru-IPA contains non-Cyrillic non-Latin chars, skipping" %
-                      headword)
                 return None, None
               ipa_template.name = "ru-IPA"
               ipa_template.add("1", headword)
