@@ -158,15 +158,15 @@ def process_page_text(index, text, pagetitle, verbose):
       return True
 
     manual = re.sub(u"ᵻ", u"ɨ", manual)
-    manual = re.sub(u"ɛ̝", u"ɛ", manual)
-    manual = re.sub(u"e̞", u"e", manual)
-    manual = re.sub(u"ɪ̝", u"ɪ", manual)
-    manual = re.sub(u"ɨ̞", u"ɨ", manual)
+    # Get rid of raising/lowering diacritics
+    manual = re.sub(u"[\u031d\u031e]", u"", manual)
+    manual = re.sub(u"ʲɛ", u"ʲe", manual)
     manual = re.sub(u"ɘ", u"ə", manual)
     manual = re.sub(u"ɑ", "a", manual)
     manual = re.sub(u"ʌ", u"ɐ", manual)
     manual = re.sub(u"'", u"ˈ", manual)
     manual = re.sub(u"ɫ", "l", manual)
+    manual = re.sub(u"t͡ʃ|tʃ", u"t͡ɕ", manual)
     # Convert regular g to IPA ɡ (looks same but different char)
     manual = re.sub("g", u"ɡ", manual)
     # Both ɡ's below are IPA ɡ's
@@ -180,14 +180,20 @@ def process_page_text(index, text, pagetitle, verbose):
 
     autowords = re.split(" ", auto)
     manwords = re.split(" ", manual)
+    hwords = re.split(r"[\s\-]", headword)
     if len(autowords) != len(manwords):
       return "WARNING: For headword %s, auto %s%s not same as manual %s%s: different number of words (auto %s vs manual %s): %s" % (
         headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
         manual, orig_manual != manual and " (%s)" % orig_manual or "",
         len(autowords), len(manwords), ipa_templates_msg)
+    if len(hwords) != len(autowords):
+      pagemsg("WARNING: Number of words in headword %s not same as in auto %s" % (
+        headword, auto))
+      hwords = [""]*len(autowords)
     for j in xrange(len(autowords)):
       autoword = autowords[j]
       manword = manwords[j]
+      hword = hwords[j]
       auto_monosyllabic = len(re.sub(non_ipa_vowels_re, "", autoword)) == 1
       man_monosyllabic = len(re.sub(non_ipa_vowels_re, "", manword)) == 1
 
@@ -207,6 +213,16 @@ def process_page_text(index, text, pagetitle, verbose):
       # clusters
       autoword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", autoword)
       manword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manword)
+
+
+      # т(ь)ся and related fixes
+      manword = re.sub(u"tt͡s", u"t͡sː", manword)
+      manword = re.sub(u"tːs", u"t͡sː", manword)
+      manword = re.sub(u"tʲ?t͡ɕ", u"t͡ɕː", manword)
+      manword = re.sub(u"tːɕ", u"t͡ɕː", manword)
+      # with -т(ь)ся after stressed syllable, need "t͡sː"
+      if re.search(u"\u0301ть?ся$", hword):
+        manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ə$", ur"\1t͡sːə", manword)
 
       # ɐ vs. ə fixes
       manword = re.sub(u"(^| )ə", ur"\1ɐ", manword)
@@ -236,6 +252,31 @@ def process_page_text(index, text, pagetitle, verbose):
       manword = re.sub(u"([ʲjɕ]ː?)u", ur"\1ʉ", manword)
       manword = re.sub(u"([ʲjɕ]ː?)o", ur"\1ɵ", manword)
 
+      # ɕ that's not geminate and not in t͡ɕ (with or without tie bar)
+      # needs to be geminated (0361 = tie bar)
+      manword = re.sub(u"([^t\u0361])ɕ($|[^ː])", ur"\1ɕː\2", manword)
+
+      # Convert nː in n(ː) in various endings in n(ː) in auto
+      if re.search(u"n\(ː\)", autoword):
+        manword = re.sub(u"nː(ɨj|əsʲtʲ|əjə|ə)$", ur"n(ː)\1", manword)
+
+      # Convert sʲə to s⁽ʲ⁾ə at end of word if necessary
+      if re.search(u"s⁽ʲ⁾ə$", autoword):
+        manword = re.sub(u"sʲə$", u"s⁽ʲ⁾ə", manword)
+
+      # if affricate assimilation in autoword, make it same in manword
+      # do before adding tie bar in ts
+      if re.search(u"d͡zz", autoword):
+        manword = re.sub(u"dz", u"d͡zz", manword)
+      if re.search(u"t͡ss", autoword):
+        manword = re.sub(u"ts", u"t͡ss", manword)
+
+      # add tie bar if needed
+      if re.search(u"t͡s", autoword):
+        manword = re.sub(u"ts", u"t͡s", manword)
+      if re.search(u"t͡ɕ", autoword):
+        manword = re.sub(u"tɕ", u"t͡ɕ", manword)
+
       # palatalization needed before high vowels and ɵ; note, ɡ is IPA ɡ
       manword = re.sub(ur"([dtbpkɡszfvrlmn])(ː?[ɪiɵæ])", ur"\1ʲ\2", manword)
 
@@ -253,7 +294,7 @@ def process_page_text(index, text, pagetitle, verbose):
 
       # consonant assimilative palatalisation of tn/dn, depending on
       # whether [rl] precedes
-      manword = re.sub(u'([rl]?)([ˈˌ]?[dt])([ˈˌ]?nʲ)',
+      manword = re.sub(u'([rl]?)([ˈˌ]?[dt])ʲ?([ˈˌ]?nʲ)',
           apply_tn_dn_assim_palatal, manword)
 
       def apply_assim_palatal(m):
@@ -266,7 +307,7 @@ def process_page_text(index, text, pagetitle, verbose):
           return a + b + c
 
       #apply general consonant assimilative palatalisation
-      manword = re.sub(u'(t͡s|d͡z|[szntd])([ˈˌ]?)(t͡ɕ|[tdǰɕlnsz]ʲ?)',
+      manword = re.sub(u'(t͡s|d͡z|[szntd])ʲ?([ˈˌ]?)(t͡ɕ|[tdǰɕlnsz]ʲ?)',
           apply_assim_palatal, manword)
 
       # END OF PER-WORD PROCESSING
@@ -455,7 +496,7 @@ if args.pagefile:
 elif args.tempfile:
   lines = [x.strip() for x in codecs.open(args.tempfile, "r", "utf-8")]
   for line in lines:
-    m = re.search(r"^Page ([0-9]+) (.*?): Processing raw IPA (.*) for headword\(s\) (.*)$", line)
+    m = re.search(r"^Page ([0-9]+) (.*?): .*Processing raw IPA (.*) for headword\(s\) (.*)$", line)
     if not m:
       msg("WARNING: Unrecognized line: %s" % line)
     else:
