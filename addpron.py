@@ -80,7 +80,7 @@ def process_page_text(index, text, pagetitle, verbose):
       else:
         headword_pronuns.add(blib.remove_links(getparam(t, "head") or getparam(t, "1") or pagetitle))
       found_template = True
-    elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
+    elif unicode(t.name) == "head" and getparam(t, "1") == "ru" and getparam(t, "2") != "letter":
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
@@ -132,6 +132,9 @@ def process_page_text(index, text, pagetitle, verbose):
   pronun_lines = []
   latin_char_msgs = []
   for pronun in headword_pronuns:
+    if pronun.startswith("-") or pronun.endswith("-"):
+      pagemsg("Skipping prefix or suffix: %s" % pronun)
+      return None, None
     if ru.needs_accents(pronun):
       pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
       return None, None
@@ -432,7 +435,7 @@ def process_page_text(index, text, pagetitle, verbose):
               rmparam(ipa_template, "lang")
               rmparam(ipa_template, "1")
               if len(ipa_template.params) > 0:
-                pagemsg("WARNING: IPA template has extraneous parameters, skipping: %s" %
+                pagemsg("WARNING: IPA template has extra parameters, skipping: %s" %
                     orig_ipa_template)
                 return None, None
               if contains_latin(headword):
