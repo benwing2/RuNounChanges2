@@ -62,7 +62,7 @@ def process_page_text(index, text, pagetitle, verbose):
   headword_pronuns = set()
   for t in parsed.filter_templates():
     found_template = False
-    if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb", "ru-phrase", "ru-noun form"]:
+    if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb"]:
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
@@ -70,6 +70,15 @@ def process_page_text(index, text, pagetitle, verbose):
         headword_pronuns.add(tr)
       else:
         headword_pronuns.add(blib.remove_links(getparam(t, "1") or pagetitle))
+      found_template = True
+    elif unicode(t.name) in ["ru-noun form", "ru-phrase"]:
+      tr = getparam(t, "tr")
+      if tr:
+        pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
+          tr))
+        headword_pronuns.add(tr)
+      else:
+        headword_pronuns.add(blib.remove_links(getparam(t, "head") or getparam(t, "1") or pagetitle))
       found_template = True
     elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
       tr = getparam(t, "tr")
@@ -99,7 +108,7 @@ def process_page_text(index, text, pagetitle, verbose):
       for head in re.split(",", lemma):
         if "//" in head:
           _, tr = re.split("//", head)
-          pagemsg("WARNING: Using Latin for pronunciation, based on transit %s" % tr)
+          pagemsg("WARNING: Using Latin for pronunciation, based on translit %s" % tr)
           headword_pronuns.add(tr)
         else:
           headword_pronuns.add(head)
@@ -128,11 +137,11 @@ def process_page_text(index, text, pagetitle, verbose):
       return None, None
     if contains_latin(pronun):
       latin_char_msgs.append(
-          "WARNING: Pronunciation %s to be added contains Latin chars" %
+          "WARNING: Pronunciation %s to be added contains Latin chars, skipping" %
             pronun)
     elif contains_non_cyrillic(pronun):
       latin_char_msgs.append(
-          "WARNING: Pronunciation %s to be added contains non-Cyrillic non-Latin chars" %
+          "WARNING: Pronunciation %s to be added contains non-Cyrillic non-Latin chars, skipping" %
             pronun)
     pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
 
@@ -383,6 +392,11 @@ def process_page_text(index, text, pagetitle, verbose):
       if foundrussian:
         pagemsg("WARNING: Found multiple Russian sections")
         return None, None
+      if re.search(ur"\[\[Category:Russian spellings with е instead of ё]]",
+          sections[j]):
+        pagemsg(u"Found [[Category:Russian spellings with е instead of ё]], skipping")
+        return None, None
+
       foundrussian = True
       foundpronuns = []
       parsed = blib.parse_text(sections[j])
@@ -390,6 +404,10 @@ def process_page_text(index, text, pagetitle, verbose):
       for t in parsed.filter_templates():
         if unicode(t.name) == "ru-pre-reform":
           pagemsg("Found pre-reform template, skipping")
+          return None, None
+        if unicode(t.name) == "alternative form of" and getparam(t, "lang") == "ru":
+          # For words spelled with е instead of ё, etc.
+          pagemsg("Found alternative form, skipping")
           return None, None
         if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
           ipa_templates.append(t)
@@ -417,6 +435,14 @@ def process_page_text(index, text, pagetitle, verbose):
                 pagemsg("WARNING: IPA template has extraneous parameters, skipping: %s" %
                     orig_ipa_template)
                 return None, None
+              if contains_latin(headword):
+                pagemsg("WARNING: Headword %s to be subbed into ru-IPA contains Latin chars, skipping" %
+                      headword)
+                return None, None
+              elif contains_non_cyrillic(headword):
+                pagemsg("WARNING: Headword %s to be subbed into ru-IPA contains non-Cyrillic non-Latin chars, skipping" %
+                      headword)
+                return None, None
               ipa_template.name = "ru-IPA"
               ipa_template.add("1", headword)
               pagemsg("Replaced %s with %s" % (
@@ -438,9 +464,9 @@ def process_page_text(index, text, pagetitle, verbose):
             len(ipa_templates) - num_replaced, len(ipa_templates)))
         continue
 
-      for m in re.finditer(r"(\{\{ru-IPA\|([^}]*)\}\})", sections[j]):
+      for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", sections[j]):
         pagemsg("Already found pronunciation template: %s" % m.group(1))
-        foundpronuns.append(m.group(2))
+        foundpronuns.append(m.group(2) or pagetitle)
       foundpronuns = sorted(foundpronuns)
       if foundpronuns:
         if foundpronuns != headword_pronuns:
@@ -449,7 +475,7 @@ def process_page_text(index, text, pagetitle, verbose):
           pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
                 (joined_foundpronuns, joined_headword_pronuns))
           if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
-            pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit" %
+            pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
                 (joined_foundpronuns, joined_headword_pronuns))
         return None, None
       if re.search(r"^===+Pronunciation===+$", sections[j], re.M):
