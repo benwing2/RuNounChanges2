@@ -408,7 +408,7 @@ def process_page_text(index, text, pagetitle, verbose):
         if unicode(t.name) == "ru-pre-reform":
           pagemsg("Found pre-reform template, skipping")
           return None, None
-        if unicode(t.name) == "alternative form of" and getparam(t, "lang") == "ru":
+        if unicode(t.name) in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
           # For words spelled with е instead of ё, etc.
           pagemsg("Found alternative form, skipping")
           return None, None
@@ -472,17 +472,17 @@ def process_page_text(index, text, pagetitle, verbose):
         foundpronuns.append(m.group(2) or pagetitle)
       foundpronuns = sorted(foundpronuns)
       if foundpronuns:
+        joined_foundpronuns = ",".join(foundpronuns)
+        joined_headword_pronuns = ",".join(headword_pronuns)
+        if "phon=" not in joined_foundpronuns and contains_latin(joined_headword_pronuns):
+          pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" % (
+            joined_foundpronuns, joined_headword_pronuns))
+        if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
+          pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
+              (joined_foundpronuns, joined_headword_pronuns))
         if foundpronuns != headword_pronuns:
-          joined_foundpronuns = ",".join(foundpronuns)
-          joined_headword_pronuns = ",".join(headword_pronuns)
           pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
                 (joined_foundpronuns, joined_headword_pronuns))
-          if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
-            pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
-                (joined_foundpronuns, joined_headword_pronuns))
-        return None, None
-      if re.search(r"^===+Pronunciation===+$", sections[j], re.M):
-        pagemsg("WARNING: Found pronunciation section without ru-IPA")
         return None, None
       pronunsection = "===Pronunciation===\n%s\n" % "".join(pronun_lines)
       if re.search(r"^===Etymology [0-9]+===$", sections[j], re.M):
@@ -494,7 +494,11 @@ def process_page_text(index, text, pagetitle, verbose):
           pagemsg(latinmsg)
           return None, None
 
-      if re.search(r"^===Etymology===$", sections[j], re.M):
+      if re.search(r"^===+Pronunciation===+$", sections[j], re.M):
+        pagemsg("Found pronunciation section without ru-IPA or IPA")
+        sections[j] = re.sub(r"^(===+Pronunciation===+)\n+", r"\1\n%s" %
+            "".join(pronun_lines), sections[j], 1, re.M)
+      elif re.search(r"^===Etymology===$", sections[j], re.M):
         sections[j] = re.sub(r"(^===Etymology===\n.*?\n)(==)", r"\1%s\2" % pronunsection, sections[j], 1, re.M | re.S)
       elif re.search(r"^===Alternative forms===$", sections[j], re.M):
         sections[j] = re.sub(r"(^===Alternative forms===\n.*?\n)(==)", r"\1%s\2" % pronunsection, sections[j], 1, re.M | re.S)
