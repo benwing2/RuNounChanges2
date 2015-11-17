@@ -80,7 +80,10 @@ def process_page_text(index, text, pagetitle, verbose):
       else:
         headword_pronuns.add(blib.remove_links(getparam(t, "head") or getparam(t, "1") or pagetitle))
       found_template = True
-    elif unicode(t.name) == "head" and getparam(t, "1") == "ru" and getparam(t, "2") != "letter":
+    elif unicode(t.name) == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
+      pagemsg("Skipping page with letter headword")
+      return None, None
+    elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
@@ -134,6 +137,12 @@ def process_page_text(index, text, pagetitle, verbose):
   for pronun in headword_pronuns:
     if pronun.startswith("-") or pronun.endswith("-"):
       pagemsg("Skipping prefix or suffix: %s" % pronun)
+      return None, None
+    if ru.is_nonsyllabic(pronun):
+      pagemsg("WARNING: Pronunciation is non-syllabic, skipping: %s" % pronun)
+      return None, None
+    if "." in pronun:
+      pagemsg("WARNING: Pronunciation has dot in it, skipping: %s" % pronun)
       return None, None
     if ru.needs_accents(pronun):
       pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
@@ -414,6 +423,8 @@ def process_page_text(index, text, pagetitle, verbose):
           return None, None
         if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
           ipa_templates.append(t)
+      if re.search(r"[Aa]bbreviation", sections[j]):
+        pagemsg("WARNING: Found the word 'abbreviation', please check")
       if ipa_templates:
         ipa_templates_msg = (
           "Processing raw IPA %s for headword(s) %s" % (
