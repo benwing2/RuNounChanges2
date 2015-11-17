@@ -429,10 +429,15 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           return None, None
         if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
           ipa_templates.append(t)
-      if re.search(r"[Aa]bbreviation", sections[j]):
+      if (re.search(r"[Aa]bbreviation", sections[j]) and not
+          re.search("==Abbreviations==", sections[j])):
         pagemsg("WARNING: Found the word 'abbreviation', please check")
-      if re.search(r"[Aa]cronym", sections[j]):
+      if (re.search(r"[Aa]cronym", sections[j]) and not
+          re.search("==Acronyms==", sections[j])):
         pagemsg("WARNING: Found the word 'acronym', please check")
+      if (re.search(r"[Ii]nitialism", sections[j]) and not
+          re.search("==Initialisms==", sections[j])):
+        pagemsg("WARNING: Found the word 'initialism', please check")
       if ipa_templates:
         ipa_templates_msg = (
           "Processing raw IPA %s for headword(s) %s" % (
