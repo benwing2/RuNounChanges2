@@ -40,7 +40,7 @@ def contains_non_cyrillic(text):
   # we allow in Cyrillic pronunciation
   return re.sub(ur"[\u0300\u0301\u0302\u0308 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗ]", "", text) != ""
 
-def process_page_text(index, text, pagetitle, verbose):
+def process_page_text(index, text, pagetitle, verbose, override_ipa):
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
 
@@ -440,7 +440,8 @@ def process_page_text(index, text, pagetitle, verbose):
           return None, None
         for ipa_template in ipa_templates:
           mismatch_msgs = []
-          for headword, autoipa in computed_ipa.items():
+          computed_ipa_items = computed_ipa.items()
+          for headword, autoipa in computed_ipa_items:
             if contains_latin(headword):
               pagemsg("WARNING: Headword %s to be used to replace manual IPA contains Latin chars, skipping" %
                     headword)
@@ -451,7 +452,11 @@ def process_page_text(index, text, pagetitle, verbose):
               return None, None
             retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
                 ipa_templates_msg)
-            if retval == True:
+            if retval != True and override_ipa and (len(ipa_templates) > 1 or
+                len(computed_ipa_items) > 1):
+              pagemsg("WARNING: Can't override IPA because multiple IPA templates or headwords: %s template(s), %s headword(s)" % (
+                len(ipa_templates), len(computed_ipa_items)))
+            elif retval == True or override_ipa:
               orig_ipa_template = unicode(ipa_template)
               rmparam(ipa_template, "lang")
               rmparam(ipa_template, "1")
@@ -461,14 +466,18 @@ def process_page_text(index, text, pagetitle, verbose):
                 return None, None
               ipa_template.name = "ru-IPA"
               ipa_template.add("1", headword)
+              if retval != True and override_ipa:
+                pagemsg("WARNING: Overriding IPA despite pronunciation mismatch")
+                mismatch_msgs.append(retval)
+                for m in mismatch_msgs:
+                  pagemsg(re.sub("^WARNING:", "WARNING (IGNORED):", m))
               pagemsg("Replaced %s with %s" % (
                 orig_ipa_template, unicode(ipa_template)))
               num_replaced += 1
               mismatch_msgs = []
               subbed_ipa_pronuns.append(headword)
               break
-            else:
-              mismatch_msgs.append(retval)
+            mismatch_msgs.append(retval)
           if mismatch_msgs:
             for m in mismatch_msgs:
               pagemsg(m)
@@ -535,7 +544,7 @@ def process_page_text(index, text, pagetitle, verbose):
     comment = "Add pronunciation %s" % ",".join(headword_pronuns)
   return text, comment
 
-def process_page(index, page, save, verbose):
+def process_page(index, page, save, verbose, override_ipa):
   pagetitle = unicode(page.title())
 
   def pagemsg(txt):
@@ -546,7 +555,7 @@ def process_page(index, page, save, verbose):
     return
 
   text = unicode(page.text)
-  newtext, comment = process_page_text(index, text, pagetitle, verbose)
+  newtext, comment = process_page_text(index, text, pagetitle, verbose, override_ipa)
 
   if newtext and newtext != text:
     if verbose:
@@ -566,6 +575,7 @@ parser.add_argument('start', help="Starting page index", nargs="?")
 parser.add_argument('end', help="Ending page index", nargs="?")
 parser.add_argument('--save', action="store_true", help="Save results")
 parser.add_argument('--verbose', action="store_true", help="More verbose output")
+parser.add_argument('--override-IPA', action="store_true", help="Change IPA to ru-IPA even when pronunciations can't be reconciled")
 args = parser.parse_args()
 start, end = blib.get_args(args.start, args.end)
 
@@ -573,7 +583,8 @@ if args.pagefile:
   pages = [x.strip() for x in codecs.open(args.pagefile, "r", "utf-8")]
   for i, page in blib.iter_items(pages, start, end):
     msg("Page %s %s: Processing" % (i, page))
-    process_page(i, pywikibot.Page(site, page), args.save, args.verbose)
+    process_page(i, pywikibot.Page(site, page), args.save, args.verbose,
+        args.override_IPA)
 
 elif args.tempfile:
   lines = [x.strip() for x in codecs.open(args.tempfile, "r", "utf-8")]
@@ -598,11 +609,11 @@ elif args.tempfile:
 
 {{ru-noun|%s}}
 """ % ("\n".join(ipa_templates), "|".join(headword_args))
-      process_page_text(index, text, pagetitle, args.verbose)
+      process_page_text(index, text, pagetitle, args.verbose, args.override_IPA)
 
 else:
   for category in ["Russian lemmas", "Russian non-lemma forms"]:
     msg("Processing category: %s" % category)
     for i, page in blib.cat_articles(category, start, end):
       msg("Page %s %s: Processing" % (i, unicode(page.title())))
-      process_page(i, page, args.save, args.verbose)
+      process_page(i, page, args.save, args.verbose, args.override_IPA)
