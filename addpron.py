@@ -425,6 +425,8 @@ def process_page_text(index, text, pagetitle, verbose):
           ipa_templates.append(t)
       if re.search(r"[Aa]bbreviation", sections[j]):
         pagemsg("WARNING: Found the word 'abbreviation', please check")
+      if re.search(r"[Aa]cronym", sections[j]):
+        pagemsg("WARNING: Found the word 'acronym', please check")
       if ipa_templates:
         ipa_templates_msg = (
           "Processing raw IPA %s for headword(s) %s" % (
