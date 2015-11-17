@@ -60,6 +60,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
 
   # Get the headword pronunciation(s)
   headword_pronuns = set()
+  headword_translit = set()
   for t in parsed.filter_templates():
     found_template = False
     if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb"]:
@@ -67,7 +68,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
           tr))
-        headword_pronuns.add(tr)
+        headword_translit.add(tr)
       else:
         headword_pronuns.add(blib.remove_links(getparam(t, "1") or pagetitle))
       found_template = True
@@ -76,7 +77,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
           tr))
-        headword_pronuns.add(tr)
+        headword_translit.add(tr)
       else:
         headword_pronuns.add(blib.remove_links(getparam(t, "head") or getparam(t, "1") or pagetitle))
       found_template = True
@@ -88,7 +89,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
           tr))
-        headword_pronuns.add(tr)
+        headword_translit.add(tr)
       else:
         headword_pronuns.add(blib.remove_links(getparam(t, "head") or pagetitle))
       found_template = True
@@ -112,7 +113,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         if "//" in head:
           _, tr = re.split("//", head)
           pagemsg("WARNING: Using Latin for pronunciation, based on translit %s" % tr)
-          headword_pronuns.add(tr)
+          headword_translit.add(tr)
         else:
           headword_pronuns.add(head)
 
@@ -122,11 +123,18 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         if trn:
           pagemsg("WARNING: Using Latin for pronunciation, based on tr%s=%s" % (
             str(i), trn))
-          headword_pronuns.add(trn)
+          headword_translit.add(trn)
         else:
           headn = getparam(t, "head" + str(i))
           if headn:
             headword_pronuns.add(blib.remove_links(headn))
+  for pronun in headword_pronuns:
+    if ru.is_nonsyllabic(pronun):
+      pagemsg("WARNING: Pronunciation is non-syllabic, skipping: %s" % pronun)
+      return None, None
+    if re.search("[" + ru.uppercase + u"ЀЍ][" + ru.AC + ru.GR + "]?[" + ru.uppercase + u"ЀЍ]", pronun):
+      pagemsg("WARNING: Pronunciation may be an acronym, please check: %s" % pronun)
+  headword_pronuns.update(headword_translit)
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
     return None, None
@@ -137,9 +145,6 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
   for pronun in headword_pronuns:
     if pronun.startswith("-") or pronun.endswith("-"):
       pagemsg("Skipping prefix or suffix: %s" % pronun)
-      return None, None
-    if ru.is_nonsyllabic(pronun):
-      pagemsg("WARNING: Pronunciation is non-syllabic, skipping: %s" % pronun)
       return None, None
     if "." in pronun:
       pagemsg("WARNING: Pronunciation has dot in it, skipping: %s" % pronun)
