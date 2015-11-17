@@ -140,6 +140,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     return None, None
   headword_pronuns = sorted(list(headword_pronuns))
   subbed_ipa_pronuns = []
+  overrode_ipa = False
   pronun_lines = []
   latin_char_msgs = []
   for pronun in headword_pronuns:
@@ -476,6 +477,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
                 mismatch_msgs.append(retval)
                 for m in mismatch_msgs:
                   pagemsg(re.sub("^WARNING:", "WARNING (IGNORED):", m))
+                overrode_ipa = True
               pagemsg("Replaced %s with %s" % (
                 orig_ipa_template, unicode(ipa_template)))
               num_replaced += 1
@@ -543,8 +545,9 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     return None, None
 
   if subbed_ipa_pronuns:
-    comment = "Replace {{IPA|...}} with {{ru-IPA|...}} for %s" % (
-        ",".join(subbed_ipa_pronuns))
+    comment = "Replace {{IPA|...}} with {{ru-IPA|...}} for %s%s" % (
+        ",".join(subbed_ipa_pronuns),
+        " (IPA override)" if overrode_ipa else "")
   else:
     comment = "Add pronunciation %s" % ",".join(headword_pronuns)
   return text, comment
