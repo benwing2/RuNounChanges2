@@ -19,10 +19,16 @@ non_ipa_vowels_re = "[^ " + ipa_vowel_list + "]"
 non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 
 cons_assim_palatal = {
-    'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ',
-      u't͡ssʲ', u'd͡zzʲ']),
-    'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'nsʲ', u'nzʲ',
-      u'mpʲ', u'mbʲ', u'mfʲ', u'fmʲ'])
+  'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ',
+    u't͡ssʲ', u'd͡zzʲ']),
+  'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'nsʲ', u'nzʲ',
+    u'mpʲ', u'mbʲ', u'mfʲ', u'fmʲ'])
+}
+
+fronting = {
+  'a': u'æ',
+  u'u': u'ʉ',
+  u'ʊ': u'ʉ',
 }
 
 def msg(text):
@@ -269,6 +275,23 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       # need to do this after moving stress to beginning of consonant clusters
       manword = re.sub(u"əˈ", u"ɐˈ", manword)
 
+      # Fix bug in auto (FIXME, remove this)
+      autoword = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", autoword)
+
+      # palatalization and gemination need to be in the right order
+      # Fix bug in auto
+      autoword = re.sub(u"ːʲ", u"ʲː", autoword)
+      manword = re.sub(u"ːʲ", u"ʲː", manword)
+
+      # front vowel variants; here we first convert existing front variants
+      # to back vowels, then eventually we apply the exact same fronting
+      # logic as in ru-pron.lua.
+      manword = re.sub(u"æ", u"a", manword)
+      # u will get converted below to ʊ in unstressed syllables
+      manword = re.sub(u"ʉ", u"u", manword)
+      # Much simpler for o
+      manword = re.sub(u"([ʲjɕ]ː?)o", ur"\1ɵ", manword)
+
       # i vs. ɪ fixes: i when stressed, ɪ otherwise; same for u vs. ʊ
       if not man_monosyllabic and re.search(u"ˈ", manword):
         # Convert all i to ɪ, then back to i in stressed syllables
@@ -283,19 +306,6 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         manword = re.sub(u"ɪ", u"i", manword)
       if man_monosyllabic and headword != u"у":
         manword = re.sub(u"ʊ", u"u", manword)
-
-      # Fix bug in auto
-      autoword = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", autoword)
-
-      # palatalization and gemination need to be in the right order
-      # Fix bug in auto
-      autoword = re.sub(u"ːʲ", u"ʲː", autoword)
-      manword = re.sub(u"ːʲ", u"ʲː", manword)
-
-      # front vowel variants
-      manword = re.sub(u"([ʲjɕ]ː?)a", ur"\1æ", manword)
-      manword = re.sub(u"([ʲjɕ]ː?)[ʊu]", ur"\1ʉ", manword)
-      manword = re.sub(u"([ʲjɕ]ː?)o", ur"\1ɵ", manword)
 
       # ɕ that's not geminate and not in t͡ɕ (with or without tie bar)
       # needs to be geminated (0361 = tie bar)
@@ -371,6 +381,34 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
 
     auto = " ".join(autowords)
     manual = " ".join(manwords)
+
+    # Following code is copied from ru-pron.lua (and converted to Python).
+    #
+    # Front a and u between soft consonants. If between a soft and
+    # optionally soft consonant (should only occur in that order, shouldn't
+    # ever have a or u preceded by optionally soft consonant),
+    # split the result into two. We only split into two even if there
+    # happen to be multiple optionally fronted a's and u's to avoid
+    # excessive numbers of possibilities (and it simplifies the code).
+    # 1. First, temporarily add soft symbol to inherently soft consonants.
+    manual = re.sub(u"([čǰɕӂj])", ur"\1ʲ", manual)
+    # 2. Handle case of au between two soft consonants
+    manual = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.ʲ)",
+        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3),
+        manual)
+    # 3. Handle case of au between soft and optionally soft consonant
+    if re.search(u"ʲ[ː()]*[auʊ][ˈˌ]?.⁽ʲ⁾", manual) or re.search(ur"ʲ[ː()]*[auʊ][ˈˌ]?\(jʲ\)", manual):
+      opt_hard = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾", r"\1\2\3", manual)
+      opt_hard = re.sub(ur"(ʲ[ː()]*)([auʊ])([ˈˌ]?)\(jʲ\)", r"\1\2\3", opt_hard)
+      opt_soft = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾",
+        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3) + u"ʲ",
+        manual)
+      opt_soft = re.sub(ur"(ʲ[ː()]*)([auʊ])([ˈˌ]?)\(jʲ\)",
+        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3) + u"jʲ",
+        opt_soft)
+      manual = opt_hard + ", " + opt_soft
+    # 4. Undo addition of soft symbol to inherently soft consonants.
+    manual = re.sub(u"([čǰɕӂj])ʲ", r"\1", manual)
 
     if auto == manual:
       pagemsg("For headword %s, %s equal to %s" % (headword,
