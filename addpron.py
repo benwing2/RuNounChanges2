@@ -194,6 +194,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     manual = re.sub(u"[ɐə]ː", u"ɐɐ", manual)
     manual = re.sub(u"ɪː", u"ɪɪ", manual)
     manual = re.sub(u"ɑ", "a", manual)
+    manual = re.sub(u"ɔ", "o", manual)
     manual = re.sub(u"ʌ", u"ɐ", manual)
     manual = re.sub(u"'", u"ˈ", manual)
     manual = re.sub(u"ˈˈ", u"ˈ", manual)
