@@ -19,7 +19,7 @@ non_ipa_vowels_re = "[^ " + ipa_vowel_list + "]"
 non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 
 cons_assim_palatal = {
-  'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ',
+  'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ', u'xkʲ',
     u't͡ssʲ', u'd͡zzʲ']),
   'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'nsʲ', u'nzʲ',
     u'mpʲ', u'mbʲ', u'mfʲ', u'fmʲ'])
@@ -366,7 +366,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       #apply general consonant assimilative palatalisation, repeatedly for
       #recursive assimilation
       while True:
-        new_manword = re.sub(u'(t͡s|d͡z|[szntdmbpf])ʲ?([ˈˌ]?)(t͡ɕ|[tdǰɕlnszmpbf]ʲ)',
+        new_manword = re.sub(u'(t͡s|d͡z|[xszntdmbpf])ʲ?([ˈˌ]?)(t͡ɕ|[ktdǰɕlnszmpbf]ʲ)',
           apply_assim_palatal, manword)
         if new_manword == manword:
           break
