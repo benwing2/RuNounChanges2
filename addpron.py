@@ -593,8 +593,13 @@ args = parser.parse_args()
 start, end = blib.get_args(args.start, args.end)
 
 if args.pagefile:
-  pages = [x.strip() for x in codecs.open(args.pagefile, "r", "utf-8")]
-  for i, page in blib.iter_items(pages, start, end):
+  lines = [x.strip() for x in codecs.open(args.pagefile, "r", "utf-8")]
+  for i, line in blib.iter_items(lines, start, end):
+    m = re.search(r"^\* Page ([0-9]+) \[\[(.*?)\]\]: ", line)
+    if m:
+      page = m.group(2)
+    else:
+      page = line
     msg("Page %s %s: Processing" % (i, page))
     process_page(i, pywikibot.Page(site, page), args.save, args.verbose,
         args.override_IPA)
