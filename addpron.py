@@ -345,7 +345,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       def apply_tn_dn_assim_palatal(m):
         a, b, c = m.groups()
         if a == '':
-           return a + b + u'ʲ' + c
+          return a + b + u'ʲ' + c
         else:
           return a + b + u'⁽ʲ⁾' + c
 
@@ -365,7 +365,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         elif a + c in cons_assim_palatal['optional']:
           return a + u'⁽ʲ⁾' + b + c
         else:
-          return a + b + c
+          return m.group(0)
 
       #apply general consonant assimilative palatalisation, repeatedly for
       #recursive assimilation
