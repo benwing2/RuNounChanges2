@@ -31,6 +31,10 @@ fronting = {
   u'ʊ': u'ʉ',
 }
 
+skip_pages = [
+    u"г-жа"
+]
+
 def msg(text):
   print text.encode("utf-8")
 
@@ -602,6 +606,16 @@ def process_page(index, page, save, verbose, override_ipa):
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
 
+  pagemsg("Processing")
+
+  if ":" in pagetitle:
+    pagemsg("WARNING: Colon in page title, skipping")
+    return
+
+  if pagetitle in skip_pages:
+    pagemsg("Skipping because page in skip_pages list")
+    return
+
   if not page.exists():
     pagemsg("WARNING: Page doesn't exist")
     return
@@ -611,7 +625,7 @@ def process_page(index, page, save, verbose, override_ipa):
 
   if newtext and newtext != text:
     if verbose:
-      pagemsg("Replacing [[%s]] with [[%s]]" % (text, newtext))
+      pagemsg("Replacing <%s> with <%s>" % (text, newtext))
 
     if save:
       pagemsg("Saving with comment = %s" % comment)
@@ -672,5 +686,4 @@ else:
   for category in ["Russian lemmas", "Russian non-lemma forms"]:
     msg("Processing category: %s" % category)
     for i, page in blib.cat_articles(category, start, end):
-      msg("Page %s %s: Processing" % (i, unicode(page.title())))
       process_page(i, page, args.save, args.verbose, args.override_IPA)
