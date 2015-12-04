@@ -160,7 +160,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     if "." in pronun:
       pagemsg("WARNING: Pronunciation has dot in it, skipping: %s" % pronun)
       return None, None
-    if ru.needs_accents(pronun):
+    if ru.needs_accents(pronun, split_dash=True):
       pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
       return None, None
     if contains_latin(pronun):
@@ -205,17 +205,20 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     manual = re.sub(u"ɪː", u"ɪɪ", manual)
     manual = re.sub(u"ɑ", "a", manual)
     manual = re.sub(u"ɔ", "o", manual)
+    manual = re.sub(u"ɾ", "r", manual)
+    manual = re.sub(u"χ", "x", manual)
+    manual = re.sub(ur"\(ʲ\)", "⁽ʲ⁾", manual)
     manual = re.sub(u"ʌ", u"ɐ", manual)
     manual = re.sub(u"'", u"ˈ", manual)
     manual = re.sub(u"ˈˈ", u"ˈ", manual)
     manual = re.sub(u"ɫ", "l", manual)
+    manual = re.sub(ur"ʈʂ", "t͡ʂʂ", manual)
     manual = re.sub(u"t͡ʃ|tʃ", u"t͡ɕ", manual)
+    manual = re.sub(u"ʃ", "ʂ", manual)
     # Convert regular g to IPA ɡ (looks same but different char)
     manual = re.sub("g", u"ɡ", manual)
     # Both ɡ's below are IPA ɡ's
     manual = re.sub(u"ŋɡ", u"nɡ", manual)
-    manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
-    manual = re.sub(u"ntsk", u"n(t)sk", manual)
     manual = re.sub(u"st([ln])", r"s\1", manual)
     # Canonicalize spaces and hyphens in manual
     manual = re.sub(r"^[\s\-]+", "", manual)
@@ -260,6 +263,9 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
 
 
       # т(ь)ся and related fixes
+      manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
+      manual = re.sub(u"ntsk", u"n(t)sk", manual)
+      manual = re.sub(u"tts", "t͡sː", manual)
       manword = re.sub(u"tt͡s", u"t͡sː", manword)
       manword = re.sub(u"tːs", u"t͡sː", manword)
       manword = re.sub(u"tʲ?t͡ɕ", u"t͡ɕː", manword)
@@ -648,11 +654,17 @@ start, end = blib.get_args(args.start, args.end)
 if args.pagefile:
   lines = [x.strip() for x in codecs.open(args.pagefile, "r", "utf-8")]
   for i, line in blib.iter_items(lines, start, end):
+    if line.startswith("#"):
+      continue
     m = re.search(r"^\* Page ([0-9]+) \[\[(.*?)\]\]: ", line)
     if m:
       page = m.group(2)
     else:
-      page = line
+      m = re.search(r"^Page ([0-9]+) (.*?): ", line)
+      if m:
+        page = m.group(2)
+      else:
+        page = line
     msg("Page %s %s: Processing" % (i, page))
     process_page(i, pywikibot.Page(site, page), args.save, args.verbose,
         args.override_IPA)
