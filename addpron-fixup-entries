@@ -1,0 +1,638 @@
+Note: In all of these, ignore issues from final -е, they will be fixed up later
+
+
+
+Final -е differences after soft consonants (to be ignored):
+
+* Page 3352 [[в жопе]]: WARNING: For headword в жо́пе, auto ˈv‿ʐopʲə not same as manual ˈv‿ʐopʲɪ ([ˈv‿ʐopʲɪ]): replace ə -> ɪ at 7
+* Page 3354 [[в итоге]]: WARNING: For headword в ито́ге, auto v‿ɨˈtoɡʲə not same as manual v‿ɨˈtoɡʲɪ ([v‿ɨˈtoɡʲɪ]): replace ə -> ɪ at 8
+* Page 3356 [[в курсе]]: WARNING: For headword в ку́рсе, auto ˈf‿kursʲə not same as manual ˈf‿kursʲɪ ([ˈf‿kursʲɪ]): replace ə -> ɪ at 8
+* Page 3367 [[в порядке]]: WARNING: For headword в поря́дке, auto f‿pɐˈrʲatkʲə not same as manual f‿pɐˈrʲatkʲɪ ([f‿pɐˈrʲætkʲɪ]): replace ə -> ɪ at 11
+* Page 4337 [[волк в овечьей шкуре]]: WARNING: For headword волк в ове́чьей шку́ре, auto volk v‿ɐˈvʲet͡ɕjɪj ˈʂkurʲə not same as manual volk v‿ɐˈvʲet͡ɕjɪj ˈʂkurʲɪ ([volk v‿ɐˈvʲet͡ɕjɪj ˈʂkurʲɪ]): replace ə -> ɪ at 25
+* Page 4643 [[вскоре]]: WARNING: For headword вско́ре, auto ˈfskorʲə not same as manual ˈfskorʲɪ (/ˈfskorʲɪ/): replace ə -> ɪ at 7
+* Page 9442 [[как в аптеке]]: WARNING: For headword как в апте́ке, auto kak v‿ɐˈptʲekʲə (kak v‿ɐpˈtʲekʲə) not same as manual kak v‿ɐˈptʲekʲɪ ([kak v‿ɐpˈtʲekʲɪ]): replace ə -> ɪ at 14
+* Page 9670 [[караоке]]: WARNING: For headword карао́ке, auto kərɐˈokʲə not same as manual kərɐˈokʲɪ (/kərɐˈokʲɪ/): replace ə -> ɪ at 8
+* Page 14829 [[ныне]]: WARNING: For headword ны́не, auto ˈnɨnʲə not same as manual ˈnɨnʲɪ (/ˈnɨnʲɪ/): replace ə -> ɪ at 5
+* Page 14831 [[нынче]]: WARNING: For headword ны́нче, auto ˈnɨnʲt͡ɕə not same as manual ˈnɨnʲt͡ɕɪ (/ˈnɨnʲt͡ɕɪ/): replace ə -> ɪ at 8
+* Page 16103 [[отныне]]: WARNING: For headword отны́не, auto ɐˈtnɨnʲə (ɐtˈnɨnʲə) not same as manual ɐˈtnɨnʲɪ (/ɐtˈnɨnʲɪ/): replace ə -> ɪ at 7
+* Page 16636 [[пастбище]]: WARNING: For headword па́стбище, auto ˈpazdbʲɪɕːə not same as manual ˈpazdbʲɪɕːɪ (/ˈpazdbʲɪɕːɪ/): replace ə -> ɪ at 10
+* Page 17662 [[подземелье]]: WARNING: For headword подземе́лье, auto pədʲ͡zʲzʲɪˈmʲelʲjə not same as manual pədzʲɪˈmelʲjɪ (/pɘdzʲɪˈmelʲjɪ/): delete ʲ͡zʲ at 3, delete ʲ at 12, replace ə -> ɪ at 17
+* Page 18022 [[поле]]: WARNING: For headword по́ле, auto ˈpolʲə not same as manual ˈpolʲɪ ([ˈpolʲɪ]): replace ə -> ɪ at 5
+* Page 20058 [[птичье молоко]]: WARNING: For headword пти́чье молоко́, auto ˈptʲit͡ɕjə məlɐˈko not same as manual ˈptʲit͡ɕjɪ məlɐˈko (/ˈptʲit͡ɕjɪ məɫɐˈko/): replace ə -> ɪ at 9
+* Page 20361 [[разве]]: WARNING: For headword ра́зве, auto ˈrazvʲə not same as manual ˈrazvʲɪ (/ˈrazvʲɪ/): replace ə -> ɪ at 6
+* Page 21719 [[сборище]]: WARNING: For headword сбо́рище, auto ˈzborʲɪɕːə not same as manual ˈzborʲɪɕːɪ (/ˈzborʲɪɕːɪ/): replace ə -> ɪ at 9
+* Page 22540 [[слаще]]: WARNING: For headword сла́ще, auto ˈslaɕːə not same as manual ˈslaɕːɪ (/ˈslaɕːɪ/): replace ə -> ɪ at 6
+* Page 27126 [[Четыре всадника Апокалипсиса]]: WARNING: For headword Четы́ре вса́дника Апока́липсиса, auto t͡ɕɪˈtɨrʲə ˈfsadʲnʲɪkə ɐpɐˈkalʲɪpsʲɪsə not same as manual t͡ɕɪˈtɨrʲɪ ˈfsadnʲɪkə ɐpɐˈkalʲɪpsʲɪsə ([t͡ɕɪˈtɨrʲɪ ˈfsadnʲɪkə ɐpɐˈkalʲɪpsʲɪsə]): replace ə -> ɪ at 9, delete ʲ at 16
+* Page 27167 [[чёрный кофе]]: WARNING: For headword чёрный ко́фе, auto ˈt͡ɕɵrnɨj ˈkofʲə not same as manual ˈt͡ɕɵrnɨj ˈkofʲɪ ([ˈt͡ɕɵr.nɨj ˈko.fʲɪ]): replace ə -> ɪ at 15
+* Page 27303 [[чудище]]: WARNING: For headword чу́дище, auto ˈt͡ɕʉdʲɪɕːə not same as manual ˈt͡ɕʉdʲɪɕːɪ ([ˈt͡ɕʉdʲɪɕːɪ]): replace ə -> ɪ at 10
+* Page 2768 [[куче]]: WARNING: For headword ку́че, auto ˈkut͡ɕə not same as manual ˈkut͡ɕɪ (/ˈkut͡ɕɪ/): replace ə -> ɪ at 6
+* Page 3460 [[паре]]: WARNING: For headword па́ре, auto ˈparʲə not same as manual ˈparʲɪ (/ˈparʲɪ/): replace ə -> ɪ at 5
+* Page 5222 [[элеваторе]]: WARNING: For headword элева́торе, auto ɨlʲɪˈvatərʲə not same as manual ɛlʲɪˈvatərʲɪ ([ɛlʲɪˈvatərʲɪ]): replace ɨ -> ɛ at 0, replace ə -> ɪ at 11
+* Page 2519 [[биеннале]]: WARNING: For headword биенна́ле, auto bʲɪ(j)ɪˈnːalʲə not same as manual bʲɪ(j)ɪˈnalʲe ([bʲɪ(j)ɪˈnalʲe]): delete ː at 9, replace ə -> e at 13
+* Page 3315 [[бьеннале]]: WARNING: For headword бьенна́ле, auto bʲɪ(j)ɪˈnːalʲə not same as manual bʲjeˈnalʲe ([bʲjeˈnalʲe]): delete ɪ( at 2, replace )ɪ -> e at 5, delete ː at 9, replace ə -> e at 13
+
+
+
+Final -е differences after hard non-paired consonants (жшц) (to be ignored):
+
+* Page 7231 [[дюже]]: WARNING: For headword дю́же, auto ˈdʲuʐə not same as manual ˈdʲuʐɨ (/ˈdʲʉʐɨ/): replace ə -> ɨ at 5
+* Page 11965 [[ложе]]: WARNING: For headword ло́же, auto ˈloʐə not same as manual ˈloʐɨ (/ˈloʐɨ/): replace ə -> ɨ at 4
+* Page 12659 [[меньше]]: WARNING: For headword ме́ньше, auto ˈmʲenʲʂə not same as manual ˈmʲenʲʂɨ (/ˈmʲenʲʂɨ/): replace ə -> ɨ at 7
+* Page 18842 [[превыше]]: WARNING: For headword превы́ше, auto prʲɪˈvɨʂə not same as manual prʲɪˈvɨʂɨ (/prʲɪˈvɨʂɨ/): replace ə -> ɨ at 8
+* Page 20605 [[раньше]]: WARNING: For headword ра́ньше, auto ˈranʲʂə not same as manual ˈranʲʂɨ (/ˈranʲʂɨ/): replace ə -> ɨ at 6
+* Page 21973 [[сейчас же]]: WARNING: For headword сейча́с же, auto sʲɪˈjt͡ɕaʐ‿ʐə (sʲɪjˈt͡ɕaʐ‿ʐə) not same as manual sʲɪˈt͡ɕaʐʐɨ (/sʲɪˈtʃaʐ.ʐɨ/): delete j at 4, delete ‿ at 10, replace ə -> ɨ at 12
+* Page 2687 [[корице]]: WARNING: For headword кори́це, auto kɐˈrʲit͡sə not same as manual kɐˈrʲit͡sɨ (/kɐˈrʲit͡sɨ/): replace ə -> ɨ at 9
+
+
+
+Final -е differences after vowel + /j/ (to be ignored):
+
+* Page 147 [[абие]]: WARNING: For headword а́бие, auto ˈabʲɪjə not same as manual ˈabʲɪ(j)ɪ (/ˈa.bɪ.jɪ/): insert ( at 5, replace ə -> )ɪ at 6
+* Page 4686 [[всуе]]: WARNING: For headword всу́е, auto ˈfsujə not same as manual ˈfsu(j)ɪ (/ˈfsujɪ/): insert ( at 4, replace ə -> )ɪ at 5
+* Page 8455 [[знание]]: WARNING: For headword зна́ние, auto ˈznanʲɪjə not same as manual ˈznanʲɪ(j)ɪ ([ˈznanʲɪjɪ]): insert ( at 7, replace ə -> )ɪ at 8
+* Page 8775 [[изображение]]: WARNING: For headword изображе́ние, auto ɪzəbrɐˈʐɛnʲɪjə not same as manual ɪzəbrɐˈʐenʲɪ(j)ɪ (/ɪzəbrʌˈʐenʲɪjɪ/): replace ɛ -> e at 8, insert ( at 12, replace ə -> )ɪ at 13
+* Page 12974 [[многие]]: WARNING: For headword мно́гие, auto ˈmnoɡʲɪjə not same as manual ˈmnoɡʲɪ(j)ɪ ([ˈmnoɡʲɪjɪ]): insert ( at 7, replace ə -> )ɪ at 8
+* Page 17528 [[повышение]]: WARNING: For headword повыше́ние, auto pəvɨˈʂɛnʲɪjə not same as manual pəvɨˈʂenʲɪ(j)ɪ ([pəvɨ̞ˈʂenʲɪ̝jɪ]): replace ɛ -> e at 6, insert ( at 10, replace ə -> )ɪ at 11
+* Page 3015 [[многие]]: WARNING: For headword мно́гие, auto ˈmnoɡʲɪjə not same as manual ˈmnoɡʲɪ(j)ɪ ([ˈmnoɡʲɪjɪ]): insert ( at 7, replace ə -> )ɪ at 8
+* Page 12062 [[лунное затмение]]: WARNING: For headword лу́нное затме́ние, auto ˈlunːəjə zɐˈtmʲenʲɪjə (ˈlunːəjə zɐtˈmʲenʲɪjə) not same as manual ˈlunːəje zɐˈtmʲenʲɪjɛ ([ˈɫunːəje zɐˈtmʲenʲɪjɛ]): replace ə -> e at 7, replace ə -> ɛ at 20
+* Page 20416 [[раздвоение]]: WARNING: For headword раздвое́ние, auto rəzdvɐˈjenʲɪjə not same as manual rəzdvɐˈjenʲɪjɛ ([rəzdvɐˈjenʲɪjɛ]): replace ə -> ɛ at 13
+* Page 15176 [[Объединённые Арабские Эмираты]]: WARNING: For headword Объединённые Ара́бские Эмира́ты, auto ɐbjɪdʲɪˈnʲɵnːɨjə ɐˈrapskʲɪjə ɨmʲɪˈratɨ not same as manual ɐbjɪdʲɪˈnʲɵnːɨje ɐˈrapskʲɪje ɛmʲɪˈratɨ ([ɐbjɪdʲɪˈnʲɵnːɨje ɐˈrapskʲɪje ɛmʲɪˈratɨ]): replace ə -> e at 15, replace ə -> e at 27, replace ɨ -> ɛ at 29
+* Page 3372 [[в противном случае]]: WARNING: For headword в проти́вном слу́чае, auto f‿prɐˈtʲivnəm ˈslut͡ɕɪjə not same as manual f‿prɐˈtʲivnəm ˈslut͡ɕɪɪ ([f‿prɐˈtʲivnəm ˈslut͡ɕɪɪ]): replace jə -> ɪ at 22
+* Page 4406 [[вооружённые силы]]: WARNING: For headword вооружённые си́лы, auto vɐɐrʊˈʐonːɨjə ˈsʲilɨ not same as manual vɐɐrʊˈʐonːɨɪ ˈsʲilɨ ([vəɐrʊˈʐonːɨɪ ˈsʲilɨ]): replace jə -> ɪ at 11
+
+
+
+Difference in primary stress, auto vs. manual (may be real):
+
+* Page 3764 [[веха]]: WARNING: For headword ве́ха, auto ˈvʲexə not same as manual vʲɪˈxa (/vʲɪˈxa/): delete ˈ at 0, replace e -> ɪˈ at 3, replace ə -> a at 5
+* Page 6617 [[диско]]: WARNING: For headword ди́ско, auto ˈdʲiskə not same as manual dʲɪˈsko (/dʲɪˈsko/): delete ˈ at 0, replace i -> ɪˈ at 3, replace ə -> o at 6
+* Page 8918 [[индоевропеец]]: WARNING: For headword индоевропе́ец, auto ɪndə(j)ɪvrɐˈpʲe(j)ɪt͡s not same as manual ˈində(j)ɪvrɐˈpʲe(j)ɪt͡s (/ˈɪndɐjɪvrɐˈpʲejɪt͡s/): replace ɪ -> ˈi at 0
+* Page 18739 [[преданность]]: WARNING: For headword пре́данность, auto ˈprʲedən(ː)əsʲtʲ not same as manual prʲedɐˈn(ː)əsʲtʲ (/prʲedɐˈnːəsʲtʲ/): delete ˈ at 0, replace ə -> ɐˈ at 6
+* Page 19739 [[просыпаться]]: WARNING: For headword просыпа́ться, auto prəsɨˈpat͡sːə not same as manual prɐˈsɨpət͡sːə (/prəˈsɨpət͡sə/): replace ə -> ɐˈ at 2, delete ˈ at 5, replace a -> ə at 7
+* Page 26957 [[четверг]]: WARNING: For headword четве́рг, auto t͡ɕɪˈtvʲerk (t͡ɕɪtˈvʲerk) not same as manual t͡ɕɪtvʲɪˈrɡʲi ([tɕɪtvʲɪrˈɡʲi]): delete ˈ at 4, replace e -> ɪˈ at 8, replace k -> ɡʲi at 10
+* Page 2817 [[лети]]: WARNING: For headword лети́, auto lʲɪˈtʲi not same as manual lʲɪtʲɪˈ (/lʲɪtʲiˈ/): delete ˈ at 3, replace i -> ɪˈ at 6
+* Page 821 [[алиф]]: WARNING: For headword а́лиф, auto ˈalʲɪf not same as manual ɐˈlʲif (/ɐˈlʲif/): insert ɐ at 0, delete a at 1, replace ɪ -> i at 4
+* Page 24258 [[таращиться]]: WARNING: For headword тара́щиться, auto tɐˈraɕːɪt͡sə not same as manual tərɐˈɕːit͡sə (/tərɐˈɕːɪt͡sə/): insert ər at 1, delete ra at 3, replace ɪ -> i at 7
+* Page 2553 [[катета]]: WARNING: For headword ка́тета, auto ˈkatʲɪtə not same as manual kɐˈtʲitə (/kɐˈtʲɪtə/): insert kɐ at 0, delete ka at 1, replace ɪ -> i at 5
+* Page 28060 [[этимологический]]: WARNING: For headword этимологи́ческий, auto ɨtʲɪməlɐˈɡʲit͡ɕɪskʲɪj not same as manual ɐtʲɪmɐˈloɡʲɪt͡ɕɪskʲɪj (/ətʲɪmɐˈɫoɡʲit͡ɕɪskʲɪj/): replace ɨ -> ɐ at 0, delete əl at 5, insert lo at 9, replace i -> ɪ at 11
+* Page 12186 [[магазин]]: WARNING: For headword магази́н, auto məɡɐˈzʲin not same as manual mɐˈɡazʲɪn (/mɐˈɡazʲɪn/): delete əɡ at 1, insert ɡa at 5, replace i -> ɪ at 7
+* Page 24258 [[таращиться]]: WARNING: For headword тара́щиться, auto tɐˈraɕːɪt͡sə not same as manual tərɐˈɕːit͡sə (/tərɐˈɕːɪt͡sə/): insert ər at 1, delete ra at 3, replace ɪ -> i at 7
+* Page 2553 [[катета]]: WARNING: For headword ка́тета, auto ˈkatʲɪtə not same as manual kɐˈtʲitə (/kɐˈtʲɪtə/): insert kɐ at 0, delete ka at 1, replace ɪ -> i at 5
+* Page 11349 [[куркума]]: WARNING: For headword курку́ма, auto kʊˈrkumə (kʊrˈkumə) not same as manual kʊrkʊˈma (/kʊrkʊˈma/): insert kʊr at 0, delete rku at 3, replace ə -> a at 7
+* Page 15682 [[опубликовывать]]: WARNING: For headword опублико́вывать, auto ɐpʊblʲɪˈkovɨvətʲ not same as manual ɐpʊblʲɪkɐˈvatʲ ([əpʊblʲɪkɐˈvatʲ]): insert kɐ at 7, delete ko at 8, replace ɨvə -> a at 11
+* Page 25110 [[тута]]: WARNING: For headword ту́та, auto ˈtutə not same as manual tʊˈtə (/tʊˈtə/): insert tʊ at 0, delete ut at 2
+* Page 12283 [[малаялам]]: WARNING: For headword малая́лам, auto məlɐˈjaləm not same as manual mələ(j)ɪˈlam (/mələjɪˈlam/): replace ɐ -> ə(j)ɪ at 3, replace j -> l at 5, delete lə at 7
+
+
+
+Secondary stress added in manual (may be real):
+
+* Page 1747 [[аудиовизуальный]]: WARNING: For headword аудиовизуа́льный, auto ɐʊdʲɪəvʲɪzʊˈalʲnɨj not same as manual ˌaʊdʲɪəvʲɪzʊˈalʲnɨj ([ˌaudʲɪəvʲɪzʊˈalʲnɨj]): replace ɐ -> ˌa at 0
+* Page 1748 [[аудиокнига]]: WARNING: For headword аудиокни́га, auto ɐʊdʲɪɐˈknʲiɡə (ɐʊdʲɪɐkˈnʲiɡə) not same as manual ˌaʊdʲɪɐˈknʲiɡə ([ˌaudʲɪɐˈknʲiɡə]): replace ɐ -> ˌa at 0
+* Page 1816 [[афроамериканец]]: WARNING: For headword афроамерика́нец, auto ɐfrɐɐmʲɪrʲɪˈkanʲɪt͡s not same as manual ˌafrɐɐmʲɪrʲɪˈkanʲɪt͡s ([ˌafrəɐmʲɪrʲɪˈkanʲɪt͡s]): replace ɐ -> ˌa at 0
+* Page 1817 [[афроамериканка]]: WARNING: For headword афроамерика́нка, auto ɐfrɐɐmʲɪrʲɪˈkankə not same as manual ˌafrɐɐmʲɪrʲɪˈkankə ([ˌafrəɐmʲɪrʲɪˈkankə]): replace ɐ -> ˌa at 0
+* Page 1860 [[аэробиология]]: WARNING: For headword аэробиоло́гия, auto ɐɨrəbʲɪɐˈloɡʲɪjə not same as manual ˌaɛrəbʲɪɐˈloɡʲɪjə ([ˌaɛrəbʲɪɐˈloɡʲɪjə]): replace ɐɨ -> ˌaɛ at 0
+* Page 1863 [[аэровокзал]]: WARNING: For headword аэровокза́л, auto ɐɨrəvɐˈɡzal (ɐɨrəvɐɡˈzal) not same as manual ˌaɛrəvɐˈɡzal ([ˌaɛrəvɐɡˈzal]): replace ɐɨ -> ˌaɛ at 0
+* Page 1865 [[аэродинамический]]: WARNING: For headword аэродинами́ческий, auto ɐɨrədʲɪnɐˈmʲit͡ɕɪskʲɪj not same as manual ˌaɛrədʲɪnɐˈmʲit͡ɕɪskʲɪj ([ˌaɛrədʲɪnɐˈmʲit͡ɕɪskʲɪj]): replace ɐɨ -> ˌaɛ at 0
+* Page 1872 [[аэронавигационный огонь]]: WARNING: For headword аэронавигацио́нный ого́нь, auto ɐɨrənəvʲɪɡət͡sɨˈonːɨj ɐˈɡonʲ not same as manual ˌaɛrənəvʲɪɡət͡sɨˈonːɨj ɐˈɡonʲ ([ˌaɛrənəvʲɪɡət͡sɨˈonːɨj ɐˈɡonʲ]): replace ɐɨ -> ˌaɛ at 0
+* Page 1878 [[аэрошоу]]: WARNING: For headword аэрошо́у, auto ɐɨrɐˈʂoʊ not same as manual ˌaɛrɐˈʂoʊ ([ˌaɛrɐˈʂoʊ]): replace ɐɨ -> ˌaɛ at 0
+* Page 3799 [[взаимопонимание]]: WARNING: For headword взаимопонима́ние, auto vzəɪməpənʲɪˈmanʲɪjə not same as manual vzəˌiməpənʲɪˈmanʲɪjə ([vzɐˌiməpənʲɪˈmanʲɪjə]): replace ɪ -> ˌi at 3
+* Page 5265 [[Генеральная Ассамблея ООН]]: WARNING: For headword Генера́льная Ассамбле́я ОО́Н, auto ɡʲɪnʲɪˈralʲnəjə ɐsɐˈmblʲejə ɐˈon (ɡʲɪnʲɪˈralʲnəjə ɐsɐmbˈlʲejə ɐˈon) not same as manual ɡʲɪnʲɪˈralʲnəjə ɐsɐˈmblʲejə ˌoˈon ([ɡʲɪnʲɪˈralʲnəjə ɐsɐmbˈlʲejə ˌoˈon]): replace ɐ -> ˌo at 28
+* Page 22740 [[Совет Безопасности ООН]]: WARNING: For headword Сове́т Безопа́сности ОО́Н, auto sɐˈvʲed bʲɪzɐˈpasnəsʲtʲɪ ɐˈon not same as manual sɐˈvʲet bʲɪzɐˈpasnəsʲtʲɪ ˌoˈon ([sɐˈvʲet bʲɪzɐˈpasnəsʲtʲɪ ˌoˈon]): replace d -> t at 6, replace ɐ -> ˌo at 25
+* Page 27485 [[шпиономания]]: WARNING: For headword шпионома́ния, auto ʂpʲɪənɐˈmanʲɪjə not same as manual ʂpʲɪˌonɐˈmanʲɪjə (/ʂpʲɪˌonɐˈmanʲɪjə/): replace ə -> ˌo at 4
+
+
+
+Cases with сч rendered as ɕt͡ɕ in auto but ɕː in manual (may be real, may need to use щ in place of сч in ru-IPA):
+
+* Page 2482 [[бесчеловечный]]: WARNING: For headword бесчелове́чный, auto bʲɪɕt͡ɕɪlɐˈvʲet͡ɕnɨj not same as manual bʲɪɕːɪlɐˈvʲet͡ɕnɨj (/bʲɪɕːɪlɐˈvʲet͡ɕnɨj/): replace t͡ɕ -> ː at 4
+* Page 8024 [[заносчивость]]: WARNING: For headword зано́счивость, auto zɐˈnoɕt͡ɕɪvəsʲtʲ not same as manual zɐˈnoɕːɪvəsʲtʲ (/zɐˈnoɕːɪvəsʲtʲ/): replace t͡ɕ -> ː at 6
+* Page 8025 [[заносчивый]]: WARNING: For headword зано́счивый, auto zɐˈnoɕt͡ɕɪvɨj not same as manual zɐˈnoɕːɪvɨj (/zɐˈnoɕːɪvɨj/): replace t͡ɕ -> ː at 6
+* Page 9306 [[исчерпывать]]: WARNING: For headword исче́рпывать, auto ɪˈɕt͡ɕerpɨvətʲ (ɪɕˈt͡ɕerpɨvətʲ) not same as manual ɪˈɕːerpɨvətʲ (/ɪˈɕːerpɨvətʲ/): replace t͡ɕ -> ː at 3
+* Page 9307 [[исчерпывающий]]: WARNING: For headword исче́рпывающий, auto ɪˈɕt͡ɕerpɨvəjʉɕːɪj (ɪɕˈt͡ɕerpɨvəjʉɕːɪj) not same as manual ɪˈɕːerpɨvəjʉɕːɪj (/ɪˈɕːerpɨvəjʉɕːɪj/): replace t͡ɕ -> ː at 3
+* Page 13944 [[насчитать]]: WARNING: For headword насчита́ть, auto nəɕt͡ɕɪˈtatʲ not same as manual nəɕːɪˈtatʲ (/nəɕːɪˈtatʲ/): replace t͡ɕ -> ː at 3
+* Page 13945 [[насчитывать]]: WARNING: For headword насчи́тывать, auto nɐˈɕt͡ɕitɨvətʲ (nɐɕˈt͡ɕitɨvətʲ) not same as manual nɐˈɕːitɨvətʲ (/nɐˈɕːitɨvətʲ/): replace t͡ɕ -> ː at 4
+* Page 14499 [[несчастный]]: WARNING: For headword несча́стный, auto nʲɪˈɕt͡ɕasnɨj (nʲɪɕˈt͡ɕasnɨj) not same as manual nʲɪˈɕːasnɨj (/nʲɪˈɕːæsnɨj/): replace t͡ɕ -> ː at 5
+* Page 14501 [[несчастье]]: WARNING: For headword несча́стье, auto nʲɪˈɕt͡ɕæsʲtʲjə (nʲɪɕˈt͡ɕæsʲtʲjə) not same as manual nʲɪˈɕːæsʲtʲjə (/nʲɪˈɕːasʲtʲjə/): replace t͡ɕ -> ː at 5
+* Page 17013 [[песчаник]]: WARNING: For headword песча́ник, auto pʲɪˈɕt͡ɕænʲɪk (pʲɪɕˈt͡ɕænʲɪk) not same as manual pʲɪˈɕːænʲɪk (/pʲɪˈɕːænʲɪk/): replace t͡ɕ -> ː at 5
+* Page 18568 [[посчитать]]: WARNING: For headword посчита́ть, auto pəɕt͡ɕɪˈtatʲ not same as manual pəɕːɪˈtatʲ (/pəɕːɪˈtatʲ/): replace t͡ɕ -> ː at 3
+* Page 20779 [[расчёска]]: WARNING: For headword расчёска, auto rɐˈɕt͡ɕɵskə (rɐɕˈt͡ɕɵskə) not same as manual rɐˈɕːɵskə ([rɐˈɕːɵskə]): replace t͡ɕ -> ː at 4
+
+
+
+Vowel missing in manual (probably erroneous):
+
+* Page 20524 [[расплатиться]]: WARNING: For headword расплати́ться, auto rəsplɐˈtʲit͡sːə not same as manual rɐˈspltʲit͡sːə (/rəsplˈtʲitt͡sə/): replace ə -> ɐˈ at 1, delete ɐˈ at 5
+* Page 1246 [[антиномист]]: WARNING: For headword антиноми́ст, auto ɐnʲtʲɪnɐˈmʲist not same as manual ɐnʲtʲnɐˈmʲist (/ənʲtʲnɐˈmʲist/): delete ɪ at 5
+* Page 5312 [[геополитика]]: WARNING: For headword геополи́тика, auto ɡʲɪəpɐˈlʲitʲɪkə not same as manual ɡʲɪəpɐˈlʲitʲkə (/ɡʲɪəpɐˈlʲitʲkə/): delete ɪ at 12
+* Page 6221 [[двусмысленность]]: WARNING: For headword двусмы́сленность, auto dvʊˈsmɨs⁽ʲ⁾lʲɪn(ː)əsʲtʲ (dvʊsˈmɨs⁽ʲ⁾lʲɪn(ː)əsʲtʲ) not same as manual dvʊˈsmɨs⁽ʲ⁾lʲn(ː)əsʲtʲ (/dvʊsˈmɨslʲnːəsʲtʲ/): delete ɪ at 13
+* Page 6425 [[деревенеть]]: WARNING: For headword деревене́ть, auto dʲɪrʲɪvʲɪˈnʲetʲ not same as manual dʲɪrʲvʲɪˈnʲetʲ (/dʲɪrʲvʲɪˈnʲetʲ/): delete ɪ at 5
+* Page 6439 [[деревянеть]]: WARNING: For headword деревяне́ть, auto dʲɪrʲɪvʲɪˈnʲetʲ not same as manual dʲɪrʲvʲɪˈnʲetʲ (/dʲɪrʲvʲɪˈnʲetʲ/): delete ɪ at 5
+* Page 12614 [[мезопауза]]: WARNING: For headword мезопа́уза, auto mʲɪzɐˈpaʊzə not same as manual mʲzɐˈpaʊzə (/mʲzɐˈpaʊzə/): delete ɪ at 2
+* Page 14133 [[негритос]]: WARNING: For headword негрито́с, auto nʲɪɡrʲɪˈtos not same as manual nʲɡrʲɪˈtos (/nʲɡrʲɪˈtos/): delete ɪ at 2
+* Page 15514 [[олигархия]]: WARNING: For headword олига́рхия, auto ɐlʲɪˈɡarxʲɪjə not same as manual ɐlʲɪˈɡarxʲjə (/əlʲɪˈɡarxʲjə/): delete ɪ at 10
+* Page 16876 [[переносить]]: WARNING: For headword переноси́ть, auto pʲɪrʲɪnɐˈsʲitʲ not same as manual pʲɪrʲnɐˈsʲitʲ (/pʲɪrʲnɐˈsʲitʲ/): delete ɪ at 5
+* Page 25225 [[убавить]]: WARNING: For headword уба́вить, auto ʊˈbavʲɪtʲ not same as manual ʊˈbbavʲtʲ (/ʊbˈbavʲtʲ/): insert b at 2, delete ɪ at 6
+* Page 26349 [[фтизиатрия]]: WARNING: For headword фтизиатри́я, auto ftʲɪzʲɪɐˈtrʲijə (ftʲɪzʲɪɐtˈrʲijə) not same as manual ftʲɪzʲɐˈtrʲijə (/ftʲɪzʲɐtˈrʲijə/): delete ɪ at 6
+* Page 4158 [[репортажа]]: WARNING: For headword репорта́жа, auto rʲɪpɐˈrtaʐə (rʲɪpɐrˈtaʐə) not same as manual rʲpɐˈrtaʐə (/rʲpɐrˈtaʐə/): delete ɪ at 2
+
+
+
+Unstressed а represented by ɨ in manual after hard unpaired consonant (жшц; may be real or erroneous):
+
+* Page 9361 [[к сожалению]]: WARNING: For headword к сожале́нию, auto k‿səʐɐˈlʲenʲɪjʊ not same as manual ksəʐɨˈlʲenʲɪjʊ (/ksə.ʐɨˈlʲe.nʲɪ.ju/): delete ‿ at 1, replace ɐ -> ɨ at 5
+* Page 12028 [[лошадиный]]: WARNING: For headword лошади́ный, auto ləʂɐˈdʲinɨj not same as manual ləʂɨˈdʲinɨj (/ləʂɨˈdʲinɨj/): replace ɐ -> ɨ at 3
+* Page 17871 [[пожалеть]]: WARNING: For headword пожале́ть, auto pəʐɐˈlʲetʲ not same as manual pəʐɨˈlʲetʲ (/pəʐɨˈlʲetʲ/): replace ɐ -> ɨ at 3
+* Page 18484 [[послушать]]: WARNING: For headword послу́шать, auto pɐˈsluʂətʲ (pɐsˈluʂətʲ) not same as manual pɐˈsluʂɨtʲ (/pɐˈsluʂɨtʲ/): replace ə -> ɨ at 7
+* Page 21479 [[сажа]]: WARNING: For headword са́жа, auto ˈsaʐə not same as manual ˈsaʐɨ ([ˈsaʐɨ]): replace ə -> ɨ at 4
+* Page 22956 [[сожаление]]: WARNING: For headword сожале́ние, auto səʐɐˈlʲenʲɪjə not same as manual səʐɨˈlʲenʲɪjə (/səʐɨˈlʲenʲɪjə/): replace ɐ -> ɨ at 3
+* Page 22957 [[сожалеть]]: WARNING: For headword сожале́ть, auto səʐɐˈlʲetʲ not same as manual səʐɨˈlʲetʲ ([səʐɨˈlʲetʲ]): replace ɐ -> ɨ at 3
+* Page 26754 [[цареубийство]]: WARNING: For headword цареуби́йство, auto t͡sərʲɪʊˈbʲijstvə not same as manual t͡sɨrʲɪʊˈbʲijstvə (/t͡sɨrʲɪʊˈbʲijstvə/): replace ə -> ɨ at 3
+* Page 26755 [[цареубийца]]: WARNING: For headword цареуби́йца, auto t͡sərʲɪʊˈbʲijt͡sə not same as manual t͡sɨrʲɪʊˈbʲijt͡sə (/t͡sɨrʲɪʊˈbʲijt͡sə/): replace ə -> ɨ at 3
+
+
+
+Unstressed a/о represented by a in manual (may be real, may require secondary stress):
+
+* Page 597 [[адъютант]]: WARNING: For headword адъюта́нт, auto ɐdjʊˈtant not same as manual adjʊˈtant ([ad.jʉˈtant]): replace ɐ -> a at 0
+* Page 1793 [[афинянка]]: WARNING: For headword афиня́нка, auto ɐfʲɪˈnʲankə not same as manual afʲɪˈnʲankə (/afʲɪˈnʲænkə/): replace ɐ -> a at 0
+* Page 1959 [[баланда]]: WARNING: For headword бала́нда, auto bɐˈlandə not same as manual baˈlandə (/baˈlandə/): replace ɐ -> a at 1
+* Page 4248 [[воздухоплавание]]: WARNING: For headword воздухопла́вание, auto vəzdʊxɐˈplavənʲɪjə not same as manual vəzdʊxɐˈplavanʲɪjə (/vəzdʊxɐˈplavanʲɪjə/): replace ə -> a at 12
+* Page 6955 [[дословный]]: WARNING: For headword досло́вный, auto dɐˈslovnɨj (dɐsˈlovnɨj) not same as manual daˈslovnɨj (/daˈslovnɨj/): replace ɐ -> a at 1
+* Page 10387 [[колонна]]: WARNING: For headword коло́нна, auto kɐˈlonːə not same as manual kɐˈlonːa (/kɐˈlonːa/): replace ə -> a at 7
+* Page 10443 [[комбинация]]: WARNING: For headword комбина́ция, auto kəm⁽ʲ⁾bʲɪˈnat͡sɨjə not same as manual kəm⁽ʲ⁾bʲɪˈnat͡sɨja (/kəmʲbʲɪˈnat͡sɨja/): replace ə -> a at 17
+* Page 11349 [[куркума]]: WARNING: For headword курку́ма, auto kʊˈrkumə (kʊrˈkumə) not same as manual kʊrkʊˈma (/kʊrkʊˈma/): insert kʊr at 0, delete rku at 3, replace ə -> a at 7
+* Page 13921 [[настольный]]: WARNING: For headword насто́льный, auto nɐˈstolʲnɨj not same as manual naˈstolʲnɨj ([naˈstolʲ.nɨj]): replace ɐ -> a at 1
+* Page 16127 [[отпочковываться]]: WARNING: For headword отпочко́вываться, auto ɐtpɐˈt͡ɕkovɨvət͡sə (ɐtpɐt͡ɕˈkovɨvət͡sə) not same as manual ɐtpaˈt͡ɕkovɨvət͡sə (/ətpat͡ʃˈkovɨvətsə/): replace ɐ -> a at 3
+* Page 17254 [[планета]]: WARNING: For headword плане́та, auto plɐˈnʲetə not same as manual plaˈnʲetə (/plaˈnʲetə/): replace ɐ -> a at 2
+* Page 18917 [[предпосылка]]: WARNING: For headword предпосы́лка, auto prʲɪtpɐˈsɨlkə not same as manual prʲɪtpɐˈsɨlka ([prɪtpɐˈsɨlka]): replace ə -> a at 12
+* Page 20083 [[пудра]]: WARNING: For headword пу́дра, auto ˈpudrə not same as manual ˈpudra (/ˈpudra/): replace ə -> a at 5
+* Page 21931 [[Северная Дакота]]: WARNING: For headword Се́верная Дако́та, auto ˈsʲevʲɪrnəjə dɐˈkotə not same as manual ˈsʲevʲɪrnəjə daˈkotə (/ˈsʲevʲɪrnəjə daˈkotə/): replace ɐ -> a at 14
+* Page 24418 [[теория]]: WARNING: For headword тео́рия, auto tʲɪˈorʲɪjə not same as manual tʲɪˈorʲɪja (/tʲɪˈorʲɪja/): replace ə -> a at 9
+* Page 26322 [[француз]]: WARNING: For headword францу́з, auto frɐˈnt͡sus (frɐnˈt͡sus) not same as manual fraˈnt͡sus (/franˈt͡sus/): replace ɐ -> a at 2
+* Page 27667 [[штаны]]: WARNING: For headword штаны́, auto ʂtɐˈnɨ not same as manual ʂtaˈnɨ (/ʂtaˈnɨ/): replace ɐ -> a at 2
+* Page 27679 [[штопать]]: WARNING: For headword што́пать, auto ˈʂtopətʲ not same as manual ˈʂtopatʲ (/ˈʂtopatʲ/): replace ə -> a at 5
+* Page 28061 [[этимология]]: WARNING: For headword этимоло́гия, auto ɨtʲɪmɐˈloɡʲɪjə not same as manual etʲɪmaˈloɡʲɪjə (/etʲɪmaˈloɡʲɪjə/): replace ɨ -> e at 0, replace ɐ -> a at 5
+
+
+
+Unstressed е/э represented as ɛ in manual (may be real, may need secondary or tertiary stress [ignore issues from final -е]):
+
+* Page 641 [[аидыше]]: WARNING: For headword аи́дыше, auto ɐˈidɨʂɨ not same as manual ɐˈidɨʂɛ ([ɐˈidɨʂɛ]): replace ɨ -> ɛ at 6
+* Page 866 [[алоэ]]: WARNING: For headword ало́э, auto ɐˈloɨ not same as manual ɐˈloɛ ([ɐˈloɛ]): replace ɨ -> ɛ at 4
+* Page 1868 [[аэрозольный баллон]]: WARNING: For headword аэрозо́льный балло́н, auto ɐɨrɐˈzolʲnɨj bɐˈlon not same as manual ɐɛrɐˈzolʲnɨj bɐˈlon ([ɐɛrɐˈzolʲnɨj bɐˈlon]): replace ɨ -> ɛ at 1
+* Page 1870 [[аэрология]]: WARNING: For headword аэроло́гия, auto ɐɨrɐˈloɡʲɪjə not same as manual ɐɛrɐˈloɡʲɪjə ([ɐɛrɐˈloɡʲɪjə]): replace ɨ -> ɛ at 1
+* Page 3320 [[бэкграунд]]: WARNING: For headword бэкгра́унд, auto bɨˈɡraʊnt (bɨɡˈraʊnt) not same as manual bɛˈɡɡraʊnt ([bɛɡˈɡraʊnt]): replace ɨ -> ɛ at 1, insert ɡ at 3
+* Page 5078 [[вэньянь]]: WARNING: For headword вэнья́нь, auto vɨˈnʲjænʲ not same as manual vɛˈnʲjænʲ ([vɛnʲˈjænʲ]): replace ɨ -> ɛ at 1
+* Page 9601 [[каноэ]]: WARNING: For headword кано́э, auto kɐˈnoɨ not same as manual kɐˈnoɛ (/kɐˈnoɛ/): replace ɨ -> ɛ at 5
+* Page 13293 [[мужеложеский]]: WARNING: For headword мужело́жеский, auto mʊʐɨˈloʐɨskʲɪj not same as manual mʊʐɛˈloʐɛskʲɪj ([mʊʐɛˈɫoʐɛskʲɪj]): replace ɨ -> ɛ at 3, replace ɨ -> ɛ at 8
+* Page 13294 [[мужеложец]]: WARNING: For headword мужело́жец, auto mʊʐɨˈloʐɨt͡s not same as manual mʊʐɛˈloʐɛt͡s ([mʊʐɛˈɫoʐɛts]): replace ɨ -> ɛ at 3, replace ɨ -> ɛ at 8
+* Page 13295 [[мужеложство]]: WARNING: For headword мужело́жство, auto mʊʐɨˈloʂstvə not same as manual mʊʐɛˈloʂstvə ([mʊʐɛˈɫoʂstvə]): replace ɨ -> ɛ at 3
+* Page 15176 [[Объединённые Арабские Эмираты]]: WARNING: For headword Объединённые Ара́бские Эмира́ты, auto ɐbjɪdʲɪˈnʲɵnːɨjə ɐˈrapskʲɪjə ɨmʲɪˈratɨ not same as manual ɐbjɪdʲɪˈnʲɵnːɨje ɐˈrapskʲɪje ɛmʲɪˈratɨ ([ɐbjɪdʲɪˈnʲɵnːɨje ɐˈrapskʲɪje ɛmʲɪˈratɨ]): replace ə -> e at 15, replace ə -> e at 27, replace ɨ -> ɛ at 29
+* Page 27889 [[элеватор]]: WARNING: For headword элева́тор, auto ɨlʲɪˈvatər not same as manual ɛlʲɪˈvatər ([ɛlʲɪˈvatər]): replace ɨ -> ɛ at 0
+* Page 28012 [[Эрмитаж]]: WARNING: For headword Эрмита́ж, auto ɨrmʲɪˈtaʂ not same as manual ɛrmʲɪˈtaʂ ([ɛrmʲɪˈtaʂ]): replace ɨ -> ɛ at 0
+* Page 28034 [[эсперанто]]: WARNING: For headword эспера́нто, auto ɨspʲɪˈrantə not same as manual ɛspʲɪˈrantə ([ɛspʲɪˈrantə]): replace ɨ -> ɛ at 0
+* Page 5222 [[элеваторе]]: WARNING: For headword элева́торе, auto ɨlʲɪˈvatərʲə not same as manual ɛlʲɪˈvatərʲɪ ([ɛlʲɪˈvatərʲɪ]): replace ɨ -> ɛ at 0, replace ə -> ɪ at 11
+* Page 28332 [[Яунде]]: WARNING: For headword Я́унде, auto ˈjaʊnʲdʲə not same as manual ˈjaʊndɛ ([ˈjaundɛ]): delete ʲ at 5, replace ʲə -> ɛ at 7
+* Page 4786 [[тостере]]: WARNING: For headword то́стере, auto ˈtosʲtʲɪrʲə not same as manual ˈtostɛrʲɪ ([ˈtostɛrʲɪ]): delete ʲ at 4, insert ɛr at 6, delete rʲə at 8
+
+
+
+Unstressed е represented by e in manual (may be real, may require secondary stress):
+
+* Page 16738 [[пенографит]]: WARNING: For headword пенографи́т, auto pʲɪnəɡrɐˈfʲit not same as manual pʲenəɡrɐˈfʲit (/pʲɛnə.ɡrɐˈfʲit/): replace ɪ -> e at 2
+* Page 26107 [[фенек]]: WARNING: For headword фе́нек, auto ˈfʲenʲɪk not same as manual ˈfʲenʲek (/ˈfʲenʲek/): replace ɪ -> e at 6
+* Page 27920 [[элементарный]]: WARNING: For headword элемента́рный, auto ɨlʲɪmʲɪˈntarnɨj (ɨlʲɪmʲɪnˈtarnɨj) not same as manual elʲemʲeˈntarnɨj (/elʲemʲenˈtarnɨj/): replace ɨ -> e at 0, replace ɪ -> e at 3, replace ɪ -> e at 6
+* Page 3315 [[бьеннале]]: WARNING: For headword бьенна́ле, auto bʲɪ(j)ɪˈnːalʲə not same as manual bʲjeˈnalʲe ([bʲjeˈnalʲe]): delete ɪ( at 2, replace )ɪ -> e at 5, delete ː at 9, replace ə -> e at 13
+
+
+
+Non-final unstressed е/я represented by ɪ in auto but ə in manual (may be real, if so need to come up with a way of indicating this sort of reduction):
+
+* Page 2326 [[Белоснежка]]: WARNING: For headword Белосне́жка, auto bʲɪlɐˈs⁽ʲ⁾nʲeʂkə (bʲɪlɐs⁽ʲ⁾ˈnʲeʂkə) not same as manual bʲəlɐˈs⁽ʲ⁾nʲeʃkə ([bʲəlʌˈsnʲɛʃkə]): replace ɪ -> ə at 2, replace ʂ -> ʃ at 13
+* Page 4958 [[высечь]]: WARNING: For headword вы́сечь, auto ˈvɨsʲɪt͡ɕ not same as manual ˈvɨsʲət͡ɕ ([ˈvɨsʲət͡ɕ]): replace ɪ -> ə at 5
+* Page 5024 [[вытечь]]: WARNING: For headword вы́течь, auto ˈvɨtʲɪt͡ɕ not same as manual ˈvɨtʲət͡ɕ ([ˈvɨtʲət͡ɕ]): replace ɪ -> ə at 5
+* Page 6114 [[дарёному коню в зубы не смотрят]]: WARNING: For headword дарёному коню́ в зу́бы не смо́трят, auto dɐˈrʲɵnəmʊ kɐˈnʲu ˈv‿zubɨ nʲɪˈ‿smotrʲɪt (dɐˈrʲɵnəmʊ kɐˈnʲu ˈv‿zubɨ nʲɪ‿ˈsmotrʲɪt) not same as manual dɐˈrʲɵnəmʊ kɐˈnʲu ˈv‿zubɨ nʲɪˈ‿smotrʲət ([dɐˈrʲɵnəmʊ kɐˈnʲʉ ˈv‿zubɨ nʲɪ‿ˈsmotrʲət]): replace ɪ -> ə at 37
+* Page 22729 [[Смолян]]: WARNING: For headword Смо́лян, auto ˈsmolʲɪn not same as manual ˈsmolʲən ([ˈsmolʲən]): replace ɪ -> ə at 6
+* Page 27932 [[Эль-Ниньо]]: WARNING: For headword Эль-Ни́ньо, auto ɛlʲ ˈnʲinʲjɪ not same as manual ɛlʲ ˈnʲinʲjə ([ɛlʲ ˈnʲinʲjə]): replace ɪ -> ə at 11
+* Page 5003 [[хворям]]: WARNING: For headword хво́рям, auto ˈxvorʲɪm not same as manual ˈxvorʲəm ([ˈxvorʲəm]): replace ɪ -> ə at 6
+* Page 5004 [[хворями]]: WARNING: For headword хво́рями, auto ˈxvorʲɪmʲɪ not same as manual ˈxvorʲəmʲɪ ([ˈxvorʲəmʲɪ]): replace ɪ -> ə at 6
+* Page 5005 [[хворях]]: WARNING: For headword хво́рях, auto ˈxvorʲɪx not same as manual ˈxvorʲəx ([ˈxvorʲəx]): replace ɪ -> ə at 6
+* Page 8282 [[заячья губа]]: WARNING: For headword за́ячья губа́, auto ˈza(j)ɪt͡ɕjə ɡʊˈba not same as manual ˈzajət͡ɕjə ɡʊˈba ([ˈzajət͡ɕjə ɡʊˈba]): delete ( at 3, replace )ɪ -> ə at 5
+* Page 1496 [[геям]]: WARNING: For headword ге́ям, auto ˈɡʲe(j)ɪm not same as manual ˈɡʲejəm ([ˈɡʲejəm]): delete ( at 4, replace )ɪ -> ə at 6
+* Page 1498 [[геях]]: WARNING: For headword ге́ях, auto ˈɡʲe(j)ɪx not same as manual 
+ˈɡʲejəx ([ˈɡʲejəx]): delete ( at 4, replace )ɪ -> ə at 6
+
+
+
+Unstressed йо represented by ɪ in auto but ə in manual (probably real, may need to change ru-pron for this sequence):
+
+* Page 9355 [[Йоханнесбург]]: WARNING: For headword Йоха́ннесбург, auto (j)ɪˈxanʲːɪzbʊrk not same as manual jɐˈxanɛzbʊrk ([jɐˈxanɛzbʊrk]): delete ( at 0, replace )ɪ -> ɐ at 2, replace ʲːɪ -> ɛ at 8
+* Page 12237 [[майорат]]: WARNING: For headword майора́т, auto mə(j)ɪˈrat not same as manual məjɐˈrat ([məjɐˈrat]): delete ( at 2, replace )ɪ -> ɐ at 4
+* Page 15256 [[Огайо]]: WARNING: For headword Ога́йо, auto ɐˈɡa(j)ɪ not same as manual ɐˈɡaɪ̯ə ([ɐˈɡaɪ̯ə]): delete (j) at 4, insert ̯ə at 8
+
+
+
+Non-final unstressed е/э represented by ɨ in auto but ɐ in manual (may be real, if so need to come up with a way of indicating this sort of reduction):
+
+* Page 7512 [[жениться]]: WARNING: For headword жени́ться, auto ʐɨˈnʲit͡sːə not same as manual ʐɐˈnʲit͡sːə (/ʐəˈnʲɪt͡sə/): replace ɨ -> ɐ at 1
+* Page 27942 [[эмбрион]]: WARNING: For headword эмбрио́н, auto ɨmbrʲɪˈon not same as manual ɐmbrʲɪˈon ([əmbrʲɪˈon]): replace ɨ -> ɐ at 0
+* Page 28060 [[этимологический]]: WARNING: For headword этимологи́ческий, auto ɨtʲɪməlɐˈɡʲit͡ɕɪskʲɪj not same as manual ɐtʲɪmɐˈloɡʲɪt͡ɕɪskʲɪj (/ətʲɪmɐˈɫoɡʲit͡ɕɪskʲɪj/): replace ɨ -> ɐ at 0, delete əl at 5, insert lo at 9, replace i -> ɪ at 11
+
+
+
+Unvoiced consonant before voiced in manual (probably erroneous; note, need to do something about цз and чж sequences to ensure syllable division before it, probably need to add a / at an early stage in processing, cf. [[дацзыбао]], [[ханьцзы]]):
+
+* Page 658 [[айсберг]]: WARNING: For headword а́йсберг, auto ˈajzbʲɪrk not same as manual ˈajsbʲɪrk (/ˈajsbʲɪrk/): replace z -> s at 3
+* Page 5914 [[гроссбух]]: WARNING: For headword гроссбу́х, auto ɡrɐˈzbux (ɡrɐzˈbux) not same as manual ɡrɐˈsbux (/ɡrɐsˈbux/): replace z -> s at 4
+* Page 6134 [[дацзыбао]]: WARNING: For headword дацзыба́о, auto dəd͡zzɨˈbao not same as manual dət͡szɨˈbao (/dət͡szɨˈbao/): replace d -> t at 2, replace z -> s at 4
+* Page 11709 [[лесоразработка]]: WARNING: For headword лесоразрабо́тка, auto lʲɪsərəzrɐˈbotkə not same as manual lʲɪsərəsrɐˈbotkə (/lʲɪsərəsrɐˈbotkə/): replace z -> s at 7
+* Page 14628 [[нильсборий]]: WARNING: For headword нильсбо́рий, auto nʲɪˈlʲzborʲɪj (nʲɪlʲzˈborʲɪj) not same as manual nʲɪˈlʲsborʲɪj (/nʲɪlʲsˈborʲɪj/): replace z -> s at 6
+* Page 20407 [[разгром]]: WARNING: For headword разгро́м, auto rɐˈzɡrom (rɐzɡˈrom) not same as manual rɐˈsɡrom ([rɐsˈɡrom]): replace z -> s at 3
+* Page 26438 [[ханьцзы]]: WARNING: For headword ханьцзы́, auto xɐˈnʲd͡zzɨ (xɐnʲd͡zˈzɨ) not same as manual xɐˈnʲt͡szɨ (/xɐnʲˈt͡szɨ/): replace d -> t at 5, replace z -> s at 7
+* Page 2079 [[баскетбол]]: WARNING: For headword баскетбо́л, auto bəskʲɪˈdbol (bəskʲɪdˈbol) not same as manual bəskʲɪˈtbol (/bəskʲɪtˈbol/): replace d -> t at 7
+* Page 5610 [[голытьба]]: WARNING: For headword голытьба́, auto ɡəlɨˈdʲba (ɡəlɨdʲˈba) not same as manual ɡəlɨˈtʲba (/ɡəlɨtʲˈba/): replace d -> t at 5
+* Page 6142 [[двадцать два]]: WARNING: For headword два́дцать два, auto ˈdvat͡sːədʲ dva not same as manual ˈdvatt͡sətʲ dva (/ˈdvattsətʲ ˈdva/): insert t at 5, delete ː at 7, replace d -> t at 9
+* Page 22877 [[Совет Безопасности ООН]]: WARNING: For headword Сове́т Безопа́сности ОО́Н, auto sɐˈvʲed bʲɪzɐˈpasnəsʲtʲɪ ɐˈon not same as manual sɐˈvʲet bʲɪzɐˈpasnəsʲtʲɪ ˌoˈon ([sɐˈvʲet bʲɪzɐˈpasnəsʲtʲɪ ˌoˈon]): replace d -> t at 6, replace ɐ -> ˌo at 25
+* Page 27184 [[чжуанский]]: WARNING: For headword чжуа́нский, auto d͡ʑʐʊˈanskʲɪj not same as manual t͡ɕʐʊˈanskʲɪj (/t͡ɕʐʊˈanskʲɪj/): replace d -> t at 0, replace ʑ -> ɕ at 2
+
+
+
+Voiced consonant before unvoiced in manual (probably erroneous):
+
+* Page 4616 [[всезнайка]]: WARNING: For headword всезна́йка, auto fsʲɪˈznajkə (fsʲɪzˈnajkə) not same as manual vsʲɪˈznajkə ([vsʲɪˈznajkə]): replace f -> v at 0
+* Page 4621 [[всемирный]]: WARNING: For headword всеми́рный, auto fsʲɪˈmʲirnɨj not same as manual vsʲɪˈmʲirnɨj (/vsʲɪˈmʲirnɨj/): replace f -> v at 0
+* Page 4630 [[всесветный]]: WARNING: For headword всесве́тный, auto fsʲɪˈsvʲetnɨj (fsʲɪsˈvʲetnɨj) not same as manual vsʲɪˈsvʲetnɨj (/vsʲɪˈsvʲetnɨj/): replace f -> v at 0
+* Page 24275 [[татуировка]]: WARNING: For headword татуиро́вка, auto tətʊɪˈrofkə not same as manual tətʊɪˈrovkə ([tətʊɪˈrovkə]): replace f -> v at 8
+* Page 253 [[абсорбируемый]]: WARNING: For headword абсорби́руемый, auto ɐpsɐˈrbʲirʊ(j)ɪmɨj (ɐpsɐrˈbʲirʊ(j)ɪmɨj) not same as manual ɐbsɐˈrbʲirʊ(j)ɪmɨj (/əbsɐrˈbʲirʊjɪmɨj/): replace p -> b at 1
+* Page 254 [[абсорбирующий]]: WARNING: For headword абсорби́рующий, auto ɐpsɐˈrbʲirʊjʉɕːɪj (ɐpsɐrˈbʲirʊjʉɕːɪj) not same as manual ɐbsɐˈrbʲirʊjʉɕːɪj (/əbsɐrˈbʲirʊjʉɕːɪj/): replace p -> b at 1
+* Page 117 [[абсорбирующий]]: WARNING: For headword абсорби́рующий, auto ɐpsɐˈrbʲirʊjʉɕːɪj (ɐpsɐrˈbʲirʊjʉɕːɪj) not same as manual ɐbsɐˈrbʲirʊjʉɕːɪj (/əbsɐrˈbʲirʊjʉɕːɪj/): replace p -> b at 1
+
+
+[ɨ] in auto corresponding to [ɪ] in auto (may be erroneous):
+
+* Page 17643 [[поддерживать]]: WARNING: For headword подде́рживать, auto pɐˈdʲːerʐɨvətʲ not same as manual pɐˈdʲːerʐɪvətʲ (/pɐˈdʲːerʐɪvətʲ/): replace ɨ -> ɪ at 9
+* Page 19649 [[проезжий]]: WARNING: For headword прое́зжий, auto prɐˈjeʐːɨj not same as manual prɐˈjeʑːɪj (/prɐˈjeʑːɪj/): replace ʐ -> ʑ at 6, replace ɨ -> ɪ at 8
+* Page 27952 [[эмоция]]: WARNING: For headword эмо́ция, auto ɨˈmot͡sɨjə not same as manual ɪˈmot͡sɨjə ([ɪˈmotsɨjə]): replace ɨ -> ɪ at 0
+* Page 27977 [[энциклопедия]]: WARNING: For headword энциклопе́дия, auto ɨnt͡sɨklɐˈpʲedʲɪjə not same as manual ɪnt͡sɨklɐˈpʲedʲɪjə (/ɪntsɨklɐˈpʲedɪjə/): replace ɨ -> ɪ at 0
+* Page 28013 [[эрогенная зона]]: WARNING: For headword эроге́нная зо́на, auto ɨrɐˈɡʲenːəjə ˈzonə not same as manual ɪrɐˈɡʲenːəjə ˈzonə ([ɪrɐˈɡʲɛnːəjə ˈzonə]): replace ɨ -> ɪ at 0
+* Page 28014 [[эрогенный]]: WARNING: For headword эроге́нный, auto ɨrɐˈɡʲenːɨj not same as manual ɪrɐˈɡʲenːɨj ([ɪrɐˈɡʲɛnːɨj]): replace ɨ -> ɪ at 0
+
+
+
+
+тщ- represented as [t͡ɕɕː] in auto but [tʲɕ] in manual (probably erroneous):
+
+* Page 25130 [[тщание]]: WARNING: For headword тща́ние, auto ˈt͡ɕɕːænʲɪjə not same as manual ˈtʲɕːænʲɪjə (/ˈtʲɕænʲɪjə/): replace ͡ɕ -> ʲ at 2
+* Page 25133 [[тщательный]]: WARNING: For headword тща́тельный, auto ˈt͡ɕɕːætʲɪlʲnɨj not same as manual ˈtʲɕːætʲɪlʲnɨj (/ˈtʲɕːætʲɪlʲnɨj/): replace ͡ɕ -> ʲ at 2
+* Page 25134 [[тщеславие]]: WARNING: For headword тщесла́вие, auto t͡ɕɕːɪˈslavʲɪjə (t͡ɕɕːɪsˈlavʲɪjə) not same as manual tʲɕːɪˈslavʲɪjə (/tʲɕɪˈslavʲɪjə/): replace ͡ɕ -> ʲ at 1
+* Page 25135 [[тщеславный]]: WARNING: For headword тщесла́вный, auto t͡ɕɕːɪˈslavnɨj (t͡ɕɕːɪsˈlavnɨj) not same as manual tʲɕːɪˈslavnɨj (/tʲɕɪˈslavnɨj/): replace ͡ɕ -> ʲ at 1
+* Page 25136 [[тщета]]: WARNING: For headword тщета́, auto t͡ɕɕːɪˈta not same as manual tʲɕːɪˈta (/tʲɕɪˈta/): replace ͡ɕ -> ʲ at 1
+
+
+
+
+дж- represented as [d͡ʐʐ] in auto but [dʲʐ] in manual (probably erroneous):
+
+* Page 6539 [[джинн]]: WARNING: For headword джи́нн, auto d͡ʐʐɨn (ˈd͡ʐʐɨn) not same as manual dʲʐɨn (/dʲʐɨn/): replace ͡ʐ -> ʲ at 1
+* Page 6540 [[джинсы]]: WARNING: For headword джи́нсы, auto ˈd͡ʐʐɨnsɨ not same as manual ˈdʲʐɨnsɨ (/ˈdʲʐɨnsɨ/): replace ͡ʐ -> ʲ at 2
+
+
+
+
+е after hard unpaired consonant (жшц) represented by [ɛ] in auto but [e] in manual (probably erroneous):
+
+* Page 7501 [[желчный]]: WARNING: For headword же́лчный, auto ˈʐɛlt͡ɕnɨj not same as manual ˈʐelt͡ɕnɨj (/ˈʐelt͡ɕnɨj/): replace ɛ -> e at 2
+* Page 8775 [[изображение]]: WARNING: For headword изображе́ние, auto ɪzəbrɐˈʐɛnʲɪjə not same as manual ɪzəbrɐˈʐenʲɪ(j)ɪ (/ɪzəbrʌˈʐenʲɪjɪ/): replace ɛ -> e at 8, insert ( at 12, replace ə -> )ɪ at 13
+* Page 17528 [[повышение]]: WARNING: For headword повыше́ние, auto pəvɨˈʂɛnʲɪjə not same as manual pəvɨˈʂenʲɪ(j)ɪ ([pəvɨ̞ˈʂenʲɪ̝jɪ]): replace ɛ -> e at 6, insert ( at 10, replace ə -> )ɪ at 11
+* Page 26783 [[цезий]]: WARNING: For headword це́зий, auto ˈt͡sɛzʲɪj not same as manual ˈt͡sezʲɪj (/ˈt͡sezʲɪj/): replace ɛ -> e at 4
+* Page 26796 [[целиться]]: WARNING: For headword це́литься, auto ˈt͡sɛlʲɪt͡sə not same as manual ˈt͡selʲɪt͡sə (/ˈt͡selʲɪtt͡sə/): replace ɛ -> e at 4
+* Page 2359 [[изображения]]: WARNING: For headword изображе́ния, auto ɪzəbrɐˈʐɛnʲɪjə not same as manual ɪzəbrɐˈʐenʲɪjə (/ɪzəbrʌˈʐenʲɪjə/): replace ɛ -> e at 8
+
+
+
+For ж, auto [ʐ] corresponding to manual [ʑ] (may be real, may need ӂ):
+
+* Page 5800 [[гражданство]]: WARNING: For headword гражда́нство, auto ɡrɐˈʐdanstvə (ɡrɐʐˈdanstvə) not same as manual ɡrɐˈʑdanstvə (/ɡrɐˈʑdanstvɘ/): replace ʐ -> ʑ at 4
+* Page 7036 [[дребезжащий]]: WARNING: For headword дребезжа́щий, auto drʲɪbʲɪˈʐːaɕːɪj not same as manual drʲɪbʲɪˈʑːaɕːɪj (/drʲɪbʲɪˈʑːæɕːɪj/): replace ʐ -> ʑ at 8
+* Page 19649 [[проезжий]]: WARNING: For headword прое́зжий, auto prɐˈjeʐːɨj not same as manual prɐˈjeʑːɪj (/prɐˈjeʑːɪj/): replace ʐ -> ʑ at 6, replace ɨ -> ɪ at 8
+* Page 2107 [[живей]]: WARNING: For headword живе́й, auto ʐɨˈvʲej not same as manual ʑɨˈvʲej (/ʑɨˈvʲej/): replace ʐ -> ʑ at 0
+
+
+
+For г, auto [ɡ] corresponding to manual [ɣ] (probably real, probably need to use ɣ or h in ru-IPA): 
+
+* Page 5737 [[Господи]]: WARNING: For headword Го́споди, auto ˈɡospədʲɪ not same as manual ˈɣospədʲɪ ([ˈɣospədʲɪ]): replace ɡ -> ɣ at 1
+* Page 5743 [[господь]]: WARNING: For headword госпо́дь, auto ɡɐˈspotʲ not same as manual ɣɐˈspotʲ ([ɣɐˈspotʲ]): replace ɡ -> ɣ at 0
+* Page 1582 [[Господи]]: WARNING: For headword Го́споди, auto ˈɡospədʲɪ not same as manual ˈɣospədʲɪ ([ˈɣospədʲɪ]): replace ɡ -> ɣ at 1
+
+
+
+For г in кч sequence, auto [k] corresponds to manual [x] (probably real, probably need to use х in ru-IPA):
+
+* Page 14966 [[облегчать]]: WARNING: For headword облегча́ть, auto ɐblʲɪˈkt͡ɕætʲ (ɐblʲɪkˈt͡ɕætʲ) not same as manual ɐblʲɪˈxt͡ɕætʲ (/əblʲɪxˈt͡ɕætʲ/): replace k -> x at 6
+* Page 22751 [[смягчать]]: WARNING: For headword смягча́ть, auto smʲɪˈkt͡ɕætʲ (smʲɪkˈt͡ɕætʲ) not same as manual smʲɪˈxt͡ɕætʲ (/smʲɪxˈt͡ɕætʲ/): replace k -> x at 5
+* Page 22753 [[смягчить]]: WARNING: For headword смягчи́ть, auto smʲɪˈkt͡ɕitʲ (smʲɪkˈt͡ɕitʲ) not same as manual smʲɪˈxt͡ɕitʲ (/smʲɪxˈt͡ɕitʲ/): replace k -> x at 5
+
+
+
+For з, auto [z] corresponding to manual [ʐ] (almost certainly erroneous):
+
+* Page 7854 [[заём]]: WARNING: For headword заём, auto zɐˈjɵm not same as manual ʐɐˈjɵm (/ʐɐˈjɵm/): replace z -> ʐ at 0
+* Page 8160 [[заслон]]: WARNING: For headword засло́н, auto zɐˈslon (zɐsˈlon) not same as manual ʐɐˈslon (/ʐɐˈslon/): replace z -> ʐ at 0
+* Page 8219 [[затон]]: WARNING: For headword зато́н, auto zɐˈton not same as manual ʐɐˈton (/ʐɐˈton/): replace z -> ʐ at 0
+
+
+
+е that is represented as palatal in auto but non-palatal in manual (may be real, may require э in phon= in ru-IPA):
+
+* Page 15327 [[оджибве]]: WARNING: For headword оджи́бве, auto ɐˈd͡ʐʐɨb⁽ʲ⁾vʲə (ɐd͡ʐˈʐɨb⁽ʲ⁾vʲə) not same as manual ɐˈdʐɨbvɛ ([ɐ.ˈdʐɨb.vɛ]): delete ͡ʐ at 3, delete ⁽ʲ⁾ at 8, replace ʲə -> ɛ at 12
+* Page 28332 [[Яунде]]: WARNING: For headword Я́унде, auto ˈjaʊnʲdʲə not same as manual ˈjaʊndɛ ([ˈjaundɛ]): delete ʲ at 5, replace ʲə -> ɛ at 7
+* Page 1456 [[арена]]: WARNING: For headword аре́на, auto ɐˈrʲenə not same as manual ɐˈrenə (/ɐˈrenə/): delete ʲ at 3
+* Page 2244 [[безмятежность]]: WARNING: For headword безмяте́жность, auto bʲɪzmʲɪˈtʲeʐnəsʲtʲ not same as manual bʲɪzmʲɪˈteʐnəsʲtʲ (/bʲɪzmʲɪˈteʐnəsʲtʲ/): delete ʲ at 9
+* Page 2962 [[брандер]]: WARNING: For headword бра́ндер, auto ˈbranʲdʲɪr not same as manual ˈbrandər (/ˈbrandər/): delete ʲ at 5, replace ʲɪ -> ə at 7
+* Page 10589 [[Коннектикут]]: WARNING: For headword Конне́ктикут, auto kɐˈnʲːektʲɪkʊt not same as manual kɐˈnːɛktʲɪkʊt (/kɐˈnːɛktʲɪkʊt/): delete ʲ at 4, replace e -> ɛ at 6
+* Page 18506 [[посредственность]]: WARNING: For headword посре́дственность, auto pɐˈsrʲet͡stvʲɪn(ː)əsʲtʲ (pɐsˈrʲet͡stvʲɪn(ː)əsʲtʲ) not same as manual pɐˈsret͡stvʲɪn(ː)əsʲtʲ (/pɐˈsret͡stvʲɪnːəsʲtʲ/): delete ʲ at 5
+* Page 18727 [[пояснение]]: WARNING: For headword поясне́ние, auto pə(j)ɪˈs⁽ʲ⁾nʲenʲɪjə (pə(j)ɪs⁽ʲ⁾ˈnʲenʲɪjə) not same as manual pə(j)ɪˈsʲnenʲɪjə (/pə(j)ɪˈsʲnenʲɪjə/): delete ⁽ at 8, delete ⁾ at 10, delete ʲ at 12
+* Page 21911 [[сделаться]]: WARNING: For headword сде́латься, auto ˈzʲdʲelət͡sə not same as manual ˈzʲdelət͡sə ([ˈzʲdelət͡sə]): delete ʲ at 4
+* Page 28332 [[Яунде]]: WARNING: For headword Я́унде, auto ˈjaʊnʲdʲə not same as manual ˈjaʊndɛ ([ˈjaundɛ]): delete ʲ at 5, replace ʲə -> ɛ at 7
+* Page 4786 [[тостере]]: WARNING: For headword то́стере, auto ˈtosʲtʲɪrʲə not same as manual ˈtostɛrʲɪ ([ˈtostɛrʲɪ]): delete ʲ at 4, insert ɛr at 6, delete rʲə at 8
+* Page 9355 [[Йоханнесбург]]: WARNING: For headword Йоха́ннесбург, auto (j)ɪˈxanʲːɪzbʊrk not same as manual jɐˈxanɛzbʊrk ([jɐˈxanɛzbʊrk]): delete ( at 0, replace )ɪ -> ɐ at 2, replace ʲːɪ -> ɛ at 8
+
+
+
+
+Non-palatal vowel indicated as palatal in manual (probably erroneous):
+
+
+* Page 7554 [[жёстко]]: WARNING: For headword жёстко, auto ˈʐostkə not same as manual ˈʐostkʲə (/ˈʐostkʲə/): insert ʲ at 6
+* Page 23865 [[субконтинент]]: WARNING: For headword субконтине́нт, auto sʊpkənʲtʲɪˈnʲent not same as manual sʲʊpkənʲtʲɪˈnʲent (/sʲʊpkənʲtʲɪˈnʲent/): insert ʲ at 1
+
+
+
+Manual fails to include ся in -ться sequence (erroneous):
+
+* Page 19250 [[признаваться]]: WARNING: For headword признава́ться, auto prʲɪznɐˈvat͡sːə not same as manual prʲɪznɐˈvatʲ (/prʲɪznɐˈvatʲ/): replace ͡sːə -> ʲ at 11
+* Page 19395 [[припарковаться]]: WARNING: For headword припаркова́ться, auto prʲɪpərkɐˈvat͡sːə not same as manual prʲɪpərkɐˈvatʲ (/prʲɪpərkɐˈvatʲ/): replace ͡sːə -> ʲ at 13
+
+
+
+Auto reduced -о in -чо sequence is unreduced in manual (may be real, may need о̂ in ru-IPA):
+
+* Page 5230 [[гаучо]]: WARNING: For headword га́учо, auto ˈɡaʊt͡ɕɪ not same as manual ˈɡaʊt͡ɕɵ (/ˈɡaʊt͡ɕɵ/): replace ɪ -> ɵ at 7
+* Page 12525 [[мачо]]: WARNING: For headword ма́чо, auto ˈmat͡ɕɪ not same as manual ˈmat͡ɕɵ (/ˈmat͡ɕo/): replace ɪ -> ɵ at 6
+
+
+Geminate differences (may be real):
+
+* Page 2519 [[биеннале]]: WARNING: For headword биенна́ле, auto bʲɪ(j)ɪˈnːalʲə not same as manual bʲɪ(j)ɪˈnalʲe ([bʲɪ(j)ɪˈnalʲe]): delete ː at 9, replace ə -> e at 13
+* Page 3315 [[бьеннале]]: WARNING: For headword бьенна́ле, auto bʲɪ(j)ɪˈnːalʲə not same as manual bʲjeˈnalʲe ([bʲjeˈnalʲe]): delete ɪ( at 2, replace )ɪ -> e at 5, delete ː at 9, replace ə -> e at 13
+* Page 12878 [[минетчик]]: WARNING: For headword мине́тчик, auto mʲɪˈnʲet͡ɕːɪk not same as manual mʲɪˈnʲet(ː)ɕːɪk ([mʲɪˈnʲɛt(ː)ɕɪk]): replace ͡ -> (ː) at 8
+* Page 12907 [[миньетчик]]: WARNING: For headword минье́тчик, auto mʲɪˈnʲjet͡ɕːɪk not same as manual mʲɪˈnʲjɛt(ː)ɕːɪk ([mʲɪˈnʲjɛt(ː)ɕɪk]): replace e -> ɛ at 7, replace ͡ -> (ː) at 9
+* Page 13259 [[мошенник]]: WARNING: For headword моше́нник, auto mɐˈʂɛnʲːɪk not same as manual mɐˈʂɛnnʲɪk (/mɐˈʂɛnʲ.nʲɪk/): insert n at 6, delete ː at 7
+* Page 10046 [[китаец]]: WARNING: For headword кита́ец, auto kʲɪˈta(j)ɪt͡s not same as manual kʲɪˈtta(j)ɪt͡s (/kʲɪtˈtajɪt͡s/): insert t at 4
+* Page 10089 [[класс]]: WARNING: For headword кла́сс, auto klas (ˈklas) not same as manual klasː (/klasː/): insert ː at 4
+* Page 10089 [[класс]]: WARNING: For headword класс, auto klas not same as manual klasː (/klasː/): insert ː at 4
+* Page 185 [[абляционный]]: WARNING: For headword абляцио́нный, auto ɐblʲɪt͡sɨˈonːɨj not same as manual ɐblʲɪt͡sɨˈjɵnɨj (/ɐb.lʲɪ.t͡sᵻˈjo.nᵻj/): replace o -> jɵ at 10, delete ː at 12
+* Page 2435 [[беспрестанный]]: WARNING: For headword беспреста́нный, auto bʲɪsprʲɪˈstanːɨj not same as manual bʲɪsprʲɪˈstanɨj (/bʲɪsprʲɪsˈtanɨj/): delete ː at 13
+* Page 2465 [[бесстрастный]]: WARNING: For headword бесстра́стный, auto bʲɪˈsːtrasnɨj (bʲɪsːtˈrasnɨj) not same as manual bʲɪˈstrasnɨj (/bʲɪsˈtrasnɨj/): delete ː at 5
+* Page 2519 [[биеннале]]: WARNING: For headword биенна́ле, auto bʲɪ(j)ɪˈnːalʲə not same as manual bʲɪ(j)ɪˈnalʲe ([bʲɪ(j)ɪˈnalʲe]): delete ː at 9, replace ə -> e at 13
+* Page 2669 [[блоггер]]: WARNING: For headword бло́ггер, auto ˈbloɡʲːɪr not same as manual ˈbloɡʲɪr (/ˈbloɡʲɪr/): delete ː at 6
+* Page 3056 [[брокколи]]: WARNING: For headword бро́кколи, auto ˈbrokːəlʲɪ not same as manual ˈbrokəlʲɪ (/ˈbrokəlʲɪ/): delete ː at 5
+* Page 3315 [[бьеннале]]: WARNING: For headword бьенна́ле, auto bʲɪ(j)ɪˈnːalʲə not same as manual bʲjeˈnalʲe ([bʲjeˈnalʲe]): delete ɪ( at 2, replace )ɪ -> e at 5, delete ː at 9, replace ə -> e at 13
+* Page 6142 [[двадцать два]]: WARNING: For headword два́дцать два, auto ˈdvat͡sːədʲ dva not same as manual ˈdvatt͡sətʲ dva (/ˈdvattsətʲ ˈdva/): insert t at 5, delete ː at 7, replace d -> t at 9
+* Page 7742 [[завод-подрядчик]]: WARNING: For headword заво́д-подря́дчик, auto zɐˈvot pɐˈdrʲæt͡ɕːɪk (zɐˈvot pɐdˈrʲæt͡ɕːɪk) not same as manual zɐˈvot pɐˈdrʲat͡ɕɪk (/zʌˈvot-pʌˈdrʲat.ɕik/): replace æ -> a at 13, delete ː at 17
+* Page 13259 [[мошенник]]: WARNING: For headword моше́нник, auto mɐˈʂɛnʲːɪk not same as manual mɐˈʂɛnnʲɪk (/mɐˈʂɛnʲ.nʲɪk/): insert n at 6, delete ː at 7
+* Page 15963 [[ответчик]]: WARNING: For headword отве́тчик, auto ɐˈtvʲet͡ɕːɪk (ɐtˈvʲet͡ɕːɪk) not same as manual ɐˈtvʲet͡ɕɪk (/ɐtˈvʲet͡ɕɪk/): delete ː at 9
+* Page 22036 [[семенной пузырёк]]: WARNING: For headword семенно́й пузырёк, auto sʲɪmʲɪˈnːoj pʊzɨˈrʲɵk not same as manual sʲɪmʲɪˈnoj pʊzɨˈrʲɵk ([sʲɪmʲɪˈnoj pʊzɨˈrʲok]): delete ː at 8
+* Page 24431 [[теплообменник]]: WARNING: For headword теплообме́нник, auto tʲɪplɐɐˈbmʲenʲːɪk (tʲɪplɐɐbˈmʲenʲːɪk) not same as manual tʲɪplɐɐˈbmʲenʲɪk (/tʲɪplɐːbʲˈmʲenʲɪk/): delete ː at 14
+* Page 27612 [[шоппинг]]: WARNING: For headword шо́ппинг, auto ˈʂopʲːɪnk not same as manual ˈʂopʲɪnk (/ˈʂopʲɪnk/): delete ː at 5
+* Page 27776 [[щитовидный]]: WARNING: For headword щитови́дный, auto ɕːɪtɐˈvʲidnɨj not same as manual ɕɪtɐˈvʲidnɨj (/ɕɪtɐˈvʲidnɨj/): delete ː at 1
+* Page 9184 [[искусственный]]: WARNING: For headword иску́сственный, auto ɪˈskustvʲɪn(ː)ɨj not same as manual ɪˈskustvʲɪnɨj (/ɪsˈkustvʲɪnɨj/): delete (ː) at 11
+* Page 9246 [[испуганный]]: WARNING: For headword испу́ганный, auto ɪˈspuɡən(ː)ɨj not same as manual ɪˈspuɡənɨj ([ɪsˈpuɡənɨj]): delete (ː) at 8
+* Page 12578 [[медленный]]: WARNING: For headword ме́дленный, auto ˈmʲedlʲɪn(ː)ɨj not same as manual ˈmʲedlʲɪnɨj (/ˈmʲɛdlʲɪnɨj/): delete (ː) at 9
+* Page 14398 [[непредвиденный]]: WARNING: For headword непредви́денный, auto nʲɪprʲɪˈdvʲidʲɪn(ː)ɨj (nʲɪprʲɪdˈvʲidʲɪn(ː)ɨj) not same as manual nʲɪprʲɪˈdvʲidʲɪnɨj (/nʲɪprʲɪdˈvʲidʲɪnɨj/): delete (ː) at 16
+* Page 20150 [[путешественник]]: WARNING: For headword путеше́ственник, auto pʊtʲɪˈʂɛstvʲɪnʲ(ː)ɪk not same as manual pʊtʲɪˈʂɛstvʲɪnʲɪk (/pʊtʲɪˈʂɛstvʲɪnʲɪk/): delete (ː) at 15
+* Page 20690 [[рассеянный]]: WARNING: For headword рассе́янный, auto rɐˈsʲːe(j)ɪn(ː)ɨj not same as manual rɐˈsʲːe(j)ɪnɨj (/rɐˈsʲːejɪnɨj/): delete (ː) at 12
+* Page 24230 [[таможенный]]: WARNING: For headword тамо́женный, auto tɐˈmoʐɨn(ː)ɨj not same as manual tɐˈmoʐɨnɨj (/tɐˈmoʐɨnɨj/): delete (ː) at 8
+* Page 9355 [[Йоханнесбург]]: WARNING: For headword Йоха́ннесбург, auto (j)ɪˈxanʲːɪzbʊrk not same as manual jɐˈxanɛzbʊrk ([jɐˈxanɛzbʊrk]): delete ( at 0, replace )ɪ -> ɐ at 2, replace ʲːɪ -> ɛ at 8
+* Page 10978 [[красноармеец]]: WARNING: For headword красноарме́ец, auto krəsnɐɐˈrmʲe(j)ɪt͡s (krəsnɐɐrˈmʲe(j)ɪt͡s) not same as manual krəsnɐɐˈrmʲejʲɪt͡s (/krəsnɐːˈrmʲejʲɪt͡s/): delete ( at 12, replace ) -> ʲ at 14
+
+
+
+Evident typos in manual (probably erroneous):
+
+* Page 1202 [[анонимный]]: WARNING: For headword анони́мный, auto ɐnɐˈnʲimnɨj not same as manual ɐnɐˈmʲimnɨj (/ənɐˈmʲimnɨj/): replace n -> m at 4
+* Page 22760 [[снабжение]]: WARNING: For headword снабже́ние, auto snɐˈbʐɛnʲɪjə (snɐbˈʐɛnʲɪjə) not same as manual smɐˈbʐɛnʲɪjə (/smɐbˈʐɛnʲɪjə/): replace n -> m at 1
+* Page 14908 [[обезьянник]]: WARNING: For headword обезья́нник, auto ɐbʲɪˈzʲjænʲːɪk not same as manual ɐbʲɪˈzʲjanə (/əbʲɪzʲˈjænə/): replace æ -> a at 8, replace ʲːɪk -> ə at 10
+* Page 19384 [[приоритетный]]: WARNING: For headword приорите́тный, auto prʲɪərʲɪˈtʲetnɨj not same as manual prʲəɪrʲɪˈtʲetnɨj (/prʲəɪrʲɪˈtʲetnɨj/): insert ə at 3, delete ə at 4
+* Page 26804 [[целомудренный]]: WARNING: For headword целому́дренный, auto t͡sɨlɐˈmudrʲɪn(ː)ɨj not same as manual t͡sɨlɐˈmudrʲɪjə (/t͡sɨlɐˈmudrʲɪjə/): delete n(ː)ɨ at 13, insert ə at 19
+* Page 2235 [[беззубый]]: WARNING: For headword беззу́бый, auto bʲɪˈzːubɨj not same as manual bʲɪˈzːdubɨj (/bʲɪˈzːdubɨj/): insert d at 6
+* Page 999 [[амплитуда]]: WARNING: For headword амплиту́да, auto ɐmplʲɪˈtudə not same as manual ɐmplʲɪˈrtudə (/əmplʲɪrˈtudə/): insert r at 7
+* Page 13566 [[нагорный]]: WARNING: For headword наго́рный, auto nɐˈɡornɨj not same as manual nɐˈɡronɨj (/nɐˈɡronɨj/): insert r at 4, delete r at 5
+* Page 22494 [[скула]]: WARNING: For headword скула́, auto skʊˈla not same as manual skrʊˈla (/skrʊˈla/): insert r at 2
+* Page 26816 [[цензурировать]]: WARNING: For headword цензури́ровать, auto t͡sɨnzʊˈrʲirəvətʲ not same as manual t͡sɨnzʊˈrrʲirəvətʲ (/t͡sɨnzurˈrʲirəvətʲ/): insert r at 9
+* Page 8769 [[изобара]]: WARNING: For headword изоба́ра, auto ɪzɐˈbarə not same as manual ɪznɐˈbarə (/ɪznɐˈbarə/): insert n at 2
+* Page 9539 [[каменолом]]: WARNING: For headword каменоло́м, auto kəmʲɪnɐˈlom not same as manual kəmʲɪnɐˈlomnʲə (/kəmʲɪnɐˈlomnʲə/): insert nʲə at 11
+* Page 26060 [[фармаколог]]: WARNING: For headword фармако́лог, auto fərmɐˈkolək not same as manual fənrmɐˈkolək (/fənrmɐˈkolək/): insert n at 2
+* Page 27525 [[шиповник]]: WARNING: For headword шипо́вник, auto ʂɨˈpovnʲɪk not same as manual ʂɨˈnpovnʲɪk (/ʂɨnˈpovnʲɪk/): insert n at 3
+* Page 27878 [[экстрадиция]]: WARNING: For headword экстради́ция, auto ɨkstrɐˈdʲit͡sɨjə not same as manual ɨksktrɐˈdʲit͡sɨjə (/ɨksktrɐˈdʲit͡sɨjə/): insert k at 3
+* Page 27880 [[экстраполяция]]: WARNING: For headword экстраполя́ция, auto ɨkstrəpɐˈlʲat͡sɨjə not same as manual ɨksktrəpɐˈlʲat͡sɨjə (/ɨksktrəpɐˈlʲæt͡sɨjə/): insert k at 3
+* Page 27881 [[экстремизм]]: WARNING: For headword экстреми́зм, auto ɨkstrʲɪˈmʲizm not same as manual ɨksktrʲɪˈmʲizm (/ɨksktrʲɪˈmʲizm/): insert k at 3
+* Page 27882 [[экстремист]]: WARNING: For headword экстреми́ст, auto ɨkstrʲɪˈmʲist not same as manual ɨksktrʲɪˈmʲist (/ɨksktrʲɪˈmʲist/): insert k at 3
+* Page 18219 [[помести]]: WARNING: For headword помести́, auto pəmʲɪˈsʲtʲi not same as manual pəmʲɪˈsʲtʲitʲ (/pəmʲɪˈsʲtʲitʲ/): insert tʲ at 11
+* Page 3731 [[помести]]: WARNING: For headword помести́, auto pəmʲɪˈsʲtʲi not same as manual pəmʲɪˈsʲtʲitʲ (/pəmʲɪˈsʲtʲitʲ/): insert tʲ at 11
+* Page 27719 [[шуршать]]: WARNING: For headword шурша́ть, auto ʂʊˈrʂatʲ (ʂʊrˈʂatʲ) not same as manual ʂtʊˈrʂatʲ (/ʂtʊrˈʂatʲ/): insert t at 1
+* Page 12995 [[многоточие]]: WARNING: For headword многото́чие, auto mnəɡɐˈtot͡ɕɪjə not same as manual mnəɡɐˈtot͡ɕɪɪjə (/mnəɡɐˈtot͡ɕiɪjə/): insert ɪ at 12
+* Page 20784 [[расширение]]: WARNING: For headword расшире́ние, auto rəʂːɨˈrʲenʲɪjə not same as manual rəʂːɨˈrʲenʲɪɪjə (/rəʂːɨˈrʲenʲɪɪjə/): insert ɪ at 12
+* Page 10237 [[ковёр]]: WARNING: For headword ковёр, auto kɐˈvʲɵr not same as manual kɐˈvrɨ ([kɐvˈrɨ]): delete ʲɵ at 4, insert ɨ at 7
+* Page 4993 [[форинта]]: WARNING: For headword фо́ринта, auto ˈforʲɪntə not same as manual ˈfor (/ˈfor/): delete ʲɪntə at 4
+* Page 17244 [[плагиатор]]: WARNING: For headword плагиа́тор, auto pləɡʲɪˈatər not same as manual pləɡʲɪˈat (/pləɡʲɪˈat/): delete ər at 9
+* Page 19384 [[приоритетный]]: WARNING: For headword приорите́тный, auto prʲɪərʲɪˈtʲetnɨj not same as manual prʲəɪrʲɪˈtʲetnɨj (/prʲəɪrʲɪˈtʲetnɨj/): insert ə at 3, delete ə at 4
+* Page 19667 [[прозорливость]]: WARNING: For headword прозорли́вость, auto prəzɐˈrlʲivəsʲtʲ (prəzɐrˈlʲivəsʲtʲ) not same as manual przɐˈrlʲivəsʲtʲ (/przɐrˈlʲivəsʲtʲ/): delete ə at 2
+* Page 4711 [[второкурсник]]: WARNING: For headword второку́рсник, auto ftərɐˈkurs⁽ʲ⁾nʲɪk not same as manual fərɐˈkurs⁽ʲ⁾nʲɪk (/fərɐˈkursʲnʲɪk/): delete t at 1
+* Page 16123 [[отплыть]]: WARNING: For headword отплы́ть, auto ɐˈtplɨtʲ (ɐtˈplɨtʲ) not same as manual ɐeˈplɨtʲ (/ɐeˈplɨtʲ/): insert e at 1, delete t at 2
+* Page 704 [[акриламид]]: WARNING: For headword акрилами́д, auto ɐkrʲɪlɐˈmʲit not same as manual ɐkʲɪlɐˈmʲit (/əkʲɪlɐˈmʲit/): delete r at 2
+* Page 2506 [[библиотекарь]]: WARNING: For headword библиоте́карь, auto bʲɪblʲɪɐˈtʲekərʲ not same as manual bʲɪblʲɪɐˈtʲekə (/bʲɪblʲɪɐˈtʲekə/): delete rʲ at 14
+* Page 9239 [[исправлять]]: WARNING: For headword исправля́ть, auto ɪsprɐˈvlʲætʲ (ɪsprɐvˈlʲætʲ) not same as manual ɪspɐˈvlʲætʲ (/ɪspɐvˈlʲætʲ/): delete r at 3
+* Page 17812 [[подстрелить]]: WARNING: For headword подстрели́ть, auto pət͡sstrʲɪˈlʲitʲ not same as manual pət͡stʲɪˈlʲitʲ (/pət͡stʲɪˈlʲɪtʲ/): delete s at 5, delete r at 7
+* Page 23100 [[соприкасающийся]]: WARNING: For headword соприкаса́ющийся, auto səprʲɪkɐˈsajʉɕːɪjs⁽ʲ⁾ə not same as manual səprʲɪkɐˈsajʉɕːɪjsʲɪ (/səprʲɪkɐˈsajʉɕːɪjsʲɪ/): delete ⁽ at 18, replace ⁾ə -> ɪ at 20
+* Page 14688 [[новозеландец]]: WARNING: For headword новозела́ндец, auto nəvəzʲɪˈlanʲdʲɪt͡s not same as manual nəvəzʲɪˈanʲdʲɪt͡s (/nəvəzʲɪˈanʲdʲɪt͡s/): delete l at 8
+* Page 15969 [[отвлечь]]: WARNING: For headword отвле́чь, auto ɐˈtvlʲet͡ɕ (ɐtvˈlʲet͡ɕ) not same as manual ɐˈtvʲet͡ɕ (/ɐtˈvʲet͡ɕ/): delete l at 4
+* Page 3959 [[вирусный]]: WARNING: For headword ви́русный, auto ˈvʲirʊsnɨj not same as manual ˈvʲirʊsɨj (/ˈvʲirʊsɨj/): delete n at 7
+
+
+
+
+
+Evident differences in opinion in how to represent тс, дз, дж, ч, жь (probably can be considered erroneous):
+
+
+* Page 27179 [[чётки]]: WARNING: For headword чётки, auto ˈt͡ɕɵtkʲɪ not same as manual ˈt͡ɕʲɵtkʲɪ ([ˈt͡ʃʲotkʲi]): insert ʲ at 4
+* Page 3066 [[мужья]]: WARNING: For headword мужья́, auto mʊˈʐja (mʊʐˈja) not same as manual mʊˈʐʲja (/mʊʐʲˈja/): insert ʲ at 4
+* Page 6563 [[дзюдо]]: WARNING: For headword дзюдо́, auto dʲ͡zʲzʲʊˈdo not same as manual dzʲʊˈdo (/dzʲʉˈdo/): delete ʲ͡zʲ at 1
+* Page 9555 [[камикадзе]]: WARNING: For headword камика́дзе, auto kəmʲɪˈkadʲ͡zʲzʲə not same as manual kəmʲɪˈkadzə (/kəmɪˈkadzə/): delete ʲ͡ at 9, delete ʲzʲ at 12
+* Page 13391 [[муэдзин]]: WARNING: For headword муэдзи́н, auto mʊɨˈdʲ͡zʲzʲin (mʊɨdʲ͡zʲˈzʲin) not same as manual mʊɨˈdzʲin (/mʊɨˈdʲzʲin/): delete ʲ͡zʲ at 5
+* Page 18402 [[портсигар]]: WARNING: For headword портсига́р, auto pərtʲ͡sʲsʲɪˈɡar not same as manual pərtsʲɪˈɡar (/pərtsʲɪˈɡar/): delete ʲ͡sʲ at 4
+* Page 25554 [[улучшать]]: WARNING: For headword улучша́ть, auto ʊlʊˈt͡ɕʂatʲ (ʊlʊt͡ɕˈʂatʲ) not same as manual ʊlʊˈtʂatʲ (/ʊlʊˈtʂatʲ/): delete ͡ɕ at 5
+* Page 25555 [[улучшаться]]: WARNING: For headword улучша́ться, auto ʊlʊˈt͡ɕʂat͡sːə (ʊlʊt͡ɕˈʂat͡sːə) not same as manual ʊlʊˈtʂat͡sːə (/ʊlʊˈtʂatt͡sə/): delete ͡ɕ at 5
+* Page 25556 [[улучшение]]: WARNING: For headword улучше́ние, auto ʊlʊˈt͡ɕʂɛnʲɪjə (ʊlʊt͡ɕˈʂɛnʲɪjə) not same as manual ʊlʊˈtʂɛnʲɪjə (/ʊlʊˈtʂɛnʲɪjə/): delete ͡ɕ at 5
+* Page 25557 [[улучшить]]: WARNING: For headword улу́чшить, auto ʊˈlut͡ɕʂɨtʲ not same as manual ʊˈlutʂɨtʲ (/ʊˈlutʂɨtʲ/): delete ͡ɕ at 5
+* Page 25558 [[улучшиться]]: WARNING: For headword улу́чшиться, auto ʊˈlut͡ɕʂɨt͡sə not same as manual ʊˈlutʂɨt͡sə (/ʊˈlutʂɨtt͡sə/): delete ͡ɕ at 5
+* Page 15327 [[оджибве]]: WARNING: For headword оджи́бве, auto ɐˈd͡ʐʐɨb⁽ʲ⁾vʲə (ɐd͡ʐˈʐɨb⁽ʲ⁾vʲə) not same as manual ɐˈdʐɨbvɛ ([ɐ.ˈdʐɨb.vɛ]): delete ͡ʐ at 3, delete ⁽ʲ⁾ at 8, replace ʲə -> ɛ at 12
+
+
+
+й represented as [j] in auto but [ɪ] in manual (probably erroneous):
+
+* Page 652 [[айкидо]]: WARNING: For headword айкидо́, auto ɐjkʲɪˈdo not same as manual ɐɪkʲɪˈdo (/əɪkʲɪˈdo/): replace j -> ɪ at 1
+* Page 4832 [[выйти]]: WARNING: For headword вы́йти, auto ˈvɨjtʲɪ not same as manual ˈvɨɪtʲɪ (/ˈvɨitʲi/): replace j -> ɪ at 3
+
+
+
+Elided consonant in auto that's present in manual (may be real, if so we need to do something about the corresponding auto-elision entry in ru-pron):
+
+* Page 3741 [[вестгот]]: WARNING: For headword вестго́т, auto vʲɪˈzɡot (vʲɪzˈɡot) not same as manual vʲɪˈstɡot (/vʲɪstˈɡot/): replace z -> st at 4
+* Page 2222 [[бездна]]: WARNING: For headword бе́здна, auto ˈbʲeznə not same as manual ˈbʲezdnə (/ˈbʲezdnə/): insert d at 5
+* Page 11498 [[ландграф]]: WARNING: For headword ландгра́ф, auto lɐˈnɡraf (lɐnɡˈraf) not same as manual lɐˈndɡraf (/lɐndˈɡraf/): insert d at 4
+* Page 20973 [[рентгений]]: WARNING: For headword рентге́ний, auto rʲɪˈnɡʲenʲɪj (rʲɪnˈɡʲenʲɪj) not same as manual rʲɪˈndɡʲenʲɪj (/rʲɪndˈɡʲenʲɪj/): insert d at 5
+* Page 20974 [[рентгеновский]]: WARNING: For headword рентге́новский, auto rʲɪˈnɡʲenəfskʲɪj (rʲɪnˈɡʲenəfskʲɪj) not same as manual rʲɪˈndɡʲenəfskʲɪj (/rʲɪndˈɡʲenəfskʲɪj/): insert d at 5
+* Page 19950 [[процентщица]]: WARNING: For headword проце́нтщица, auto prɐˈt͡sɛnʲɕːɪt͡sə not same as manual prɐˈt͡sɛnʲtʲɕːɪt͡sə (/prəˈt͡sɛnʲtʲɕɪt͡sə/): insert tʲ at 10
+* Page 3745 [[вестник]]: WARNING: For headword ве́стник, auto ˈvʲes⁽ʲ⁾nʲɪk not same as manual ˈvʲesʲtʲnʲɪk ([ˈvʲesʲtʲnʲɪk]): delete ⁽ at 5, replace ⁾ -> tʲ at 7
+* Page 25158 [[тысячелистник]]: WARNING: For headword тысячели́стник, auto tɨsʲɪt͡ɕɪˈlʲis⁽ʲ⁾nʲɪk not same as manual tɨsʲɪt͡ɕɪˈlʲisʲtʲnʲɪk (/tɨsʲɪt͡ɕɪˈlʲisʲtʲnʲɪk/): delete ⁽ at 14, replace ⁾ -> tʲ at 16
+
+
+
+Consonant present in auto but not in manual, in под[сз]-, от[сз]- (may be real but probably erroneous):
+
+* Page 17662 [[подземелье]]: WARNING: For headword подземе́лье, auto pədʲ͡zʲzʲɪˈmʲelʲjə not same as manual pədzʲɪˈmelʲjɪ (/pɘdzʲɪˈmelʲjɪ/): delete ʲ͡zʲ at 3, delete ʲ at 12, replace ə -> ɪ at 17
+* Page 17663 [[подземный]]: WARNING: For headword подзе́мный, auto pɐˈdʲ͡zʲzʲemnɨj (pɐdʲ͡zʲˈzʲemnɨj) not same as manual pɐˈdʲzʲemnɨj (/pɐdʲˈzʲemnɨj/): delete ʲ͡z at 4
+* Page 17812 [[подстрелить]]: WARNING: For headword подстрели́ть, auto pət͡sstrʲɪˈlʲitʲ not same as manual pət͡stʲɪˈlʲitʲ (/pət͡stʲɪˈlʲɪtʲ/): delete s at 5, delete r at 7 '''[NOTE, it's the /s/ I'm concerned about, not the /r/]'''
+* Page 16199 [[отстаивать]]: WARNING: For headword отста́ивать, auto ɐˈt͡sstaɪvətʲ (ɐt͡sˈstaɪvətʲ) not same as manual ɐˈt͡staɪvətʲ (/ɐt͡sˈtaɪvətʲ/): delete s at 4
+* Page 16204 [[отстоять]]: WARNING: For headword отстоя́ть, auto ɐt͡sstɐˈjætʲ not same as manual ɐt͡stɐˈjætʲ (/ət͡stɐˈjætʲ/): delete s at 3
+* Page 16217 [[отсутствующий]]: WARNING: For headword отсу́тствующий, auto ɐˈt͡ssut͡stvʊjʉɕːɪj (ɐt͡sˈsut͡stvʊjʉɕːɪj) not same as manual ɐˈt͡sut͡stvʊjʉɕːɪj (/ɐˈt͡sut͡stvʊjʉɕːɪj/): delete s at 4
+* Page 17795 [[подснежник]]: WARNING: For headword подсне́жник, auto pɐˈt͡ss⁽ʲ⁾nʲeʐnʲɪk (pɐt͡ss⁽ʲ⁾ˈnʲeʐnʲɪk) not same as manual pɐˈtsʲnʲeʐnʲɪk (/pɐtʲˈsʲnʲeʐnʲɪk/): delete ͡ at 4, delete s⁽ at 6, delete ⁾ at 9
+* Page 17812 [[подстрелить]]: WARNING: For headword подстрели́ть, auto pət͡sstrʲɪˈlʲitʲ not same as manual pət͡stʲɪˈlʲitʲ (/pət͡stʲɪˈlʲɪtʲ/): delete s at 5, delete r at 7
+
+
+
+Other consonant in auto not present in manual (may be real):
+
+* Page 2811 [[болеутоляющее]]: WARNING: For headword болеутоля́ющее, auto bəlʲɪʊtɐˈlʲæjʊɕːɪjə not same as manual bəlʲɪʊtɐˈlʲæɕːɪjə (/bəlʲɪʊtɐˈlʲæɕːɪjə/): delete jʊ at 12
+* Page 11617 [[лейтенант]]: WARNING: For headword лейтена́нт, auto lʲɪjtʲɪˈnant not same as manual lʲɪtʲɪˈnant (/lʲɪtʲɪˈnant/): delete j at 3
+* Page 21973 [[сейчас же]]: WARNING: For headword сейча́с же, auto sʲɪˈjt͡ɕaʐ‿ʐə (sʲɪjˈt͡ɕaʐ‿ʐə) not same as manual sʲɪˈt͡ɕaʐʐɨ (/sʲɪˈtʃaʐ.ʐɨ/): delete j at 4, delete ‿ at 10, replace ə -> ɨ at 12
+* Page 776 [[болеутоляющее]]: WARNING: For headword болеутоля́ющее, auto bəlʲɪʊtɐˈlʲæjʊɕːɪjə not same as manual bəlʲɪʊtɐˈlʲæɕːɪjə (/bəlʲɪʊtɐˈlʲæɕːɪjə/): delete jʊ at 12
+* Page 17273 [[пластмасса]]: WARNING: For headword пластма́сса, auto plɐˈstmasːə (plɐstˈmasːə) not same as manual plɐˈsmasːə (/plɐsˈmasːə/): delete t at 5
+* Page 27892 [[электрик]]: WARNING: For headword эле́ктрик, auto ɨˈlʲektrʲɪk not same as manual ɨˈlʲekrʲɪk (/ɨˈlʲekrʲɪk/): delete t at 6
+* Page 7495 [[желтобрюхий]]: WARNING: For headword желтобрю́хий, auto ʐɨltɐˈbrʲʉxʲɪj (ʐɨltɐbˈrʲʉxʲɪj) not same as manual ʐɨtɐˈbrʲʉxʲɪj (/ʐɨtɐˈbrʲʉxʲɪj/): delete l at 2
+* Page 22424 [[сколько]]: WARNING: For headword ско́лько, auto ˈskolʲkə not same as manual ˈskokə (/ˈskokə/): delete lʲ at 4
+* Page 23668 [[столько]]: WARNING: For headword сто́лько, auto ˈstolʲkə not same as manual ˈstokə (/ˈstokə/): delete lʲ at 4
+* Page 5638 [[гонконгский]]: WARNING: For headword гонко́нгский, auto ɡɐˈnkonkskʲɪj (ɡɐnˈkonkskʲɪj) not same as manual ɡɐˈkonkskʲɪj (/ɡɐˈkonkskʲɪj/): delete n at 3
+
+
+
+Vowel in auto not present in manual (may be real):
+
+* Page 23425 [[среднее]]: WARNING: For headword сре́днее, auto ˈsrʲedʲnʲɪjə not same as manual ˈsrʲednʲɪj (/ˈsrʲedʲnʲɪj/): delete ʲ at 6, delete ə at 11
+* Page 4588 [[среднее]]: WARNING: For headword сре́днее, auto ˈsrʲedʲnʲɪjə not same as manual ˈsrʲednʲɪj (/ˈsrʲedʲnʲɪj/): delete ʲ at 6, delete ə at 11
+
+
+
+Consonant or vowel in auto indicated as optional in manual (may be real):
+
+* Page 1109 [[английский]]: WARNING: For headword англи́йский, auto ɐˈnɡlʲijskʲɪj (ɐnˈɡlʲijskʲɪj) not same as manual ɐˈnɡlʲi(j)skʲɪj (/ɐnɡˈlʲi(j)skʲɪj/): insert ( at 7, insert ) at 8
+* Page 3028 [[бриллиант]]: WARNING: For headword бриллиа́нт, auto brʲɪlʲɪˈant not same as manual br(ʲ)ɪlʲɪˈant (/br(ʲ)ɪlʲɪˈant/): insert ( at 2, insert ) at 3
+* Page 3471 [[варение]]: WARNING: For headword варе́ние, auto vɐˈrʲenʲɪjə not same as manual vɐˈrʲenʲ(ɪ)jə (/vɐˈrʲenʲ(ɪ)jə/): insert ( at 8, insert ) at 9
+* Page 7552 [[жёсткий]]: WARNING: For headword жёсткий, auto ˈʐostkʲɪj not same as manual ˈʐos(t)kʲɪj (/ˈʐos(t)kʲɪj/): insert ( at 4, insert ) at 5
+* Page 8719 [[изделие]]: WARNING: For headword изде́лие, auto ɪˈzʲdʲelʲɪjə (ɪzʲˈdʲelʲɪjə) not same as manual ɪˈzʲdʲelʲɪ(j)ə ([ɪzʲˈdʲelʲɪ(j)ə]): insert ( at 10, insert ) at 11
+* Page 9393 [[кавказско-албанский]]: WARNING: For headword кавка́зско-алба́нский, auto kɐˈfkasːkə ɐˈlbanskʲɪj (kɐfˈkasːkə ɐlˈbanskʲɪj) not same as manual kɐˈfkas(ː)kə ɐˈlbanskʲɪj (kɐfˈkas(ː)kə ɐlˈbanskʲɪj): insert ( at 7, insert ) at 8
+* Page 10024 [[кирпичный]]: WARNING: For headword кирпи́чный, auto kʲɪˈrpʲit͡ɕnɨj (kʲɪrˈpʲit͡ɕnɨj) not same as manual kʲɪˈrpʲit͡ɕnɨ(j) ([kʲɪrˈpʲit͡ɕnɨ(j)]): insert ( at 13, insert ) at 14
+* Page 10612 [[Константинополь]]: WARNING: For headword Константино́поль, auto kənstənʲtʲɪˈnopəlʲ not same as manual kənstən(ʲ)tʲɪˈnopəlʲ (/kənstən(ʲ)tʲɪˈnopəlʲ/): insert ( at 7, insert ) at 8
+* Page 17153 [[пиньинь]]: WARNING: For headword пиньи́нь, auto pʲɪˈnʲjinʲ not same as manual pʲɪˈnʲ(j)inʲ (/pʲɪnʲˈ(j)inʲ/): insert ( at 6, insert ) at 7
+* Page 19591 [[провокационный]]: WARNING: For headword провокацио́нный, auto prəvəkət͡sɨˈonːɨj not same as manual prəvəkət͡sɨˈonːɨ(j) ([prəvəkət͡sɨˈonːɨ(j)]): insert ( at 16, insert ) at 17
+* Page 20822 [[реактивный]]: WARNING: For headword реакти́вный, auto rʲɪɐˈktʲivnɨj (rʲɪɐkˈtʲivnɨj) not same as manual rʲɪɐˈktʲivnɨ(j) ([rʲɪɐkˈtʲivnɨ(j)]): insert ( at 12, insert ) at 13
+* Page 21403 [[рычание]]: WARNING: For headword рыча́ние, auto rɨˈt͡ɕænʲɪjə not same as manual rɨˈt͡ɕænʲɪ(j)ə ([rɨˈt͡ɕænʲɪ(j)ə]): insert ( at 10, insert ) at 11
+* Page 25619 [[умопомрачительный]]: WARNING: For headword умопомрачи́тельный, auto ʊməpəmrɐˈt͡ɕitʲɪlʲnɨj not same as manual ʊməpəmrɐˈt͡ɕitʲɪlʲnɨ(j) (/ʊməpəmrɐˈt͡ɕitʲɪlʲnɨ(j)/): insert ( at 20, insert ) at 21
+* Page 14796 [[нрав]]: WARNING: For headword нра́в, auto nraf (ˈnraf) not same as manual n(d)raf (/n(d)raf/): insert (d) at 1
+* Page 14873 [[обаим]]: WARNING: For headword оба́им, auto ɐˈbaɪm not same as manual ɐˈba(j)ɪm (/ɐˈba.jɪm/): insert (j) at 4
+
+
+
+Extra consonant or vowel in manual, indicated as optional (may be real):
+
+* Page 17174 [[пирожное]]: WARNING: For headword пиро́жное, auto pʲɪˈroʐnəjə not same as manual pʲɪˈroʐ(ɨ)nəjə (/pʲɪˈroʐ(ɨ)nəjə/): insert (ɨ) at 7
+* Page 28315 [[яростный]]: WARNING: For headword я́ростный, auto ˈjarəsnɨj not same as manual ˈjarəs(t)nɨj (/ˈjærəs(t)nɨj/): insert (t) at 6
+
+
+
+Extra schwa in manual (may be real?):
+
+ Page 7640 [[журавль]]: WARNING: For headword жура́вль, auto ʐʊˈravlʲ not same as manual ʐʊˈravəlʲ (/ʐʊˈravəlʲ/): insert ə at 6
+* Page 21269 [[рубль]]: WARNING: For headword ру́бль, auto ˈrublʲ not same as manual ˈrubəlʲ ([ˈrubəlʲ]): insert ə at 4
+* Page 24311 [[театр]]: WARNING: For headword теа́тр, auto tʲɪˈatr not same as manual tʲɪˈatər (/tʲɪˈatər/): insert ə at 6
+
+
+
+Differences in the palatalization of the first consonant of a cluster: (1) non-palatal in auto in corresponds to palatal in manual (probably erroneous):
+
+* Page 1383 [[аппликация]]: WARNING: For headword апплика́ция, auto ɐplʲɪˈkat͡sɨjə not same as manual ɐpʲːlʲɪˈkat͡sɨjə (/əpʲːlʲɪˈkat͡sɨjə/): insert ʲː at 2
+* Page 1844 [[ахроматизм]]: WARNING: For headword ахромати́зм, auto ɐxrəmɐˈtʲizm not same as manual ɐxʲrəmɐˈtʲizm (/əxʲrəmɐˈtʲizm/): insert ʲ at 2
+* Page 5061 [[выявлять]]: WARNING: For headword выявля́ть, auto vɨ(j)ɪˈvlʲætʲ (vɨ(j)ɪvˈlʲætʲ) not same as manual vɨ(j)ɪˈvʲlʲætʲ (/vɨjɪvʲˈlʲætʲ/): insert ʲ at 8
+* Page 7040 [[древесность]]: WARNING: For headword древе́сность, auto drʲɪˈvʲesnəsʲtʲ not same as manual drʲɪˈvʲesʲnəsʲtʲ (/drʲɪˈvʲesʲnəsʲtʲ/): insert ʲ at 9
+* Page 10669 [[конфликт]]: WARNING: For headword конфли́кт, auto kɐˈnflʲikt (kɐnˈflʲikt) not same as manual kɐˈnfʲlʲikt (/kɐnˈfʲlikt/): insert ʲ at 5
+* Page 12703 [[местожительство]]: WARNING: For headword местожи́тельство, auto mʲɪstɐˈʐɨtʲɪlʲstvə not same as manual mʲɪstɐˈʐɨtʲɪlʲsʲtvə (/mʲɪstɐˈʐɨtʲɪlʲsʲtvə/): insert ʲ at 15
+* Page 14882 [[обвинительный]]: WARNING: For headword обвини́тельный, auto ɐbvʲɪˈnʲitʲɪlʲnɨj not same as manual ɐbʲvʲɪˈnʲitʲɪlʲnɨj (/əbʲvʲɪˈnʲitʲɪlʲnɨj/): insert ʲ at 2
+
+
+
+Differences in the palatalization of the first consonant of a cluster: (2) palatal in auto in corresponds to non-palatal in manual (probably erroneous):
+
+* Page 3195 [[бульбаш]]: WARNING: For headword бульба́ш, auto bʊˈlʲbaʂ (bʊlʲˈbaʂ) not same as manual bʊˈlbaʂ (/bʊlˈbaʂ/): delete ʲ at 4
+* Page 3198 [[бульдог]]: WARNING: For headword бульдо́г, auto bʊˈlʲdok (bʊlʲˈdok) not same as manual bʊˈldok (/bʊlˈdok/): delete ʲ at 4
+* Page 6688 [[длительный]]: WARNING: For headword дли́тельный, auto ˈdlʲitʲɪlʲnɨj not same as manual ˈdlʲitʲɪlnɨj (/ˈdlʲitʲɪlnɨj/): delete ʲ at 9
+* Page 9222 [[исполнительный]]: WARNING: For headword исполни́тельный, auto ɪspɐˈlnʲitʲɪlʲnɨj (ɪspɐlˈnʲitʲɪlʲnɨj) not same as manual ɪspɐˈlnʲitʲɪlnɨj (/ɪspɐlˈnʲitʲɪlnɨj/): delete ʲ at 13
+* Page 10416 [[колье]]: WARNING: For headword колье́, auto kɐˈlʲje not same as manual kɐˈlje (/kɐlˈje/): delete ʲ at 4
+* Page 10974 [[краснеть]]: WARNING: For headword красне́ть, auto krɐˈs⁽ʲ⁾nʲetʲ (krɐs⁽ʲ⁾ˈnʲetʲ) not same as manual krɐˈs⁽ʲ⁾nʲet (/krɐsʲˈnʲet/): delete ʲ at 12
+* Page 12662 [[меньший]]: WARNING: For headword ме́ньший, auto ˈmʲenʲʂɨj not same as manual ˈmʲenʂɨj (/ˈmʲenʂɨj/): delete ʲ at 5
+* Page 13967 [[науатль]]: WARNING: For headword науа́тль, auto nəʊˈatlʲ not same as manual nəʊˈatl (/nəʊˈatl/): delete ʲ at 7
+* Page 24133 [[табельщик]]: WARNING: For headword та́бельщик, auto ˈtabʲɪlʲɕːɪk not same as manual ˈtabʲɪlɕːɪk (/ˈtabʲɪlɕɪk/): delete ʲ at 7
+
+
+
+
+Differences in the palatalization of the first consonant of a cluster: (3) palatal in auto in corresponds to optionally palatal in manual (probably erroneous):
+
+* Page 1852 [[дне]]: WARNING: For headword дне, auto dʲnʲe not same as manual d⁽ʲ⁾nʲe ([d⁽ʲ⁾nʲe]): insert ⁽ at 1, insert ⁾ at 2
+* Page 1860 [[дня]]: WARNING: For headword дня, auto dʲnʲa not same as manual d⁽ʲ⁾nʲa ([d⁽ʲ⁾nʲæ]): insert ⁽ at 1, insert ⁾ at 2
+
+
+
+
+Differences in the palatalization of the first consonant of a cluster: (4) optionally palatal in auto in corresponds to non-palatal in manual (probably erroneous):
+
+* Page 14189 [[незабвенный]]: WARNING: For headword незабве́нный, auto nʲɪzɐˈb⁽ʲ⁾vʲenːɨj (nʲɪzɐb⁽ʲ⁾ˈvʲenːɨj) not same as manual nʲɪzɐˈbvʲenːɨj (/nʲɪzɐbˈvʲenːɨj/): delete ⁽ʲ⁾ at 7
+* Page 15327 [[оджибве]]: WARNING: For headword оджи́бве, auto ɐˈd͡ʐʐɨb⁽ʲ⁾vʲə (ɐd͡ʐˈʐɨb⁽ʲ⁾vʲə) not same as manual ɐˈdʐɨbvɛ ([ɐ.ˈdʐɨb.vɛ]): delete ͡ʐ at 3, delete ⁽ʲ⁾ at 8, replace ʲə -> ɛ at 12
+
+
+
+Differences in the palatalization of the first consonant of a cluster: (4) optionally palatal in auto in corresponds to palatal in manual (probably erroneous):
+
+* Page 18727 [[пояснение]]: WARNING: For headword поясне́ние, auto pə(j)ɪˈs⁽ʲ⁾nʲenʲɪjə (pə(j)ɪs⁽ʲ⁾ˈnʲenʲɪjə) not same as manual pə(j)ɪˈsʲnenʲɪjə (/pə(j)ɪˈsʲnenʲɪjə/): delete ⁽ at 8, delete ⁾ at 10, delete ʲ at 12
+
+
+
+Missing /j/ in manal in ь+vowel sequence (probably erroneous):
+
+* Page 366 [[Авиньон]]: WARNING: For headword Авиньо́н, auto ɐvʲɪˈnʲjɵn not same as manual ɐvʲɪˈnʲɵn (/əvʲɪˈnʲon/): delete j at 7
+* Page 2046 [[барельеф]]: WARNING: For headword барелье́ф, auto bərʲɪˈlʲjef not same as manual bərʲɪˈlʲef (/bərʲɪˈlʲef/): delete j at 8
+* Page 2218 [[безденежье]]: WARNING: For headword безде́нежье, auto bʲɪˈzʲdʲenʲɪʐjə (bʲɪzʲˈdʲenʲɪʐjə) not same as manual bʲɪˈzʲdʲenʲɪʐə (/bʲɪzˈdʲenʲɪʐə/): delete j at 13
+* Page 20957 [[рельеф]]: WARNING: For headword релье́ф, auto rʲɪˈlʲjef not same as manual rʲɪˈlʲef (/rʲɪˈlʲef/): delete j at 6
+
+
+Missing tie bar in manual (can be considered erroneous):
+
+* Page 4113 [[во-первых]]: WARNING: For headword во-пе́рвых, auto vɐˈ‿pʲervɨx (vɐ‿ˈpʲervɨx) not same as manual vɐˈpʲervɨx (/vɐˈpʲervɨx/): delete ‿ at 3
+* Page 4586 [[время от времени]]: WARNING: For headword вре́мя от вре́мени, auto ˈvrʲemʲə ɐˈt‿vrʲemʲɪnʲɪ (ˈvrʲemʲə ɐt‿ˈvrʲemʲɪnʲɪ) not same as manual ˈvrʲemʲə ɐˈtvrʲemʲɪnʲɪ ([ˈvrʲemʲə ɐtˈvrʲemʲɪnʲɪ]): delete ‿ at 12
+* Page 9361 [[к сожалению]]: WARNING: For headword к сожале́нию, auto k‿səʐɐˈlʲenʲɪjʊ not same as manual ksəʐɨˈlʲenʲɪjʊ (/ksə.ʐɨˈlʲe.nʲɪ.ju/): delete ‿ at 1, replace ɐ -> ɨ at 5
+* Page 21973 [[сейчас же]]: WARNING: For headword сейча́с же, auto sʲɪˈjt͡ɕaʐ‿ʐə (sʲɪjˈt͡ɕaʐ‿ʐə) not same as manual sʲɪˈt͡ɕaʐʐɨ (/sʲɪˈtʃaʐ.ʐɨ/): delete j at 4, delete ‿ at 10, replace ə -> ɨ at 12
+
