@@ -19,11 +19,11 @@ uppercase = u"АЕИОУЯЭЫЁЮІѢѴБДФГЙКЛМНПРСТВХЗЬЪШЩ
 
 # Does a word of set of connected text need accents? We need to split by word
 # and check each one.
-def needs_accents(text):
+def needs_accents(text, split_dash=False):
   def word_needs_accents(word):
     # A word needs accents if it is unstressed and contains more than one vowel
     return is_unstressed(word) and not is_monosyllabic(word)
-  words = re.split(r"\s", text)
+  words = re.split(r"[\s\-]", text) if split_dash else re.split(r"\s", text)
   for word in words:
     if word_needs_accents(word):
       return True
