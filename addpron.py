@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# FIXME:
+
+# 1. Check that headword matches page name
+
 import pywikibot, re, sys, codecs, argparse
 import difflib
 
