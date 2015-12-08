@@ -84,7 +84,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           tr))
         headword_translit.add(tr)
       else:
-        headword_pronuns.add(blib.remove_links(getparam(t, "1") or pagetitle))
+        headword_pronuns.add(getparam(t, "1") or pagetitle)
       found_template = True
     elif unicode(t.name) in ["ru-noun form", "ru-phrase"]:
       tr = getparam(t, "tr")
@@ -93,7 +93,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           tr))
         headword_translit.add(tr)
       else:
-        headword_pronuns.add(blib.remove_links(getparam(t, "head") or getparam(t, "1") or pagetitle))
+        headword_pronuns.add(getparam(t, "head") or getparam(t, "1") or pagetitle)
       found_template = True
     elif unicode(t.name) == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
       pagemsg("Skipping page with letter headword")
@@ -105,7 +105,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           tr))
         headword_translit.add(tr)
       else:
-        headword_pronuns.add(blib.remove_links(getparam(t, "head") or pagetitle))
+        headword_pronuns.add(getparam(t, "head") or pagetitle)
       found_template = True
     elif unicode(t.name) in ["ru-noun+", "ru-proper noun+"]:
       if unicode(t.name) == "ru-noun+":
@@ -141,7 +141,9 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         else:
           headn = getparam(t, "head" + str(i))
           if headn:
-            headword_pronuns.add(blib.remove_links(headn))
+            headword_pronuns.add(headn)
+  # Canonicalize by removing links and final !, ?
+  headword_pronuns = set(re.sub("[!?]$", "", blib.remove_links(x)) for x in headword_pronuns)
   for pronun in headword_pronuns:
     if ru.remove_accents(pronun) != pagetitle:
       pagemsg("WARNING: Headword pronun %s doesn't match page title, skipping" % pronun)
@@ -215,14 +217,14 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     manual = re.sub(u"ɔ", "o", manual)
     manual = re.sub(u"ɾ", "r", manual)
     manual = re.sub(u"χ", "x", manual)
-    manual = re.sub(ur"\(ʲ\)", "⁽ʲ⁾", manual)
+    manual = re.sub(ur"\(ʲ\)", u"⁽ʲ⁾", manual)
     manual = re.sub(u"ʌ", u"ɐ", manual)
     manual = re.sub(u"'", u"ˈ", manual)
     manual = re.sub(u"ˈˈ", u"ˈ", manual)
     manual = re.sub(u"ɫ", "l", manual)
-    manual = re.sub(ur"ʈʂ", "t͡ʂʂ", manual)
+    manual = re.sub(ur"ʈʂ", u"t͡ʂʂ", manual)
     manual = re.sub(u"t͡ʃ|tʃ", u"t͡ɕ", manual)
-    manual = re.sub(u"ʃ", "ʂ", manual)
+    manual = re.sub(u"ʃ", u"ʂ", manual)
     # Convert regular g to IPA ɡ (looks same but different char)
     manual = re.sub("g", u"ɡ", manual)
     # Both ɡ's below are IPA ɡ's
@@ -273,7 +275,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       # т(ь)ся and related fixes
       manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
       manual = re.sub(u"ntsk", u"n(t)sk", manual)
-      manual = re.sub(u"tts", "t͡sː", manual)
+      manual = re.sub(u"tts", u"t͡sː", manual)
       manword = re.sub(u"tt͡s", u"t͡sː", manword)
       manword = re.sub(u"tːs", u"t͡sː", manword)
       manword = re.sub(u"tʲ?t͡ɕ", u"t͡ɕː", manword)
