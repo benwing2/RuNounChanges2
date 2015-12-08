@@ -143,6 +143,10 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           if headn:
             headword_pronuns.add(blib.remove_links(headn))
   for pronun in headword_pronuns:
+    if ru.remove_accents(pronun) != pagetitle:
+      pagemsg("WARNING: Headword pronun %s doesn't match page title, skipping" % pronun)
+      return None, None
+  for pronun in headword_pronuns:
     if ru.is_nonsyllabic(pronun):
       pagemsg("WARNING: Pronunciation is non-syllabic, skipping: %s" % pronun)
       return None, None
