@@ -271,7 +271,6 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       autoword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", autoword)
       manword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manword)
 
-
       # т(ь)ся and related fixes
       manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
       manual = re.sub(u"ntsk", u"n(t)sk", manual)
