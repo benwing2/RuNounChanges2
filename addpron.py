@@ -96,7 +96,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         headword_pronuns.add(getparam(t, "head") or getparam(t, "1") or pagetitle)
       found_template = True
     elif unicode(t.name) == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
-      pagemsg("Skipping page with letter headword")
+      pagemsg("WARNING: Skipping page with letter headword")
       return None, None
     elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
       tr = getparam(t, "tr")
@@ -165,7 +165,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
   latin_char_msgs = []
   for pronun in headword_pronuns:
     if pronun.startswith("-") or pronun.endswith("-"):
-      pagemsg("Skipping prefix or suffix: %s" % pronun)
+      pagemsg("WARNING: Skipping prefix or suffix: %s" % pronun)
       return None, None
     if "." in pronun:
       pagemsg("WARNING: Pronunciation has dot in it, skipping: %s" % pronun)
@@ -469,10 +469,14 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       if foundrussian:
         pagemsg("WARNING: Found multiple Russian sections")
         return None, None
-      if re.search(ur"\[\[Category:Russian spellings with е instead of ё]]",
-          sections[j]):
-        pagemsg(u"Found [[Category:Russian spellings with е instead of ё]], skipping")
-        return None, None
+      # Check for indications of pre-reform spellings
+      for cat in [u"Russian spellings with е instead of ё",
+          u"Russian terms spelled with Ѣ",
+          u"Russian terms spelled with Ѳ",
+          u"Russian pre-1918 spellings"]:
+        if re.search(ur"\[\[Category:%s]]" % cat, sections[j]):
+          pagemsg(u"WARNING: Found [[Category:%s]], skipping" % cat)
+          return None, None
 
       foundrussian = True
       foundpronuns = []
@@ -480,12 +484,17 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       ipa_templates = []
       for t in parsed.filter_templates():
         if unicode(t.name) == "ru-pre-reform":
-          pagemsg("Found pre-reform template, skipping")
+          pagemsg("WARNING: Found pre-reform template, skipping")
           return None, None
         if unicode(t.name) in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
-          # For words spelled with е instead of ё, etc.
-          pagemsg("Found alternative form, skipping")
-          return None, None
+          # Check if word spelled with е instead of ё, without using
+          # [[Category:Russian spellings with е instead of ё]], which we
+          # catch above.
+          target = getparam(t, "1")
+          if u"ё" in target and re.sub(u"ё", u"е", target) == pagetitle:
+            pagemsg(u"WARNING: Found apparent alternative form using е in place of ё without explicit category, skipping: %s" %
+                unicode(t))
+            return None, None
         if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
           ipa_templates.append(t)
       if (re.search(r"[Aa]bbreviation", sections[j]) and not
@@ -629,7 +638,7 @@ def process_page(index, page, save, verbose, override_ipa):
     return
 
   if pagetitle in skip_pages:
-    pagemsg("Skipping because page in skip_pages list")
+    pagemsg("WARNING: Skipping because page in skip_pages list")
     return
 
   if not page.exists():
