@@ -412,22 +412,22 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     # excessive numbers of possibilities (and it simplifies the code).
     # 1. First, temporarily add soft symbol to inherently soft consonants.
     manual = re.sub(u"([čǰɕӂj])", ur"\1ʲ", manual)
-    # 2. Handle case of au between two soft consonants
+    # 2. Handle case of [au] between two soft consonants
     manual = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.ʲ)",
         lambda m:m.group(1) + fronting[m.group(2)] + m.group(3),
         manual)
-    # 3. Handle case of au between soft and optionally soft consonant
+    # 3. Handle [au] between soft consonant and optional j, which is still fronted
+    manual = re.sub(ur"(ʲ[ː()]*)([auʊ])([ˈˌ]?\(jʲ\))",
+        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3),
+        manual)
+    # 4. Handle case of [au] between soft and optionally soft consonant
     if re.search(u"ʲ[ː()]*[auʊ][ˈˌ]?.⁽ʲ⁾", manual) or re.search(ur"ʲ[ː()]*[auʊ][ˈˌ]?\(jʲ\)", manual):
       opt_hard = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾", r"\1\2\3", manual)
-      opt_hard = re.sub(ur"(ʲ[ː()]*)([auʊ])([ˈˌ]?)\(jʲ\)", r"\1\2\3", opt_hard)
       opt_soft = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾",
         lambda m:m.group(1) + fronting[m.group(2)] + m.group(3) + u"ʲ",
         manual)
-      opt_soft = re.sub(ur"(ʲ[ː()]*)([auʊ])([ˈˌ]?)\(jʲ\)",
-        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3) + u"jʲ",
-        opt_soft)
       manual = opt_hard + ", " + opt_soft
-    # 4. Undo addition of soft symbol to inherently soft consonants.
+    # 5. Undo addition of soft symbol to inherently soft consonants.
     manual = re.sub(u"([čǰɕӂj])ʲ", r"\1", manual)
 
     if auto == manual:
