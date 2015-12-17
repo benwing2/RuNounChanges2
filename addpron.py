@@ -485,6 +485,9 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         if unicode(t.name) == "ru-pre-reform":
           pagemsg("WARNING: Found pre-reform template, skipping")
           return None, None
+        if unicode(t.name) == u"ru-noun-alt-ё":
+          pagemsg(u"WARNING: Found ru-noun-alt-ё template, skipping")
+          return None, None
         if unicode(t.name) in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
           # Check if word spelled with е instead of ё, without using
           # [[Category:Russian spellings with е instead of ё]], which we
