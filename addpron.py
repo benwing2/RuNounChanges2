@@ -343,6 +343,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
   # Get the headword pronunciation(s)
   headword_pronuns = set()
   headword_translit = set()
+
   for t in parsed.filter_templates():
     found_template = False
     if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb"]:
@@ -410,18 +411,53 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           headn = getparam(t, "head" + str(i))
           if headn:
             headword_pronuns.add(headn)
+
+  # Do the following two sections before adding semi-reduced inflection
+  # since ru.* may not be aware of dot-under.
+
   # Canonicalize by removing links and final !, ?
   headword_pronuns = set(re.sub("[!?]$", "", blib.remove_links(x)) for x in headword_pronuns)
   for pronun in headword_pronuns:
     if ru.remove_accents(pronun) != pagetitle:
       pagemsg("WARNING: Headword pronun %s doesn't match page title, skipping" % pronun)
       return None, None
+
+  # Check for acronym/non-syllabic.
   for pronun in headword_pronuns:
     if ru.is_nonsyllabic(pronun):
       pagemsg("WARNING: Pronunciation is non-syllabic, skipping: %s" % pronun)
       return None, None
     if re.search("[" + ru.uppercase + u"ЀЍ][" + ru.AC + ru.GR + "]?[" + ru.uppercase + u"ЀЍ]", pronun):
       pagemsg("WARNING: Pronunciation may be an acronym, please check: %s" % pronun)
+
+  # Check for the need for semi-reduced inflection of я in 3rd plural -ят
+  # or dat/ins/pre plural -ям, -ями, -ях.
+  found_semireduced_inflection = False
+  for t in parsed.filter_templates():
+    tname = unicode(t.name)
+    if tname == "inflection of" and getparam(t, "lang") == "ru":
+      numparams = []
+      for param in t.params:
+        pname = unicode(param.name)
+        if re.search(r"^[0-9]+$", pname):
+          pnum = int(pname)
+          if pnum >= 3:
+            numparams.append(unicode(param.value))
+        if "3" in numparams and ("p" in numparams or "pl" in numparams or "plural" in numparams):
+          found_semireduced_inflection = True
+        elif (("p" in numparams or "pl" in numparams or "plural" in numparams) and (
+          "dat" in numparams or "dative" in numparams or
+          "ins" in numparams or "instrumental" in numparams or
+          "pre" in numparams or "prep" in numparams or "prepositional" in numparams)):
+          found_semireduced_inflection = True
+  if found_semireduced_inflection:
+    def update_semireduced(pron):
+      return re.sub(r"я(т|м|ми|х)( |$)", r"я̣\1\2", pron)
+    new_headword_pronuns = set(update_semipreduced(x) for x in headword_pronuns)
+    if new_headword_pronuns != headword_pronuns:
+      pagemsg("Using semi-reduced pronunciation: %s" % ",".join(new_headword_pronuns))
+      new_headword_pronuns = headword_pronuns
+
   headword_pronuns.update(headword_translit)
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
