@@ -54,6 +54,274 @@ def contains_non_cyrillic(text):
   # we allow in Cyrillic pronunciation
   return re.sub(ur"[\u0300\u0301\u0302\u0308 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗ]", "", text) != ""
 
+def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
+  orig_auto = auto
+  orig_manual = manual
+  manual = re.sub(r"[\[\]/.]", "", manual)
+  if auto == manual:
+    pagemsg("For headword %s, %s equal to %s" % (headword,
+      "auto %s" % auto if auto == orig_auto else
+        "canon auto %s (orig %s)" % (auto, orig_auto),
+      "manual" if manual == orig_manual else
+        "canon manual (orig %s)" % (orig_manual)))
+    return True
+
+  manual = re.sub(u"ᵻ", u"ɨ", manual)
+  # Get rid of raising/lowering diacritics
+  manual = re.sub(u"[\u031d\u031e]", u"", manual)
+  manual = re.sub(u"ʲɛ", u"ʲe", manual)
+  manual = re.sub(u"[ɘɞ]", u"ə", manual)
+  # expand long vowels; need to do this before moving stress to beginning
+  # of consonant clusters, below, as ː is treated as a consonant
+  manual = re.sub(u"[ɐə]ː", u"ɐɐ", manual)
+  manual = re.sub(u"ɪː", u"ɪɪ", manual)
+  manual = re.sub(u"ɑ", "a", manual)
+  manual = re.sub(u"ɔ", "o", manual)
+  manual = re.sub(u"ɾ", "r", manual)
+  manual = re.sub(u"χ", "x", manual)
+  manual = re.sub(ur"\(ʲ\)", u"⁽ʲ⁾", manual)
+  manual = re.sub(u"ʌ", u"ɐ", manual)
+  manual = re.sub(u"'", u"ˈ", manual)
+  manual = re.sub(u"ˈˈ", u"ˈ", manual)
+  manual = re.sub(u"ɫ", "l", manual)
+  manual = re.sub(ur"ʈʂ", u"t͡ʂʂ", manual)
+  manual = re.sub(u"t͡ʃ|tʃ", u"t͡ɕ", manual)
+  manual = re.sub(u"ʃ", u"ʂ", manual)
+  # Convert regular g to IPA ɡ (looks same but different char)
+  manual = re.sub("g", u"ɡ", manual)
+  # Both ɡ's below are IPA ɡ's
+  manual = re.sub(u"ŋɡ", u"nɡ", manual)
+  manual = re.sub(u"st([ln])", r"s\1", manual)
+  # Canonicalize spaces and hyphens in manual
+  manual = re.sub(r"^[\s\-]+", "", manual)
+  manual = re.sub(r"[\s\-]+$", "", manual)
+  manual = re.sub(r"[\s\-]+", " ", manual)
+
+  autowords = re.split(" ", auto)
+  manwords = re.split(" ", manual)
+  hwords = re.split(r"[\s\-]", headword)
+  if len(autowords) != len(manwords):
+    return "WARNING: For headword %s, auto %s%s not same as manual %s%s: different number of words (auto %s vs manual %s): %s" % (
+      headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
+      manual, orig_manual != manual and " (%s)" % orig_manual or "",
+      len(autowords), len(manwords), ipa_templates_msg)
+  if len(hwords) != len(autowords):
+    pagemsg("WARNING: Number of words in headword %s not same as in auto %s" % (
+      headword, auto))
+    hwords = [""]*len(autowords)
+  for j in xrange(len(autowords)):
+    autoword = autowords[j]
+    manword = manwords[j]
+    hword = hwords[j]
+    auto_monosyllabic = len(re.sub(non_ipa_vowels_re, "", autoword)) == 1
+    man_monosyllabic = len(re.sub(non_ipa_vowels_re, "", manword)) == 1
+
+    # If both auto and manual are monosyllabic, canonicalize by
+    # removing primary accent
+    if auto_monosyllabic and man_monosyllabic:
+      autoword = re.sub(u"ˈ", "", autoword)
+      manword = re.sub(u"ˈ", "", manword)
+
+    # Convert some instances of ˈ (earlier converted from to ') to ʲ --
+    # after a palatalizable consonant, before a vowel or end of word;
+    # ɡ is IPA ɡ; do this before moving stress to beginning of cons clusters
+    manword = re.sub(ur"([dtbpkɡszfvxrlmn])ˈ(ː?)($|" + ipa_vowels_re + ")",
+        ur"\1ʲ\2\3", manword)
+
+    # Canonicalize by moving stress at the beginning of all consonant
+    # clusters
+    autoword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", autoword)
+    manword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manword)
+
+    # т(ь)ся and related fixes
+    manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
+    manual = re.sub(u"ntsk", u"n(t)sk", manual)
+    manual = re.sub(u"tts", u"t͡sː", manual)
+    manword = re.sub(u"tt͡s", u"t͡sː", manword)
+    manword = re.sub(u"tːs", u"t͡sː", manword)
+    manword = re.sub(u"tʲ?t͡ɕ", u"t͡ɕː", manword)
+    manword = re.sub(u"tːɕ", u"t͡ɕː", manword)
+    # with -т(ь)ся after stressed syllable, need "t͡sː"; after unstressed,
+    # need just t͡s
+    if re.search(u"\u0301ть?ся$", hword):
+      manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ə$", ur"\1t͡sːə", manword)
+    elif re.search(u"ть?ся$", hword):
+      manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ːə$", ur"\1t͡sə", manword)
+
+    # ɐ vs. ə fixes; ɐ at beginning of word or directly before the stress
+    # or in ɐɐ sequences, else ə
+    manword = re.sub(u"ɐ", u"ə", manword)
+    manword = re.sub(u"^ə", u"ɐ", manword)
+    manword = re.sub(u"[ɐə][ɐə]", u"ɐɐ", manword)
+    # need to do this after moving stress to beginning of consonant clusters
+    manword = re.sub(u"əˈ", u"ɐˈ", manword)
+
+    # Fix bug in auto (FIXME, remove this)
+    autoword = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", autoword)
+
+    # palatalization and gemination need to be in the right order
+    # Fix bug in auto
+    autoword = re.sub(u"ːʲ", u"ʲː", autoword)
+    manword = re.sub(u"ːʲ", u"ʲː", manword)
+
+    # front vowel variants; here we first convert existing front variants
+    # to back vowels, then eventually we apply the exact same fronting
+    # logic as in ru-pron.lua.
+    manword = re.sub(u"æ", u"a", manword)
+    # u will get converted below to ʊ in unstressed syllables
+    manword = re.sub(u"ʉ", u"u", manword)
+    # Much simpler for o
+    manword = re.sub(u"([ʲjɕ]ː?)o", ur"\1ɵ", manword)
+
+    # i vs. ɪ fixes: i when stressed, ɪ otherwise; same for u vs. ʊ
+    if not man_monosyllabic and re.search(u"ˈ", manword):
+      # Convert all i to ɪ, then back to i in stressed syllables
+      manword = re.sub(u"i", u"ɪ", manword)
+      manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ɪ", r"\1i", manword)
+      # Convert all u to ʊ, then back to u in stressed syllables
+      manword = re.sub(u"u", u"ʊ", manword)
+      manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ʊ", r"\1u", manword)
+    # If monosyllabic, i and u unless word is accentless
+    if man_monosyllabic and headword not in (
+        [u"без", u"близ", u"из", u"меж", u"пред", u"при", u"не", u"ли"]):
+      manword = re.sub(u"ɪ", u"i", manword)
+    if man_monosyllabic and headword != u"у":
+      manword = re.sub(u"ʊ", u"u", manword)
+
+    # ɕ that's not geminate and not in t͡ɕ (with or without tie bar)
+    # needs to be geminated (0361 = tie bar)
+    manword = re.sub(u"([^t\u0361])ɕ($|[^ː])", ur"\1ɕː\2", manword)
+
+    # Convert nː in n(ː) in various endings in n(ː) in auto
+    if re.search(u"n\(ː\)", autoword):
+      manword = re.sub(u"nː(ɨj|əsʲtʲ|əjə|ə)$", ur"n(ː)\1", manword)
+
+    # Convert sʲə to s⁽ʲ⁾ə at end of word if necessary
+    if re.search(u"s⁽ʲ⁾ə$", autoword):
+      manword = re.sub(u"sʲə$", u"s⁽ʲ⁾ə", manword)
+
+    # if affricate assimilation in autoword, make it same in manword
+    # do before adding tie bar in ts
+    if re.search(u"d͡zz", autoword):
+      manword = re.sub(u"dz", u"d͡zz", manword)
+    if re.search(u"t͡ss", autoword):
+      manword = re.sub(u"ts", u"t͡ss", manword)
+
+    # add tie bar if needed
+    if re.search(u"t͡s", autoword):
+      manword = re.sub(u"ts", u"t͡s", manword)
+    if re.search(u"t͡ɕ", autoword):
+      manword = re.sub(u"tɕ", u"t͡ɕ", manword)
+
+    # palatalization needed before front vowels; note, ɡ is IPA ɡ
+    # we don't do this before e because the lack of palatalization might
+    # be legitimate (although should be written with ɛ)
+    manword = re.sub(ur"([dtbpkɡszfvxrlmn])(ː?[ɪiɵæʉ])", ur"\1ʲ\2", manword)
+
+    # Apply optional and compulsory palatal assimilation to manword
+    def apply_tn_dn_assim_palatal(m):
+      a, b, c = m.groups()
+      if a == '':
+        return a + b + u'ʲ' + c
+      else:
+        return a + b + u'⁽ʲ⁾' + c
+
+    # Optional (j) before ɪ
+    manword = re.sub(u"(^| )jɪ", ur"\1(j)ɪ", manword)
+    manword = re.sub(ipa_vowels_c + u"([‿-]?)jɪ", ur"\1\2(j)ɪ", manword)
+
+    # consonant assimilative palatalisation of tn/dn, depending on
+    # whether [rl] precedes
+    manword = re.sub(u"([rl]?)([ˈˌ]?[dt])ʲ?([ˈˌ]?nʲ)",
+        apply_tn_dn_assim_palatal, manword)
+
+    def apply_assim_palatal(m):
+      a, b, c = m.groups()
+      if a + c in cons_assim_palatal['compulsory']:
+        return a + u'ʲ' + b + c
+      elif a + c in cons_assim_palatal['optional']:
+        return a + u'⁽ʲ⁾' + b + c
+      else:
+        return m.group(0)
+
+    #apply general consonant assimilative palatalisation, repeatedly for
+    #recursive assimilation
+    while True:
+      new_manword = re.sub(u'(t͡s|d͡z|[xszntdmbpf])ʲ?([ˈˌ]?)(t͡ɕ|[ktdǰɕlnszmpbf]ʲ)',
+        apply_assim_palatal, manword)
+      if new_manword == manword:
+        break
+      manword = new_manword
+
+    # optional palatal assimilation of вп, вб only word-initially
+    manword = re.sub(u'^([ˈˌ]?[fv])ʲ?([ˈˌ]?[pb]ʲ)', ur'\1⁽ʲ⁾\2', manword)
+
+    # END OF PER-WORD PROCESSING
+    autowords[j] = autoword
+    manwords[j] = manword
+
+  auto = " ".join(autowords)
+  manual = " ".join(manwords)
+
+  # Following code is copied from ru-pron.lua (and converted to Python).
+  #
+  # Front a and u between soft consonants. If between a soft and
+  # optionally soft consonant (should only occur in that order, shouldn't
+  # ever have a or u preceded by optionally soft consonant),
+  # split the result into two. We only split into two even if there
+  # happen to be multiple optionally fronted a's and u's to avoid
+  # excessive numbers of possibilities (and it simplifies the code).
+  # 1. First, temporarily add soft symbol to inherently soft consonants.
+  manual = re.sub(u"([čǰɕӂj])", ur"\1ʲ", manual)
+  # 2. Handle case of [au] between two soft consonants
+  manual = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.ʲ)",
+      lambda m:m.group(1) + fronting[m.group(2)] + m.group(3),
+      manual)
+  # 3. Handle [au] between soft consonant and optional j, which is still fronted
+  manual = re.sub(ur"(ʲ[ː()]*)([auʊ])([ˈˌ]?\(jʲ\))",
+      lambda m:m.group(1) + fronting[m.group(2)] + m.group(3),
+      manual)
+  # 4. Handle case of [au] between soft and optionally soft consonant
+  if re.search(u"ʲ[ː()]*[auʊ][ˈˌ]?.⁽ʲ⁾", manual) or re.search(ur"ʲ[ː()]*[auʊ][ˈˌ]?\(jʲ\)", manual):
+    opt_hard = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾", r"\1\2\3", manual)
+    opt_soft = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾",
+      lambda m:m.group(1) + fronting[m.group(2)] + m.group(3) + u"ʲ",
+      manual)
+    manual = opt_hard + ", " + opt_soft
+  # 5. Undo addition of soft symbol to inherently soft consonants.
+  manual = re.sub(u"([čǰɕӂj])ʲ", r"\1", manual)
+
+  if auto == manual:
+    pagemsg("For headword %s, %s equal to %s" % (headword,
+      "auto %s" % auto if auto == orig_auto else
+        "canon auto %s (orig %s)" % (auto, orig_auto),
+      "manual" if manual == orig_manual else
+        "canon manual (orig %s)" % (orig_manual)))
+    return True
+
+  if u"ˈ" not in manual and re.sub(u"ˈ", "", auto) == manual:
+    pagemsg("WARNING: For headword %s, missing stress mark in %s compared to %s, accepting" % (headword,
+      "manual" if manual == orig_manual else
+        "canon manual (orig %s)" % (orig_manual),
+      "auto %s" % auto if auto == orig_auto else
+        "canon auto %s (orig %s)" % (auto, orig_auto)))
+    return True
+
+  seqmatch = difflib.SequenceMatcher(None, auto, manual)
+  changes = []
+  for tag, i1, i2, j1, j2 in seqmatch.get_opcodes():
+    if tag == "delete":
+      changes.append("delete %s at %s" % (auto[i1:i2], i1))
+    elif tag == "replace":
+      changes.append("replace %s -> %s at %s" % (auto[i1:i2], manual[j1:j2],
+        i1))
+    elif tag == "insert":
+      changes.append("insert %s at %s" % (manual[j1:j2], i1))
+  return "WARNING: For headword %s, auto %s%s not same as manual %s%s: %s: %s" % (
+    headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
+    manual, orig_manual != manual and " (%s)" % orig_manual or "",
+    ", ".join(changes), ipa_templates_msg)
+
 def process_page_text(index, text, pagetitle, verbose, override_ipa):
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
@@ -192,274 +460,6 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       computed_ipa[pronun] = result
     return computed_ipa
 
-  def ipa_matches(headword, manual, auto, ipa_templates_msg):
-    orig_auto = auto
-    orig_manual = manual
-    manual = re.sub(r"[\[\]/.]", "", manual)
-    if auto == manual:
-      pagemsg("For headword %s, %s equal to %s" % (headword,
-        "auto %s" % auto if auto == orig_auto else
-          "canon auto %s (orig %s)" % (auto, orig_auto),
-        "manual" if manual == orig_manual else
-          "canon manual (orig %s)" % (orig_manual)))
-      return True
-
-    manual = re.sub(u"ᵻ", u"ɨ", manual)
-    # Get rid of raising/lowering diacritics
-    manual = re.sub(u"[\u031d\u031e]", u"", manual)
-    manual = re.sub(u"ʲɛ", u"ʲe", manual)
-    manual = re.sub(u"[ɘɞ]", u"ə", manual)
-    # expand long vowels; need to do this before moving stress to beginning
-    # of consonant clusters, below, as ː is treated as a consonant
-    manual = re.sub(u"[ɐə]ː", u"ɐɐ", manual)
-    manual = re.sub(u"ɪː", u"ɪɪ", manual)
-    manual = re.sub(u"ɑ", "a", manual)
-    manual = re.sub(u"ɔ", "o", manual)
-    manual = re.sub(u"ɾ", "r", manual)
-    manual = re.sub(u"χ", "x", manual)
-    manual = re.sub(ur"\(ʲ\)", u"⁽ʲ⁾", manual)
-    manual = re.sub(u"ʌ", u"ɐ", manual)
-    manual = re.sub(u"'", u"ˈ", manual)
-    manual = re.sub(u"ˈˈ", u"ˈ", manual)
-    manual = re.sub(u"ɫ", "l", manual)
-    manual = re.sub(ur"ʈʂ", u"t͡ʂʂ", manual)
-    manual = re.sub(u"t͡ʃ|tʃ", u"t͡ɕ", manual)
-    manual = re.sub(u"ʃ", u"ʂ", manual)
-    # Convert regular g to IPA ɡ (looks same but different char)
-    manual = re.sub("g", u"ɡ", manual)
-    # Both ɡ's below are IPA ɡ's
-    manual = re.sub(u"ŋɡ", u"nɡ", manual)
-    manual = re.sub(u"st([ln])", r"s\1", manual)
-    # Canonicalize spaces and hyphens in manual
-    manual = re.sub(r"^[\s\-]+", "", manual)
-    manual = re.sub(r"[\s\-]+$", "", manual)
-    manual = re.sub(r"[\s\-]+", " ", manual)
-
-    autowords = re.split(" ", auto)
-    manwords = re.split(" ", manual)
-    hwords = re.split(r"[\s\-]", headword)
-    if len(autowords) != len(manwords):
-      return "WARNING: For headword %s, auto %s%s not same as manual %s%s: different number of words (auto %s vs manual %s): %s" % (
-        headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
-        manual, orig_manual != manual and " (%s)" % orig_manual or "",
-        len(autowords), len(manwords), ipa_templates_msg)
-    if len(hwords) != len(autowords):
-      pagemsg("WARNING: Number of words in headword %s not same as in auto %s" % (
-        headword, auto))
-      hwords = [""]*len(autowords)
-    for j in xrange(len(autowords)):
-      autoword = autowords[j]
-      manword = manwords[j]
-      hword = hwords[j]
-      auto_monosyllabic = len(re.sub(non_ipa_vowels_re, "", autoword)) == 1
-      man_monosyllabic = len(re.sub(non_ipa_vowels_re, "", manword)) == 1
-
-      # If both auto and manual are monosyllabic, canonicalize by
-      # removing primary accent
-      if auto_monosyllabic and man_monosyllabic:
-        autoword = re.sub(u"ˈ", "", autoword)
-        manword = re.sub(u"ˈ", "", manword)
-
-      # Convert some instances of ˈ (earlier converted from to ') to ʲ --
-      # after a palatalizable consonant, before a vowel or end of word;
-      # ɡ is IPA ɡ; do this before moving stress to beginning of cons clusters
-      manword = re.sub(ur"([dtbpkɡszfvxrlmn])ˈ(ː?)($|" + ipa_vowels_re + ")",
-          ur"\1ʲ\2\3", manword)
-
-      # Canonicalize by moving stress at the beginning of all consonant
-      # clusters
-      autoword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", autoword)
-      manword = re.sub("(" + non_ipa_vowels_re + u"+)([ˈˌ])", r"\2\1", manword)
-
-      # т(ь)ся and related fixes
-      manual = re.sub(u"nt͡sk", u"n(t)sk", manual)
-      manual = re.sub(u"ntsk", u"n(t)sk", manual)
-      manual = re.sub(u"tts", u"t͡sː", manual)
-      manword = re.sub(u"tt͡s", u"t͡sː", manword)
-      manword = re.sub(u"tːs", u"t͡sː", manword)
-      manword = re.sub(u"tʲ?t͡ɕ", u"t͡ɕː", manword)
-      manword = re.sub(u"tːɕ", u"t͡ɕː", manword)
-      # with -т(ь)ся after stressed syllable, need "t͡sː"; after unstressed,
-      # need just t͡s
-      if re.search(u"\u0301ть?ся$", hword):
-        manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ə$", ur"\1t͡sːə", manword)
-      elif re.search(u"ть?ся$", hword):
-        manword = re.sub(u"(" + ipa_vowels_re + u")(ts|t͡s)ːə$", ur"\1t͡sə", manword)
-
-      # ɐ vs. ə fixes; ɐ at beginning of word or directly before the stress
-      # or in ɐɐ sequences, else ə
-      manword = re.sub(u"ɐ", u"ə", manword)
-      manword = re.sub(u"^ə", u"ɐ", manword)
-      manword = re.sub(u"[ɐə][ɐə]", u"ɐɐ", manword)
-      # need to do this after moving stress to beginning of consonant clusters
-      manword = re.sub(u"əˈ", u"ɐˈ", manword)
-
-      # Fix bug in auto (FIXME, remove this)
-      autoword = re.sub(u"ɕ(ː?)ʲə", ur"ɕ\1ə", autoword)
-
-      # palatalization and gemination need to be in the right order
-      # Fix bug in auto
-      autoword = re.sub(u"ːʲ", u"ʲː", autoword)
-      manword = re.sub(u"ːʲ", u"ʲː", manword)
-
-      # front vowel variants; here we first convert existing front variants
-      # to back vowels, then eventually we apply the exact same fronting
-      # logic as in ru-pron.lua.
-      manword = re.sub(u"æ", u"a", manword)
-      # u will get converted below to ʊ in unstressed syllables
-      manword = re.sub(u"ʉ", u"u", manword)
-      # Much simpler for o
-      manword = re.sub(u"([ʲjɕ]ː?)o", ur"\1ɵ", manword)
-
-      # i vs. ɪ fixes: i when stressed, ɪ otherwise; same for u vs. ʊ
-      if not man_monosyllabic and re.search(u"ˈ", manword):
-        # Convert all i to ɪ, then back to i in stressed syllables
-        manword = re.sub(u"i", u"ɪ", manword)
-        manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ɪ", r"\1i", manword)
-        # Convert all u to ʊ, then back to u in stressed syllables
-        manword = re.sub(u"u", u"ʊ", manword)
-        manword = re.sub(u"([ˈˌ]" + non_ipa_vowels_re + u"*)ʊ", r"\1u", manword)
-      # If monosyllabic, i and u unless word is accentless
-      if man_monosyllabic and headword not in (
-          [u"без", u"близ", u"из", u"меж", u"пред", u"при", u"не", u"ли"]):
-        manword = re.sub(u"ɪ", u"i", manword)
-      if man_monosyllabic and headword != u"у":
-        manword = re.sub(u"ʊ", u"u", manword)
-
-      # ɕ that's not geminate and not in t͡ɕ (with or without tie bar)
-      # needs to be geminated (0361 = tie bar)
-      manword = re.sub(u"([^t\u0361])ɕ($|[^ː])", ur"\1ɕː\2", manword)
-
-      # Convert nː in n(ː) in various endings in n(ː) in auto
-      if re.search(u"n\(ː\)", autoword):
-        manword = re.sub(u"nː(ɨj|əsʲtʲ|əjə|ə)$", ur"n(ː)\1", manword)
-
-      # Convert sʲə to s⁽ʲ⁾ə at end of word if necessary
-      if re.search(u"s⁽ʲ⁾ə$", autoword):
-        manword = re.sub(u"sʲə$", u"s⁽ʲ⁾ə", manword)
-
-      # if affricate assimilation in autoword, make it same in manword
-      # do before adding tie bar in ts
-      if re.search(u"d͡zz", autoword):
-        manword = re.sub(u"dz", u"d͡zz", manword)
-      if re.search(u"t͡ss", autoword):
-        manword = re.sub(u"ts", u"t͡ss", manword)
-
-      # add tie bar if needed
-      if re.search(u"t͡s", autoword):
-        manword = re.sub(u"ts", u"t͡s", manword)
-      if re.search(u"t͡ɕ", autoword):
-        manword = re.sub(u"tɕ", u"t͡ɕ", manword)
-
-      # palatalization needed before front vowels; note, ɡ is IPA ɡ
-      # we don't do this before e because the lack of palatalization might
-      # be legitimate (although should be written with ɛ)
-      manword = re.sub(ur"([dtbpkɡszfvxrlmn])(ː?[ɪiɵæʉ])", ur"\1ʲ\2", manword)
-
-      # Apply optional and compulsory palatal assimilation to manword
-      def apply_tn_dn_assim_palatal(m):
-        a, b, c = m.groups()
-        if a == '':
-          return a + b + u'ʲ' + c
-        else:
-          return a + b + u'⁽ʲ⁾' + c
-
-      # Optional (j) before ɪ
-      manword = re.sub(u"(^| )jɪ", ur"\1(j)ɪ", manword)
-      manword = re.sub(ipa_vowels_c + u"([‿-]?)jɪ", ur"\1\2(j)ɪ", manword)
-
-      # consonant assimilative palatalisation of tn/dn, depending on
-      # whether [rl] precedes
-      manword = re.sub(u"([rl]?)([ˈˌ]?[dt])ʲ?([ˈˌ]?nʲ)",
-          apply_tn_dn_assim_palatal, manword)
-
-      def apply_assim_palatal(m):
-        a, b, c = m.groups()
-        if a + c in cons_assim_palatal['compulsory']:
-          return a + u'ʲ' + b + c
-        elif a + c in cons_assim_palatal['optional']:
-          return a + u'⁽ʲ⁾' + b + c
-        else:
-          return m.group(0)
-
-      #apply general consonant assimilative palatalisation, repeatedly for
-      #recursive assimilation
-      while True:
-        new_manword = re.sub(u'(t͡s|d͡z|[xszntdmbpf])ʲ?([ˈˌ]?)(t͡ɕ|[ktdǰɕlnszmpbf]ʲ)',
-          apply_assim_palatal, manword)
-        if new_manword == manword:
-          break
-        manword = new_manword
-
-      # optional palatal assimilation of вп, вб only word-initially
-      manword = re.sub(u'^([ˈˌ]?[fv])ʲ?([ˈˌ]?[pb]ʲ)', ur'\1⁽ʲ⁾\2', manword)
-
-      # END OF PER-WORD PROCESSING
-      autowords[j] = autoword
-      manwords[j] = manword
-
-    auto = " ".join(autowords)
-    manual = " ".join(manwords)
-
-    # Following code is copied from ru-pron.lua (and converted to Python).
-    #
-    # Front a and u between soft consonants. If between a soft and
-    # optionally soft consonant (should only occur in that order, shouldn't
-    # ever have a or u preceded by optionally soft consonant),
-    # split the result into two. We only split into two even if there
-    # happen to be multiple optionally fronted a's and u's to avoid
-    # excessive numbers of possibilities (and it simplifies the code).
-    # 1. First, temporarily add soft symbol to inherently soft consonants.
-    manual = re.sub(u"([čǰɕӂj])", ur"\1ʲ", manual)
-    # 2. Handle case of [au] between two soft consonants
-    manual = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.ʲ)",
-        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3),
-        manual)
-    # 3. Handle [au] between soft consonant and optional j, which is still fronted
-    manual = re.sub(ur"(ʲ[ː()]*)([auʊ])([ˈˌ]?\(jʲ\))",
-        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3),
-        manual)
-    # 4. Handle case of [au] between soft and optionally soft consonant
-    if re.search(u"ʲ[ː()]*[auʊ][ˈˌ]?.⁽ʲ⁾", manual) or re.search(ur"ʲ[ː()]*[auʊ][ˈˌ]?\(jʲ\)", manual):
-      opt_hard = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾", r"\1\2\3", manual)
-      opt_soft = re.sub(u"(ʲ[ː()]*)([auʊ])([ˈˌ]?.)⁽ʲ⁾",
-        lambda m:m.group(1) + fronting[m.group(2)] + m.group(3) + u"ʲ",
-        manual)
-      manual = opt_hard + ", " + opt_soft
-    # 5. Undo addition of soft symbol to inherently soft consonants.
-    manual = re.sub(u"([čǰɕӂj])ʲ", r"\1", manual)
-
-    if auto == manual:
-      pagemsg("For headword %s, %s equal to %s" % (headword,
-        "auto %s" % auto if auto == orig_auto else
-          "canon auto %s (orig %s)" % (auto, orig_auto),
-        "manual" if manual == orig_manual else
-          "canon manual (orig %s)" % (orig_manual)))
-      return True
-
-    if u"ˈ" not in manual and re.sub(u"ˈ", "", auto) == manual:
-      pagemsg("WARNING: For headword %s, missing stress mark in %s compared to %s, accepting" % (headword,
-        "manual" if manual == orig_manual else
-          "canon manual (orig %s)" % (orig_manual),
-        "auto %s" % auto if auto == orig_auto else
-          "canon auto %s (orig %s)" % (auto, orig_auto)))
-      return True
-
-    seqmatch = difflib.SequenceMatcher(None, auto, manual)
-    changes = []
-    for tag, i1, i2, j1, j2 in seqmatch.get_opcodes():
-      if tag == "delete":
-        changes.append("delete %s at %s" % (auto[i1:i2], i1))
-      elif tag == "replace":
-        changes.append("replace %s -> %s at %s" % (auto[i1:i2], manual[j1:j2],
-          i1))
-      elif tag == "insert":
-        changes.append("insert %s at %s" % (manual[j1:j2], i1))
-    return "WARNING: For headword %s, auto %s%s not same as manual %s%s: %s: %s" % (
-      headword, auto, orig_auto != auto and " (%s)" % orig_auto or "",
-      manual, orig_manual != manual and " (%s)" % orig_manual or "",
-      ", ".join(changes), ipa_templates_msg)
-
   foundrussian = False
   sections = re.split("(^==[^=]*==\n)", text, 0, re.M)
   orig_text = text
@@ -478,7 +478,6 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           return None, None
 
       foundrussian = True
-      foundpronuns = []
       parsed = blib.parse_text(sections[j])
       ipa_templates = []
       for t in parsed.filter_templates():
@@ -535,7 +534,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
                     headword)
               return None, None
             retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
-                ipa_templates_msg)
+                ipa_templates_msg, pagemsg)
             if retval != True and override_ipa and (len(ipa_templates) > 1 or
                 len(computed_ipa_items) > 1):
               pagemsg("WARNING: Can't override IPA because multiple IPA templates or headwords: %s template(s), %s headword(s)" % (
@@ -574,6 +573,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
             len(ipa_templates) - num_replaced, len(ipa_templates)))
         continue
 
+      foundpronuns = []
       for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", sections[j]):
         pagemsg("Already found pronunciation template: %s" % m.group(1))
         foundpronuns.append(m.group(2) or pagetitle)
