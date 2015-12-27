@@ -322,24 +322,7 @@ def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
     manual, orig_manual != manual and " (%s)" % orig_manual or "",
     ", ".join(changes), ipa_templates_msg)
 
-def process_page_text(index, text, pagetitle, verbose, override_ipa):
-  def pagemsg(txt):
-    msg("Page %s %s: %s" % (index, pagetitle, txt))
-
-  def expand_text(tempcall):
-    if verbose:
-      pagemsg("Expanding text: %s" % tempcall)
-    result = site.expand_text(tempcall, title=pagetitle)
-    if verbose:
-      pagemsg("Raw result is %s" % result)
-    if result.startswith('<strong class="error">'):
-      result = re.sub("<.*?>", "", result)
-      pagemsg("WARNING: Got error: %s" % result)
-      return False
-    return result
-
-  parsed = blib.parse_text(text)
-
+def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   # Get the headword pronunciation(s)
   headword_pronuns = set()
   headword_translit = set()
@@ -366,7 +349,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       found_template = True
     elif unicode(t.name) == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
       pagemsg("WARNING: Skipping page with letter headword")
-      return None, None
+      return None
     elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
       tr = getparam(t, "tr")
       if tr:
@@ -386,7 +369,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       generate_result = expand_text(generate_template)
       if not generate_result:
         pagemsg("WARNING: Error generating noun forms")
-        return None, None
+        return None
       args = {}
       for arg in re.split(r"\|", generate_result):
         name, value = re.split("=", arg)
@@ -420,7 +403,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
   for pronun in headword_pronuns:
     if ru.remove_accents(pronun) != pagetitle:
       pagemsg("WARNING: Headword pronun %s doesn't match page title, skipping" % pronun)
-      return None, None
+      return None
 
   # Check for acronym/non-syllabic.
   for pronun in headword_pronuns:
@@ -461,8 +444,184 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
   headword_pronuns.update(headword_translit)
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
-    return None, None
+    return None
   headword_pronuns = sorted(list(headword_pronuns))
+  return headword_pronuns
+
+def process_section(section, headword_pronuns, pagemsg):
+  subbed_ipa_pronuns = []
+
+  # Check for indications of pre-reform spellings
+  for cat in [u"Russian spellings with е instead of ё",
+      u"Russian terms spelled with Ѣ",
+      u"Russian terms spelled with Ѳ",
+      u"Russian pre-1918 spellings"]:
+    if re.search(ur"\[\[Category:%s]]" % cat, section):
+      pagemsg(u"WARNING: Found [[Category:%s]], skipping" % cat)
+      return None
+
+  foundrussian = True
+  parsed = blib.parse_text(section)
+  ipa_templates = []
+  for t in parsed.filter_templates():
+    if unicode(t.name) == "ru-pre-reform":
+      pagemsg("WARNING: Found pre-reform template, skipping")
+      return None
+    if unicode(t.name) == u"ru-noun-alt-ё":
+      pagemsg(u"WARNING: Found ru-noun-alt-ё template, skipping")
+      return None
+    if unicode(t.name) == "ru-IPA-manual":
+      pagemsg("WARNING: Found ru-IPA-manual template, skipping")
+      return None
+    if unicode(t.name) in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
+      # Check if word spelled with е instead of ё, without using
+      # [[Category:Russian spellings with е instead of ё]], which we
+      # catch above.
+      target = getparam(t, "1")
+      if u"ё" in target and re.sub(u"ё", u"е", target) == pagetitle:
+        pagemsg(u"WARNING: Found apparent alternative form using е in place of ё without explicit category, skipping: %s" %
+            unicode(t))
+        return None
+    if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
+      ipa_templates.append(t)
+  if (re.search(r"[Aa]bbreviation", section) and not
+      re.search("==Abbreviations==", section)):
+    pagemsg("WARNING: Found the word 'abbreviation', please check")
+  if (re.search(r"[Aa]cronym", section) and not
+      re.search("==Acronyms==", section)):
+    pagemsg("WARNING: Found the word 'acronym', please check")
+  if (re.search(r"[Ii]nitialism", section) and not
+      re.search("==Initialisms==", section)):
+    pagemsg("WARNING: Found the word 'initialism', please check")
+  if ipa_templates:
+    ipa_templates_msg = (
+      "Processing raw IPA %s for headword(s) %s" % (
+      "++".join([unicode(x) for x in ipa_templates]),
+      "++".join(headword_pronuns)))
+    pagemsg(ipa_templates_msg)
+    computed_ipa = compute_ipa()
+    num_replaced = 0
+    if not computed_ipa:
+      # Error occurred computing IPA of headwords
+      return None
+    for ipa_template in ipa_templates:
+      mismatch_msgs = []
+      computed_ipa_items = computed_ipa.items()
+      for headword, autoipa in computed_ipa_items:
+        if contains_latin(headword):
+          pagemsg("WARNING: Headword %s to be used to replace manual IPA contains Latin chars, skipping" %
+                headword)
+          return None
+        elif contains_non_cyrillic(headword):
+          pagemsg("WARNING: Headword %s to be used to replace manual IPA contains non-Cyrillic non-Latin chars, skipping" %
+                headword)
+          return None
+        retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
+            ipa_templates_msg, pagemsg)
+        if retval != True and override_ipa and (len(ipa_templates) > 1 or
+            len(computed_ipa_items) > 1):
+          pagemsg("WARNING: Can't override IPA because multiple IPA templates or headwords: %s template(s), %s headword(s)" % (
+            len(ipa_templates), len(computed_ipa_items)))
+        elif retval == True or override_ipa:
+          orig_ipa_template = unicode(ipa_template)
+          rmparam(ipa_template, "lang")
+          rmparam(ipa_template, "1")
+          if len(ipa_template.params) > 0:
+            pagemsg("WARNING: IPA template has extra parameters, skipping: %s" %
+                orig_ipa_template)
+            return None
+          ipa_template.name = "ru-IPA"
+          ipa_template.add("1", headword)
+          if retval != True and override_ipa:
+            pagemsg("WARNING: Overriding IPA despite pronunciation mismatch")
+            mismatch_msgs.append(retval)
+            for m in mismatch_msgs:
+              pagemsg(re.sub("^WARNING:", "WARNING (IGNORED):", m))
+            overrode_ipa = True
+          pagemsg("Replaced %s with %s" % (
+            orig_ipa_template, unicode(ipa_template)))
+          num_replaced += 1
+          mismatch_msgs = []
+          subbed_ipa_pronuns.append(headword)
+          break
+        mismatch_msgs.append(retval)
+      if mismatch_msgs:
+        for m in mismatch_msgs:
+          pagemsg(m)
+    if num_replaced > 0:
+      section = unicode(parsed)
+    if num_replaced < len(ipa_templates):
+      pagemsg("Unable to replace %s of %s raw IPA template(s)" % (
+        len(ipa_templates) - num_replaced, len(ipa_templates)))
+    continue
+
+  foundpronuns = []
+  for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
+    pagemsg("Already found pronunciation template: %s" % m.group(1))
+    foundpronuns.append(m.group(2) or pagetitle)
+  foundpronuns = set(foundpronuns)
+  if foundpronuns:
+    joined_foundpronuns = ",".join(sorted(list(foundpronuns)))
+    joined_headword_pronuns = ",".join(sorted(list(headword_pronuns)))
+    if "phon=" not in joined_foundpronuns and contains_latin(joined_headword_pronuns):
+      pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" % (
+        joined_foundpronuns, joined_headword_pronuns))
+    if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
+      pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
+          (joined_foundpronuns, joined_headword_pronuns))
+    if foundpronuns != headword_pronuns:
+      pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
+            (joined_foundpronuns, joined_headword_pronuns))
+    return None
+  pronunsection = "===Pronunciation===\n%s\n" % "".join(pronun_lines)
+
+  if latin_char_msgs:
+    for latinmsg in latin_char_msgs:
+      pagemsg(latinmsg)
+      return None
+
+  origsection = section
+  if re.search(r"^===+Pronunciation===+$", section, re.M):
+    pagemsg("Found pronunciation section without ru-IPA or IPA")
+    section = re.sub(r"^(===+Pronunciation===+)\n+", r"\1\n%s" %
+        "".join(pronun_lines), section, 1, re.M)
+  elif re.search(r"^===Etymology===$", section, re.M):
+    section = re.sub(r"(^===Etymology===\n.*?\n)(==)", r"\1%s\2" % pronunsection, section, 1, re.M | re.S)
+  elif re.search(r"^===Alternative forms===$", section, re.M):
+    section = re.sub(r"(^===Alternative forms===\n.*?\n)(==)", r"\1%s\2" % pronunsection, section, 1, re.M | re.S)
+  else:
+    section = re.sub(r"(^===)", r"%s\1" % pronunsection, section, 1, re.M)
+  section = re.sub("^===", "\n===", section, 1)
+
+  if section == origsection:
+    pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
+    return None
+
+  return section, subbed_ipa_pronuns
+
+def process_page_text(index, text, pagetitle, verbose, override_ipa):
+  def pagemsg(txt):
+    msg("Page %s %s: %s" % (index, pagetitle, txt))
+
+  def expand_text(tempcall):
+    if verbose:
+      pagemsg("Expanding text: %s" % tempcall)
+    result = site.expand_text(tempcall, title=pagetitle)
+    if verbose:
+      pagemsg("Raw result is %s" % result)
+    if result.startswith('<strong class="error">'):
+      result = re.sub("<.*?>", "", result)
+      pagemsg("WARNING: Got error: %s" % result)
+      return False
+    return result
+
+  parsed = blib.parse_text(text)
+
+  # Get the headword pronunciation(s)
+  headword_pronuns = get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text)
+  if headword_pronuns is None:
+    return None, None
+
   subbed_ipa_pronuns = []
   overrode_ipa = False
   pronun_lines = []
@@ -504,155 +663,82 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       if foundrussian:
         pagemsg("WARNING: Found multiple Russian sections")
         return None, None
-      # Check for indications of pre-reform spellings
-      for cat in [u"Russian spellings with е instead of ё",
-          u"Russian terms spelled with Ѣ",
-          u"Russian terms spelled with Ѳ",
-          u"Russian pre-1918 spellings"]:
-        if re.search(ur"\[\[Category:%s]]" % cat, sections[j]):
-          pagemsg(u"WARNING: Found [[Category:%s]], skipping" % cat)
-          return None, None
 
-      foundrussian = True
-      parsed = blib.parse_text(sections[j])
-      ipa_templates = []
-      for t in parsed.filter_templates():
-        if unicode(t.name) == "ru-pre-reform":
-          pagemsg("WARNING: Found pre-reform template, skipping")
+      if "===Pronunciation 1===" in sections[j]:
+        pagemsg("WARNING: Found ===Pronunciation 1===, should convert page to multiple etymologies")
+        return None, None
+      if "===Etymology 1===" in sections[j]:
+        etymsections = re.split("(^===Etymology [0-9]+===\n)", text, 0, re.M)
+        if len(etymsections) < 5:
+          pagemsg("WARNING: Misformatted page with multiple etymologies")
           return None, None
-        if unicode(t.name) == u"ru-noun-alt-ё":
-          pagemsg(u"WARNING: Found ru-noun-alt-ё template, skipping")
+        # Check if all per-etym-section headwords are the same
+        etymparsed2 = blib.parse_text(etymsections[2])
+        etym_headword_pronuns = {}
+        etym_headword_pronuns[2] = get_headword_pronuns(etymparsed2, pagetitle, pagemsg, expand_text)
+        need_per_section_pronuns = False
+        for k in xrange(4, len(etymsections), 2):
+          etymparsed = blib.parse_text(etymsections[k])
+          etym_headword_pronuns[k] = get_headword_pronuns(etymparsed, pagetitle, pagemsg, expand_text)
+          if etym_headword_pronuns[k] != etym_headword_pronuns[2]:
+            pagemsg("WARNING: Etym section %s pronuns %s different from etym section 1 pronuns %s" % (
+              k//2 + 1, ",".join(etym_headword_pronuns[k]), ",".join(etym_headword_pronuns[2])))
+            need_per_section_pronuns = True
+        if need_per_section_pronuns:
+          numpronunsecs = len(re.findall("^===Pronunciation===$", etymsections[0], re.M))
+        if numpronunsecs > 1:
+          pagemsg("WARNING: Multiple ===Pronunciation=== sections in preamble to multiple etymologies, needs to be fixed")
           return None, None
-        if unicode(t.name) == "ru-IPA-manual":
-          pagemsg("WARNING: Found ru-IPA-manual template, skipping")
-          return None, None
-        if unicode(t.name) in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
-          # Check if word spelled with е instead of ё, without using
-          # [[Category:Russian spellings with е instead of ё]], which we
-          # catch above.
-          target = getparam(t, "1")
-          if u"ё" in target and re.sub(u"ё", u"е", target) == pagetitle:
-            pagemsg(u"WARNING: Found apparent alternative form using е in place of ё without explicit category, skipping: %s" %
-                unicode(t))
+        if need_per_section_pronuns and numpronunsecs == 1:
+          # Remove existing pronunciation section; but make sure it's safe
+          # to do so (must have nothing but ru-IPA templates in it, and the
+          # pronunciations in them must match what's expected)
+          m = re.search(r"(^===Pronunciation===\n)(.*?)(^==|\Z)", etymsections[0], re.M | re.S)
+          if not m:
+            pagemsg("WARNING: Can't find ===Pronunciation=== section when it should be there, logic error?")
             return None, None
-        if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
-          ipa_templates.append(t)
-      if (re.search(r"[Aa]bbreviation", sections[j]) and not
-          re.search("==Abbreviations==", sections[j])):
-        pagemsg("WARNING: Found the word 'abbreviation', please check")
-      if (re.search(r"[Aa]cronym", sections[j]) and not
-          re.search("==Acronyms==", sections[j])):
-        pagemsg("WARNING: Found the word 'acronym', please check")
-      if (re.search(r"[Ii]nitialism", sections[j]) and not
-          re.search("==Initialisms==", sections[j])):
-        pagemsg("WARNING: Found the word 'initialism', please check")
-      if ipa_templates:
-        ipa_templates_msg = (
-          "Processing raw IPA %s for headword(s) %s" % (
-          "++".join([unicode(x) for x in ipa_templates]),
-          "++".join(headword_pronuns)))
-        pagemsg(ipa_templates_msg)
-        computed_ipa = compute_ipa()
-        num_replaced = 0
-        if not computed_ipa:
-          # Error occurred computing IPA of headwords
-          return None, None
-        for ipa_template in ipa_templates:
-          mismatch_msgs = []
-          computed_ipa_items = computed_ipa.items()
-          for headword, autoipa in computed_ipa_items:
-            if contains_latin(headword):
-              pagemsg("WARNING: Headword %s to be used to replace manual IPA contains Latin chars, skipping" %
-                    headword)
+          if not re.search(r"^(\* \{\{ru-IPA(?:\|([^}]*))?\}\}\n)*$", m.group(2)):
+            pagemsg("WARNING: Pronunciation section to be removed contains extra stuff (e.g. manual IPA or audio), can't remove: <%s>\n" % (
+              m.group(1) + m.group(2)))
+            return None, None
+          foundpronuns = []
+          for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", m.group(2)):
+            foundpronuns.append(m.group(2) or pagetitle)
+          foundpronuns = set(foundpronuns)
+          if foundpronuns:
+            joined_foundpronuns = ",".join(sorted(list(foundpronuns)))
+            joined_headword_pronuns = ",".join(sorted(list(headword_pronuns)))
+            if foundpronuns != headword_pronuns:
+              pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
+                    (joined_foundpronuns, joined_headword_pronuns))
               return None, None
-            elif contains_non_cyrillic(headword):
-              pagemsg("WARNING: Headword %s to be used to replace manual IPA contains non-Cyrillic non-Latin chars, skipping" %
-                    headword)
-              return None, None
-            retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
-                ipa_templates_msg, pagemsg)
-            if retval != True and override_ipa and (len(ipa_templates) > 1 or
-                len(computed_ipa_items) > 1):
-              pagemsg("WARNING: Can't override IPA because multiple IPA templates or headwords: %s template(s), %s headword(s)" % (
-                len(ipa_templates), len(computed_ipa_items)))
-            elif retval == True or override_ipa:
-              orig_ipa_template = unicode(ipa_template)
-              rmparam(ipa_template, "lang")
-              rmparam(ipa_template, "1")
-              if len(ipa_template.params) > 0:
-                pagemsg("WARNING: IPA template has extra parameters, skipping: %s" %
-                    orig_ipa_template)
-                return None, None
-              ipa_template.name = "ru-IPA"
-              ipa_template.add("1", headword)
-              if retval != True and override_ipa:
-                pagemsg("WARNING: Overriding IPA despite pronunciation mismatch")
-                mismatch_msgs.append(retval)
-                for m in mismatch_msgs:
-                  pagemsg(re.sub("^WARNING:", "WARNING (IGNORED):", m))
-                overrode_ipa = True
-              pagemsg("Replaced %s with %s" % (
-                orig_ipa_template, unicode(ipa_template)))
-              num_replaced += 1
-              mismatch_msgs = []
-              subbed_ipa_pronuns.append(headword)
-              break
-            mismatch_msgs.append(retval)
-          if mismatch_msgs:
-            for m in mismatch_msgs:
-              pagemsg(m)
-        if num_replaced > 0:
-          sections[j] = unicode(parsed)
+          etymsections[0] = re.sub(r"(^===Pronunciation===\n)(.*?)(^==|\Z)", r"\3", etymsections[0], 1, re.M | re.S)
+          pagemsg("Removed pronunciation section because combined pronunciation with multiple etymologies needs to be split")
+        if need_per_section_pronuns:
+          for k in xrange(2, len(etymsections), 2):
+            result = process_section(etymsections[k], etym_headword_pronuns[k],
+                pagemsg)
+            if result is None:
+              continue
+            etymsections[k], etymsection_subbed_ipa_pronuns = result
+            subbed_ipa_pronuns.extend(etymsection_subbed_ipa_pronuns)
+          sections[j] = "".join(etymsections)
           text = "".join(sections)
-        if num_replaced < len(ipa_templates):
-          pagemsg("Unable to replace %s of %s raw IPA template(s)" % (
-            len(ipa_templates) - num_replaced, len(ipa_templates)))
-        continue
+        else:
+          result = process_section(sections[j], headword_pronuns, pagemsg):
+          if result is None:
+            continue
+          sections[j], section_subbed_ipa_pronuns = result
+          subbed_ipa_pronuns.extend(section_subbed_ipa_pronuns)
+          text = "".join(sections)
 
-      foundpronuns = []
-      for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", sections[j]):
-        pagemsg("Already found pronunciation template: %s" % m.group(1))
-        foundpronuns.append(m.group(2) or pagetitle)
-      foundpronuns = sorted(foundpronuns)
-      if foundpronuns:
-        joined_foundpronuns = ",".join(foundpronuns)
-        joined_headword_pronuns = ",".join(headword_pronuns)
-        if "phon=" not in joined_foundpronuns and contains_latin(joined_headword_pronuns):
-          pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" % (
-            joined_foundpronuns, joined_headword_pronuns))
-        if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
-          pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
-              (joined_foundpronuns, joined_headword_pronuns))
-        if foundpronuns != headword_pronuns:
-          pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
-                (joined_foundpronuns, joined_headword_pronuns))
-        return None, None
-      pronunsection = "===Pronunciation===\n%s\n" % "".join(pronun_lines)
-      if re.search(r"^===Etymology [0-9]+===$", sections[j], re.M):
-        pagemsg("WARNING: Found multiple etymology sections, can't handle yet")
-        return None, None
-
-      if latin_char_msgs:
-        for latinmsg in latin_char_msgs:
-          pagemsg(latinmsg)
-          return None, None
-
-      if re.search(r"^===+Pronunciation===+$", sections[j], re.M):
-        pagemsg("Found pronunciation section without ru-IPA or IPA")
-        sections[j] = re.sub(r"^(===+Pronunciation===+)\n+", r"\1\n%s" %
-            "".join(pronun_lines), sections[j], 1, re.M)
-      elif re.search(r"^===Etymology===$", sections[j], re.M):
-        sections[j] = re.sub(r"(^===Etymology===\n.*?\n)(==)", r"\1%s\2" % pronunsection, sections[j], 1, re.M | re.S)
-      elif re.search(r"^===Alternative forms===$", sections[j], re.M):
-        sections[j] = re.sub(r"(^===Alternative forms===\n.*?\n)(==)", r"\1%s\2" % pronunsection, sections[j], 1, re.M | re.S)
       else:
-        sections[j] = re.sub(r"(^===)", r"%s\1" % pronunsection, sections[j], 1, re.M)
-      sections[j] = re.sub("^===", "\n===", sections[j], 1)
-      newtext = "".join(sections)
-      if newtext == text:
-        pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
-        return None, None
-      text = newtext
+        result = process_section(sections[j], headword_pronuns, pagemsg):
+        if result is None:
+          continue
+        sections[j], section_subbed_ipa_pronuns = result
+        subbed_ipa_pronuns.extend(section_subbed_ipa_pronuns)
+        text = "".join(sections)
 
   if not foundrussian:
     pagemsg("WARNING: Can't find Russian section")
