@@ -553,7 +553,7 @@ def process_section(section, headword_pronuns, pagemsg):
     if num_replaced < len(ipa_templates):
       pagemsg("Unable to replace %s of %s raw IPA template(s)" % (
         len(ipa_templates) - num_replaced, len(ipa_templates)))
-    continue
+    return None
 
   foundpronuns = []
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
@@ -581,16 +581,32 @@ def process_section(section, headword_pronuns, pagemsg):
       return None
 
   origsection = section
+  # If pronunciation section already present, insert pronun into it; this
+  # could happen when audio but not IPA is present
   if re.search(r"^===+Pronunciation===+$", section, re.M):
     pagemsg("Found pronunciation section without ru-IPA or IPA")
     section = re.sub(r"^(===+Pronunciation===+)\n+", r"\1\n%s" %
         "".join(pronun_lines), section, 1, re.M)
-  elif re.search(r"^===Etymology===$", section, re.M):
-    section = re.sub(r"(^===Etymology===\n.*?\n)(==)", r"\1%s\2" % pronunsection, section, 1, re.M | re.S)
-  elif re.search(r"^===Alternative forms===$", section, re.M):
-    section = re.sub(r"(^===Alternative forms===\n.*?\n)(==)", r"\1%s\2" % pronunsection, section, 1, re.M | re.S)
   else:
-    section = re.sub(r"(^===)", r"%s\1" % pronunsection, section, 1, re.M)
+    # Otherwise, skip past any ===Etymology=== or ===Alternative forms===
+    # sections at the beginning. This requires us to split up the subsections,
+    # find the right subsection to insert before, and then rejoin.
+    subsections = re.split("(^===.*?===\n)", section, 0, re.M)
+
+    insert_before = 1
+    while True:
+      if insert_before >= len(subsections):
+        pagemsg("WARNING: Malformatted headers, no level-3/4 POS header")
+        return None
+      if ("===Alternative forms===" not in subsections[insert_before] and
+          "===Etymology===" not in subsections[insert_before]):
+        break
+      insert_before += 2
+    subsections[insert_before] = re.sub(r"(^===)", r"%s\1" % pronunsection, subsections[insert_before], 1, re.M)
+    section = "".join(subsections)
+
+  # Make sure there's a blank line before an initial header (even if there
+  # wasn't one before).
   section = re.sub("^===", "\n===", section, 1)
 
   if section == origsection:
@@ -725,7 +741,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           sections[j] = "".join(etymsections)
           text = "".join(sections)
         else:
-          result = process_section(sections[j], headword_pronuns, pagemsg):
+          result = process_section(sections[j], headword_pronuns, pagemsg)
           if result is None:
             continue
           sections[j], section_subbed_ipa_pronuns = result
@@ -733,7 +749,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           text = "".join(sections)
 
       else:
-        result = process_section(sections[j], headword_pronuns, pagemsg):
+        result = process_section(sections[j], headword_pronuns, pagemsg)
         if result is None:
           continue
         sections[j], section_subbed_ipa_pronuns = result
