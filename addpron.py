@@ -470,7 +470,8 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   headword_pronuns = sorted(list(headword_pronuns))
   return headword_pronuns
 
-def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg, expand_text):
+def process_section(section, indentlevel, headword_pronuns, override_ipa, pagetitle, pagemsg, expand_text):
+  assert indentlevel in [3, 4]
   notes = []
 
   def compute_ipa():
@@ -594,7 +595,7 @@ def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg,
             orig_ipa_template, unicode(ipa_template)))
           num_replaced += 1
           mismatch_msgs = []
-          notes.append("Replace {{IPA|...}} with {{ru-IPA|...}} for %s%s" % (
+          notes.append("replace {{IPA|...}} with {{ru-IPA|...}} for %s%s" % (
             headword, " (IPA override)" if retval != True and override_ipa else ""))
           break
         mismatch_msgs.append(retval)
@@ -626,7 +627,8 @@ def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg,
       pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
             (joined_foundpronuns, joined_headword_pronuns))
     return None
-  pronunsection = "===Pronunciation===\n%s\n" % "".join(pronun_lines)
+  pronunsection = "%sPronunciation%s\n%s\n" % ("="*indentlevel, "="*indentlevel,
+      "".join(pronun_lines))
 
   if latin_char_msgs:
     for latinmsg in latin_char_msgs:
@@ -666,7 +668,7 @@ def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg,
     pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
     return None
 
-  notes.append("Add pronunciation %s" % ",".join(headword_pronuns))
+  notes.append("add pronunciation %s" % ",".join(headword_pronuns))
 
   return section, notes
 
@@ -705,6 +707,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         return None
       foundrussian = True
 
+      need_l3_pronun = False
       if "===Pronunciation 1===" in sections[j]:
         pagemsg("WARNING: Found ===Pronunciation 1===, should convert page to multiple etymologies")
         return None
@@ -754,20 +757,21 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           foundpronuns = []
           for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", m.group(2)):
             foundpronuns.append(m.group(2) or pagetitle)
-          foundpronuns = set(foundpronuns)
+          foundpronuns = sorted(list(set(foundpronuns)))
           if foundpronuns:
-            joined_foundpronuns = ",".join(sorted(list(foundpronuns)))
-            joined_headword_pronuns = ",".join(sorted(list(headword_pronuns)))
-            if foundpronuns != headword_pronuns:
-              pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
+            joined_foundpronuns = ",".join(foundpronuns)
+            joined_headword_pronuns = ",".join(headword_pronuns)
+            if not (set(foundpronuns) <= set(headword_pronuns)):
+              pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation %s not subset of headword-derived pronunciation %s, unable to delete" %
                     (joined_foundpronuns, joined_headword_pronuns))
               return None
           etymsections[0] = re.sub(r"(^===Pronunciation===\n)(.*?)(^==|\Z)", r"\3", etymsections[0], 1, re.M | re.S)
           pagemsg("Removed pronunciation section because combined pronunciation with multiple etymologies needs to be split")
         if need_per_section_pronuns:
           for k in xrange(2, len(etymsections), 2):
-            result = process_section(etymsections[k], etym_headword_pronuns[k],
-                override_ipa, pagetitle, pagemsg, expand_text)
+            result = process_section(etymsections[k], 4,
+                etym_headword_pronuns[k], override_ipa, pagetitle, pagemsg,
+                expand_text)
             if result is None:
               continue
             etymsections[k], etymsection_notes = result
@@ -775,16 +779,13 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           sections[j] = "".join(etymsections)
           text = "".join(sections)
         else:
-          result = process_section(sections[j], headword_pronuns,
-              override_ipa, pagetitle, pagemsg, expand_text)
-          if result is None:
-            continue
-          sections[j], section_notes = result
-          notes.extend(section_notes)
-          text = "".join(sections)
+          need_l3_pronun = True
 
       else:
-        result = process_section(sections[j], headword_pronuns,
+        need_l3_pronun = True
+
+      if need_l3_pronun:
+        result = process_section(sections[j], 3, headword_pronuns,
             override_ipa, pagetitle, pagemsg, expand_text)
         if result is None:
           continue
