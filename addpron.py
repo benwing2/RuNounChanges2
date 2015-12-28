@@ -30,6 +30,33 @@ cons_assim_palatal = {
     u'mpʲ', u'mbʲ', u'mfʲ', u'fmʲ'])
 }
 
+# Original comment from Lua:
+# [words which will be treated as accentless (i.e. their vowels will be
+# reduced), and which will liaise with a preceding or following word;
+# this will not happen if the words have an accent mark, cf.
+# по́ небу vs. по не́бу, etc.]
+# We use these lists to determine whether to auto-accent monosyllabic words.
+accentless = {
+  # class 'pre': particles that join with a following word
+  'pre':set([u'без', u'близ', u'в', u'во', u'да', u'до',
+    u'за', u'из', u'из-под', u'из-за', u'изо', u'к', u'ко', u'меж',
+    u'на', u'над', u'надо', u'не', u'ни', u'об', u'обо', u'от', u'ото',
+    u'перед', u'передо', u'по', u'под', u'подо', u'пред', u'предо', u'при', u'про',
+    u'с', u'со', u'у', u'через']),
+  # class 'prespace': particles that join with a following word, but only
+  #   if a space (not a hyphen) separates them; hyphens are used here
+  #   to spell out letters, e.g. а-эн-бэ́ for АНБ (NSA = National Security
+  #   Agency) or о-а-э́ for ОАЭ (UAE = United Arab Emirates)
+  'prespace':set([u'а', u'о']),
+  # class 'post': particles that join with a preceding word
+  'post':set([u'бы', u'б', u'ж', u'же', u'ли', u'либо', u'ль', u'ка',
+    u'нибудь', u'тка']),
+  # class 'posthyphen': particles that join with a preceding word, but only
+  #   if a hyphen (not a space) separates them
+  'posthyphen':set([u'то']),
+}
+
+
 fronting = {
   'a': u'æ',
   u'u': u'ʉ',
