@@ -3,17 +3,18 @@
 
 # FIXME:
 
-# 1. Check that headword matches page name
+# 1. Check that headword matches page name (IS THIS DONE?)
+# 2. Auto-accent single-syllable words that would be accented by ru-pron,
+#    when comparing multiple etymologies.
 
 import pywikibot, re, sys, codecs, argparse
 import difflib
+from collections import Counter
 
 import blib
-from blib import getparam, rmparam
+from blib import getparam, rmparam, msg, site
 
 import rulib as ru
-
-site = pywikibot.Site()
 
 vowel_list = u"aeiouyɛəäëöü"
 ipa_vowel_list = vowel_list + u"ɐɪʊɨæɵʉ"
@@ -38,12 +39,6 @@ fronting = {
 skip_pages = [
     u"г-жа"
 ]
-
-def msg(text):
-  print text.encode("utf-8")
-
-def errmsg(text):
-  print >>sys.stderr, text.encode("utf-8")
 
 def contains_latin(text):
   return re.search(u"[0-9a-zščžáéíóúýàèìòùỳɛ]", text.lower())
@@ -449,8 +444,7 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   return headword_pronuns
 
 def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg, expand_text):
-  subbed_ipa_pronuns = []
-  overrode_ipa = False
+  notes = []
 
   def compute_ipa():
     computed_ipa = {}
@@ -569,12 +563,12 @@ def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg,
             mismatch_msgs.append(retval)
             for m in mismatch_msgs:
               pagemsg(re.sub("^WARNING:", "WARNING (IGNORED):", m))
-            overrode_ipa = True
           pagemsg("Replaced %s with %s" % (
             orig_ipa_template, unicode(ipa_template)))
           num_replaced += 1
           mismatch_msgs = []
-          subbed_ipa_pronuns.append(headword)
+          notes.append("Replace {{IPA|...}} with {{ru-IPA|...}} for %s%s" % (
+            headword, " (IPA override)" if retval != True and override_ipa else ""))
           break
         mismatch_msgs.append(retval)
       if mismatch_msgs:
@@ -585,7 +579,7 @@ def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg,
     if num_replaced < len(ipa_templates):
       pagemsg("Unable to replace %s of %s raw IPA template(s)" % (
         len(ipa_templates) - num_replaced, len(ipa_templates)))
-    return None
+    return section, notes
 
   foundpronuns = []
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
@@ -645,7 +639,9 @@ def process_section(section, headword_pronuns, override_ipa, pagetitle, pagemsg,
     pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
     return None
 
-  return section, subbed_ipa_pronuns, overrode_ipa
+  notes.append("Add pronunciation %s" % ",".join(headword_pronuns))
+
+  return section, notes
 
 def process_page_text(index, text, pagetitle, verbose, override_ipa):
   def pagemsg(txt):
@@ -670,8 +666,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
   if headword_pronuns is None:
     return None
 
-  subbed_ipa_pronuns = []
-  overrode_ipa = False
+  notes = []
 
   foundrussian = False
   sections = re.split("(^==[^=]*==\n)", text, 0, re.M)
@@ -696,10 +691,14 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         etymparsed2 = blib.parse_text(etymsections[2])
         etym_headword_pronuns = {}
         etym_headword_pronuns[2] = get_headword_pronuns(etymparsed2, pagetitle, pagemsg, expand_text)
+        if etym_headword_pronuns[2] is None:
+          return None
         need_per_section_pronuns = False
         for k in xrange(4, len(etymsections), 2):
           etymparsed = blib.parse_text(etymsections[k])
           etym_headword_pronuns[k] = get_headword_pronuns(etymparsed, pagetitle, pagemsg, expand_text)
+          if etym_headword_pronuns[k] is None:
+            return None
           if etym_headword_pronuns[k] != etym_headword_pronuns[2]:
             pagemsg("WARNING: Etym section %s pronuns %s different from etym section 1 pronuns %s" % (
               k//2, ",".join(etym_headword_pronuns[k]), ",".join(etym_headword_pronuns[2])))
@@ -744,9 +743,8 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
                 override_ipa, pagetitle, pagemsg, expand_text)
             if result is None:
               continue
-            etymsections[k], etymsection_subbed_ipa_pronuns, this_overrode_ipa = result
-            subbed_ipa_pronuns.extend(etymsection_subbed_ipa_pronuns)
-            overrode_ipa = overrode_ipa or this_overrode_ipa
+            etymsections[k], etymsection_notes = result
+            notes.extend(etymsection_notes)
           sections[j] = "".join(etymsections)
           text = "".join(sections)
         else:
@@ -754,9 +752,8 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
               override_ipa, pagetitle, pagemsg, expand_text)
           if result is None:
             continue
-          sections[j], section_subbed_ipa_pronuns, this_overrode_ipa = result
-          subbed_ipa_pronuns.extend(section_subbed_ipa_pronuns)
-          overrode_ipa = overrode_ipa or this_overrode_ipa
+          sections[j], section_notes = result
+          notes.extend(section_notes)
           text = "".join(sections)
 
       else:
@@ -764,21 +761,29 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
             override_ipa, pagetitle, pagemsg, expand_text)
         if result is None:
           continue
-        sections[j], section_subbed_ipa_pronuns, this_overrode_ipa = result
-        subbed_ipa_pronuns.extend(section_subbed_ipa_pronuns)
-        overrode_ipa = overrode_ipa or this_overrode_ipa
+        sections[j], section_notes = result
+        notes.extend(section_notes)
         text = "".join(sections)
 
   if not foundrussian:
     pagemsg("WARNING: Can't find Russian section")
     return None
 
-  if subbed_ipa_pronuns:
-    comment = "Replace {{IPA|...}} with {{ru-IPA|...}} for %s%s" % (
-        ",".join(subbed_ipa_pronuns),
-        " (IPA override)" if overrode_ipa else "")
-  else:
-    comment = "Add pronunciation %s" % ",".join(headword_pronuns)
+  comment = None
+  if notes:
+    # Group identical notes together and append the number of such identical
+    # notes if > 1
+    # 1. Count items in notes[] and return a key-value list in descending order
+    notescount = Counter(notes).most_common()
+    # 2. Recreate notes
+    def fmt_key_val(key, val):
+      if val == 1:
+        return "%s" % key
+      else:
+        return "%s (%s)" % (key, val)
+    notes = [fmt_key_val(x, y) for x, y in notescount]
+    comment = "; ".join(notes)
+
   return text, comment
 
 def process_page(index, page, save, verbose, override_ipa):
@@ -809,6 +814,8 @@ def process_page(index, page, save, verbose, override_ipa):
   newtext, comment = result
 
   if newtext != text:
+    assert comment
+
     if verbose:
       pagemsg("Replacing <%s> with <%s>" % (text, newtext))
 
