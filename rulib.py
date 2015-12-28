@@ -5,7 +5,10 @@ import re
 
 AC = u"\u0301" # acute =  ́
 GR = u"\u0300" # grave =  ̀
+CFLEX = u"\u0302" # circumflex =  ̂
+DOTABOVE = u"\u0307" # dot above =  ̇
 DI = u"\u0308" # diaeresis =  ̈
+DUBGR = u"\u030F" # double grave =  ̏
 
 composed_grave_vowel = u"ѐЀѝЍ"
 vowel_no_jo = u"аеиоуяэыюіѣѵАЕИОУЯЭЫЮІѢѴ" + composed_grave_vowel #omit ёЁ
@@ -138,7 +141,7 @@ def try_to_stress(word):
     return word
 
 def add_soft_sign(stem):
-  if re.search("[" + vowels + "]$", stem):
+  if re.search("[" + vowel + "]$", stem):
     return stem + u"й"
   else:
     return stem + u"ь"
@@ -149,15 +152,10 @@ def add_hard_neuter(stem):
   else:
     return stem + u"о"
 
-def do_assert(cond, msg=None):
-  if msg:
-    assert cond, msg
-  else:
-    assert cond
-  return True
+def split_generate_args(tempresult):
+  args = {}
+  for arg in re.split(r"\|", tempresult):
+    name, value = re.split("=", arg)
+    args[name] = re.sub("<!>", "|", value)
+  return args
 
-def remove_links(text):
-  # eliminate [[FOO| in [[FOO|BAR]], and then remaining [[ and ]]
-  text = re.sub(r"\[\[[^|\[\]]*\|", "", text)
-  text = re.sub(r"\[\[|\]\]", "", text)
-  return text
