@@ -23,6 +23,8 @@ ipa_vowels_c = "([" + ipa_vowel_list + "])"
 non_ipa_vowels_re = "[^ " + ipa_vowel_list + "]"
 non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 
+AC = u"\u0301"
+
 cons_assim_palatal = {
   'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ', u'xkʲ',
     u't͡ssʲ', u'd͡zzʲ']),
@@ -55,7 +57,6 @@ accentless = {
   #   if a hyphen (not a space) separates them
   'posthyphen':set([u'то']),
 }
-
 
 fronting = {
   'a': u'æ',
@@ -609,6 +610,57 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
         len(ipa_templates) - num_replaced, len(ipa_templates)))
     return section, notes
 
+  def canonicalize_pronun(pron, paramname):
+    newpron = re.sub(u"ё́", u"ё", pron)
+    newpron = re.sub(AC + "+", AC, newpron)
+    if newpron != pron:
+      notes.append("removed extra accents from %s= (ru-IPA)" % paramname)
+      pron = newpron
+    # We want to go word-by-word and check to see if the headword word is
+    # the same as the ru-IPA word but has additional accents in it, and
+    # if so copy the headword word to the ru-IPA word. One way to do that
+    # is to check that the ru-IPA word has no accents and that the headword
+    # word minus accents is the same as the ru-IPA word.
+    if not latin_char_msgs and len(headword_pronuns) == 1:
+      hwords = re.split(r"([\s\-]+)", headword_pronuns[0])
+      pronwords = re.split(r"([\s\-]+)", pron)
+      changed = False
+      if len(hwords) == len(pronwords):
+        for i in xrange(len(hwords)):
+          hword = hwords[i]
+          pronword = pronwords[i]
+          if (len(hword) > len(pronword) and
+              ru.remove_accents(pronword) == pronword and
+              ru.remove_accents(hword) == pronword):
+            changed = True
+            pronwords[i] = hword
+      if changed:
+        pron = "".join(pronwords)
+        notes.append("copied accents from headword to %s= (ru-IPA)" % paramname)
+    return pron
+
+  parsed = blib.parse_text(section)
+  for t in parsed.filter_templates():
+    if unicode(t.name) == "ru-IPA":
+      origt = unicode(t)
+      phon = getparam(t, "phon")
+      if phon:
+        if t.has("1"):
+          rmparam(t, "1")
+          notes.append("remove 1= when phon= present (ru-IPA)")
+        newphon = canonicalize_pronun(phon)
+        if phon != newphon:
+          t.add("phon", newphon)
+      arg1 = getparam(t, "1")
+      if arg1:
+        newarg1 = canonicalize_pronun(arg1)
+        if arg1 != newarg1:
+          t.add("1", newarg1)
+      newt = unicode(t)
+      if newt != origt:
+        pagemsg("Replaced %s with %s" % (origt, newt))
+  section = unicode(parsed)
+
   foundpronuns = []
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
     pagemsg("Already found pronunciation template: %s" % m.group(1))
@@ -626,7 +678,8 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     if foundpronuns != headword_pronuns:
       pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
             (joined_foundpronuns, joined_headword_pronuns))
-    return None
+    return section, notes
+
   pronunsection = "%sPronunciation%s\n%s\n" % ("="*indentlevel, "="*indentlevel,
       "".join(pronun_lines))
 
