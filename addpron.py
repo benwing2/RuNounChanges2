@@ -484,9 +484,10 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       h2words = re.split(r"([\s\-]+)", h2)
       if len(h1words) == len(h2words):
         for i in xrange(len(h1words)):
-          if not (ru.is_unaccented(h1words[i]) and ru.remove_accents(h2words[i]) == h1words[i]):
+          if not (h1words[i] == h2words[i] or ru.is_unaccented(h1words[i]) and ru.remove_accents(h2words[i]) == h1words[i]):
             return False
-    return True
+      return True
+    return False
   def headword_should_be_removed_due_to_unaccent(hword, hwords):
     for h in hwords:
       if hword != h and headwords_same_but_first_maybe_lacks_accents(hword, h):
@@ -686,12 +687,12 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
         if t.has("1"):
           rmparam(t, "1")
           notes.append("remove 1= when phon= present (ru-IPA)")
-        newphon = canonicalize_pronun(phon)
+        newphon = canonicalize_pronun(phon, "phon")
         if phon != newphon:
           t.add("phon", newphon)
       arg1 = getparam(t, "1")
       if arg1:
-        newarg1 = canonicalize_pronun(arg1)
+        newarg1 = canonicalize_pronun(arg1, "1")
         if arg1 != newarg1:
           t.add("1", newarg1)
       newt = unicode(t)
