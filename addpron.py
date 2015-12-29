@@ -464,7 +464,46 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       pagemsg("Using semi-reduced pronunciation: %s" % ",".join(new_headword_pronuns))
       headword_pronuns = new_headword_pronuns
 
+  # Canonicalize headword pronuns. If a single monosyllabic word, add accent
+  # unless it's in the list of unaccented words.
+
+  def canonicalize_headword(headword):
+    # Do nothing if there are multiple words
+    if headword not in accentless['pre'] and not re.search(r"[\s\-]", headword):
+      return ru.try_to_stress(headword)
+    else:
+      return headword
+  headword_pronuns = set(canonicalize_headword(x) for x in headword_pronuns)
+
+  # Also, if two pronuns differ only in that one has an additional accent on a
+  # word, remove the one without the accent.
+
+  def headwords_same_but_first_maybe_lacks_accents(h1, h2):
+    if ru.remove_accents(h1) == ru.remove_accents(h2) and len(h1) < len(h2):
+      h1words = re.split(r"([\s\-]+)", h1)
+      h2words = re.split(r"([\s\-]+)", h2)
+      if len(h1words) == len(h2words):
+        for i in xrange(len(h1words)):
+          if not (ru.is_unaccented(h1words[i]) and ru.remove_accents(h2words[i]) == h1words[i]):
+            return False
+    return True
+  def headword_should_be_removed_due_to_unaccent(hword, hwords):
+    for h in hwords:
+      if hword != h and headwords_same_but_first_maybe_lacks_accents(hword, h):
+        pagemsg("Removing headword %s because same as headword %s but lacking an accent" % (
+          hword, h))
+        return True
+    return False
+  new_headword_pronuns = set(x for x in headword_pronuns if not
+      headword_should_be_removed_due_to_unaccent(x, headword_pronuns))
+  if len(new_headword_pronuns) <= len(headword_pronuns) - 2:
+    pagemsg("WARNING: Removed two or more headword pronuns, check that something didn't go wrong: old=%s, new=%s" % (
+      ",".join(headword_pronuns), ",".join(new_headword_pronuns)))
+  headword_pronuns = new_headword_pronuns
+
+  # Now add Latin translit to headword pronuns
   headword_pronuns.update(headword_translit)
+
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
     return None
@@ -629,8 +668,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
         for i in xrange(len(hwords)):
           hword = hwords[i]
           pronword = pronwords[i]
-          if (len(hword) > len(pronword) and
-              ru.remove_accents(pronword) == pronword and
+          if (len(hword) > len(pronword) and ru.is_unaccented(pronword) and
               ru.remove_accents(hword) == pronword):
             changed = True
             pronwords[i] = hword
