@@ -3,9 +3,17 @@
 
 # FIXME:
 
-# 1. Check that headword matches page name (IS THIS DONE?)
+# 1. (DONE) Check that headword matches page name
 # 2. Auto-accent single-syllable words that would be accented by ru-pron,
 #    when comparing multiple etymologies.
+# 3. When adding a pronunciation, check if it's the same as the page name
+#    (presence of ё), or is monosyllabic, in which case use an empty
+#    pronunciation.
+# 4. When deleting pronunciations because monosyllabic, also delete
+#    pronunciations that have ё in them and are the same as the page title.
+# 5. (DONE) Preserve order of pronunciations derived from headwords (cf. бора,
+#    where the headword order is бора́,бо́ра but we get the order backwards
+#    because we conver to a set and then sort as a list).
 
 import pywikibot, re, sys, codecs, argparse
 import difflib
@@ -357,10 +365,17 @@ def canonicalize_monosyllabic_pronun(pronun):
   else:
     return pronun
 
+def remove_list_duplicates(l):
+  newl = []
+  for x in l:
+    if x not in newl:
+      newl.append(x)
+  return newl
+
 def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   # Get the headword pronunciation(s)
-  headword_pronuns = set()
-  headword_translit = set()
+  headword_pronuns = []
+  headword_translit = []
 
   for t in parsed.filter_templates():
     check_extra_heads = False
@@ -373,18 +388,18 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
           tr))
-        headword_translit.add(tr)
+        headword_translit.append(tr)
       else:
-        headword_pronuns.add(getparam(t, "1") or pagetitle)
+        headword_pronuns.append(getparam(t, "1") or pagetitle)
       check_extra_heads = True
     elif tname in ["ru-noun form", "ru-phrase"]:
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
           tr))
-        headword_translit.add(tr)
+        headword_translit.append(tr)
       else:
-        headword_pronuns.add(getparam(t, "head") or getparam(t, "1") or pagetitle)
+        headword_pronuns.append(getparam(t, "head") or getparam(t, "1") or pagetitle)
       check_extra_heads = True
     elif tname == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
       pagemsg("WARNING: Skipping page with letter headword")
@@ -394,9 +409,9 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
           tr))
-        headword_translit.add(tr)
+        headword_translit.append(tr)
       else:
-        headword_pronuns.add(getparam(t, "head") or pagetitle)
+        headword_pronuns.append(getparam(t, "head") or pagetitle)
       check_extra_heads = True
     elif tname in ["ru-noun+", "ru-proper noun+"]:
       if tname == "ru-noun+":
@@ -418,9 +433,9 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
         if "//" in head:
           _, tr = re.split("//", head)
           pagemsg("WARNING: Using Latin for pronunciation, based on translit %s" % tr)
-          headword_translit.add(tr)
+          headword_translit.append(tr)
         else:
-          headword_pronuns.add(head)
+          headword_pronuns.append(head)
 
     if check_extra_heads:
       for i in xrange(2, 10):
@@ -428,17 +443,17 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
         if trn:
           pagemsg("WARNING: Using Latin for pronunciation, based on tr%s=%s" % (
             str(i), trn))
-          headword_translit.add(trn)
+          headword_translit.append(trn)
         else:
           headn = getparam(t, "head" + str(i))
           if headn:
-            headword_pronuns.add(headn)
+            headword_pronuns.append(headn)
 
   # Do the following two sections before adding semi-reduced inflection
   # since ru.* may not be aware of dot-under.
 
   # Canonicalize by removing links and final !, ?
-  headword_pronuns = set(re.sub("[!?]$", "", blib.remove_links(x)) for x in headword_pronuns)
+  headword_pronuns = [re.sub("[!?]$", "", blib.remove_links(x)) for x in headword_pronuns]
   for pronun in headword_pronuns:
     if ru.remove_accents(pronun) != pagetitle:
       pagemsg("WARNING: Headword pronun %s doesn't match page title, skipping" % pronun)
@@ -475,14 +490,14 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   if found_semireduced_inflection:
     def update_semireduced(pron):
       return re.sub(ur"я(т|м|ми|х)( |$)", ur"я̣\1\2", pron)
-    new_headword_pronuns = set(update_semireduced(x) for x in headword_pronuns)
+    new_headword_pronuns = [update_semireduced(x) for x in headword_pronuns]
     if new_headword_pronuns != headword_pronuns:
       pagemsg("Using semi-reduced pronunciation: %s" % ",".join(new_headword_pronuns))
       headword_pronuns = new_headword_pronuns
 
   # Canonicalize headword pronuns. If a single monosyllabic word, add accent
   # unless it's in the list of unaccented words.
-  headword_pronuns = set(canonicalize_monosyllabic_pronun(x) for x in headword_pronuns)
+  headword_pronuns = [canonicalize_monosyllabic_pronun(x) for x in headword_pronuns]
 
   # Also, if two pronuns differ only in that one has an additional accent on a
   # word, remove the one without the accent.
@@ -504,20 +519,21 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
           hword, h))
         return True
     return False
-  new_headword_pronuns = set(x for x in headword_pronuns if not
-      headword_should_be_removed_due_to_unaccent(x, headword_pronuns))
+  headword_pronuns = remove_list_duplicates(headword_pronuns)
+  new_headword_pronuns = [x for x in headword_pronuns if not
+      headword_should_be_removed_due_to_unaccent(x, headword_pronuns)]
   if len(new_headword_pronuns) <= len(headword_pronuns) - 2:
     pagemsg("WARNING: Removed two or more headword pronuns, check that something didn't go wrong: old=%s, new=%s" % (
       ",".join(headword_pronuns), ",".join(new_headword_pronuns)))
   headword_pronuns = new_headword_pronuns
 
   # Now add Latin translit to headword pronuns
-  headword_pronuns.update(headword_translit)
+  headword_pronuns.extend(headword_translit)
 
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
     return None
-  headword_pronuns = sorted(list(headword_pronuns))
+  headword_pronuns = remove_list_duplicates(headword_pronuns)
   return headword_pronuns
 
 def process_section(section, indentlevel, headword_pronuns, override_ipa, pagetitle, pagemsg, expand_text):
@@ -583,7 +599,8 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     if tname == "IPA" and getparam(t, "lang") == "ru":
       ipa_templates.append(t)
   if (re.search(r"[Aa]bbreviation", section) and not
-      re.search("==Abbreviations==", section)):
+      re.search("==Abbreviations==", section) or
+      re.search("ru-(etym )?abbrev of", section)):
     pagemsg("WARNING: Found the word 'abbreviation', please check")
   if (re.search(r"[Aa]cronym", section) and not
       re.search("==Acronyms==", section)):
@@ -711,7 +728,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
     pagemsg("Already found pronunciation template: %s" % m.group(1))
     foundpronuns.append(m.group(2) or pagetitle)
-  foundpronuns = sorted(list(set(canonicalize_monosyllabic_pronun(x) for x in foundpronuns)))
+  foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x) for x in foundpronuns])
   if foundpronuns:
     joined_foundpronuns = ",".join(foundpronuns)
     joined_headword_pronuns = ",".join(headword_pronuns)
@@ -721,7 +738,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
       pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
           (joined_foundpronuns, joined_headword_pronuns))
-    if foundpronuns != headword_pronuns:
+    if set(foundpronuns) != set(headword_pronuns):
       pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
             (joined_foundpronuns, joined_headword_pronuns))
     return section, notes
@@ -807,8 +824,24 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         etymsections = re.split("(^===Etymology [0-9]+===\n)", sections[j], 0, re.M)
         pagemsg("Found multiple etymologies (%s)" % (len(etymsections)//2))
         if len(etymsections) < 5:
-          pagemsg("WARNING: Misformatted page with multiple etymologies")
+          pagemsg("WARNING: Misformatted page with multiple etymologies (too few etymologies, skipping)")
           return None
+
+        # Check for misnumbered etymology sections
+        # FIXME, this should be a separate script
+        expected_etym_num = 0
+        l3split = re.split(r"^(===[^=\n].*===\n)", sections[j], 0, re.M)
+        seen_etym_1 = False
+        for k in xrange(1, len(l3split), 2):
+          if not seen_etym_1 and l3split[k] != "===Etymology 1===\n":
+            continue
+          seen_etym_1 = True
+          expected_etym_num += 1
+          if l3split[k] != "===Etymology %s===\n" % expected_etym_num:
+            pagemsg("WARNING: Misformatted page with multiple etymologies, expected ===Etymology %s=== but found %s" % (
+              expected_etym_num, l3split[k].replace("\n", "")))
+            break
+
         # Check if all per-etym-section headwords are the same
         etymparsed2 = blib.parse_text(etymsections[2])
         etym_headword_pronuns = {}
@@ -825,7 +858,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           # We don't check for None here; see above.
           etym_headword_pronuns[k] = get_headword_pronuns(etymparsed, pagetitle, pagemsg, expand_text)
           # Treat any comparison with None as False.
-          if not etym_headword_pronuns[2] or not etym_headword_pronuns[k] or etym_headword_pronuns[k] != etym_headword_pronuns[2]:
+          if not etym_headword_pronuns[2] or not etym_headword_pronuns[k] or set(etym_headword_pronuns[k]) != set(etym_headword_pronuns[2]):
             pagemsg("WARNING: Etym section %s pronuns %s different from etym section 1 pronuns %s" % (
               k//2, ",".join(etym_headword_pronuns[k] or ["none"]), ",".join(etym_headword_pronuns[2] or ["none"])))
             need_per_section_pronuns = True
@@ -853,10 +886,12 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           foundpronuns = []
           for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", m.group(2)):
             foundpronuns.append(m.group(2) or pagetitle)
-          foundpronuns = sorted(list(set(canonicalize_monosyllabic_pronun(x) for x in foundpronuns)))
+          foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x) for x in foundpronuns])
           if foundpronuns:
             joined_foundpronuns = ",".join(foundpronuns)
-            combined_headword_pronuns = sorted(list(set(y for x in etym_headword_pronuns.values() for y in x or [])))
+            # Combine headword pronuns while preserving order. To do this,
+            # we sort by numbered etymology sections and then flatten.
+            combined_headword_pronuns = remove_list_duplicates([y for k,v in sorted(etym_headword_pronuns.iteritems(), key=lambda x:x[0]) for y in v])
             joined_headword_pronuns = ",".join(combined_headword_pronuns)
             if not (set(foundpronuns) <= set(combined_headword_pronuns)):
               pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation %s not subset of headword-derived pronunciation %s, unable to delete" %
@@ -891,6 +926,8 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         # them rather than checking the whole page. This will make a
         # difference if there are headwords outside of the etymology sections,
         # but that shouldn't happen and is a malformed page if so.
+        # NOTE NOTE: If we combine headword pronunciations with multiple
+        # etymologies, we need to preserve the order as found on the page.
         headword_pronuns = get_headword_pronuns(blib.parse_text(text), pagetitle, pagemsg, expand_text)
         # If error, skip page.
         if headword_pronuns is None:
