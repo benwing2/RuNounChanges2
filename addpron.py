@@ -4,12 +4,12 @@
 # FIXME:
 
 # 1. (DONE) Check that headword matches page name
-# 2. Auto-accent single-syllable words that would be accented by ru-pron,
+# 2. (DONE) Auto-accent single-syllable words that would be accented by ru-pron,
 #    when comparing multiple etymologies.
-# 3. When adding a pronunciation, check if it's the same as the page name
+# 3. (DONE) When adding a pronunciation, check if it's the same as the page name
 #    (presence of ё), or is monosyllabic, in which case use an empty
 #    pronunciation.
-# 4. When deleting pronunciations because monosyllabic, also delete
+# 4. (DONE) When deleting pronunciations because monosyllabic, also delete
 #    pronunciations that have ё in them and are the same as the page title.
 # 5. (DONE) Preserve order of pronunciations derived from headwords (cf. бора,
 #    where the headword order is бора́,бо́ра but we get the order backwards
@@ -569,7 +569,12 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
       latin_char_msgs.append(
           "WARNING: Pronunciation %s to be added contains non-Cyrillic non-Latin chars, skipping" %
             pronun)
-    pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
+    if not latin_char_msgs and (
+        ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
+        re.search(u"ё", pronun) and pronun == pagetitle):
+      pronun_lines.append("* {{ru-IPA}}\n")
+    else:
+      pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
 
   # Check for indications of pre-reform spellings
   for cat in [u"Russian spellings with е instead of ё",
@@ -714,6 +719,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
       if arg1:
         if ru.is_monosyllabic(arg1) and re.sub(AC, "", arg1) == pagetitle:
           notes.append("remove 1= because monosyllabic and same as pagetitle modulo accents (ru-IPA)")
+          rmparam(t, "1")
+        elif re.search(u"ё", arg1) and arg1 == pagetitle:
+          notes.append(u"remove 1= because same as pagetitle and has ё (ru-IPA)")
           rmparam(t, "1")
         else:
           newarg1 = canonicalize_pronun(arg1, "1")
@@ -891,7 +899,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
             joined_foundpronuns = ",".join(foundpronuns)
             # Combine headword pronuns while preserving order. To do this,
             # we sort by numbered etymology sections and then flatten.
-            combined_headword_pronuns = remove_list_duplicates([y for k,v in sorted(etym_headword_pronuns.iteritems(), key=lambda x:x[0]) for y in v])
+            combined_headword_pronuns = remove_list_duplicates([y for k,v in sorted(etym_headword_pronuns.iteritems(), key=lambda x:x[0]) for y in (v or [])])
             joined_headword_pronuns = ",".join(combined_headword_pronuns)
             if not (set(foundpronuns) <= set(combined_headword_pronuns)):
               pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation %s not subset of headword-derived pronunciation %s, unable to delete" %
