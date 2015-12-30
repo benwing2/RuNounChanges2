@@ -363,8 +363,12 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   headword_translit = set()
 
   for t in parsed.filter_templates():
-    found_template = False
-    if unicode(t.name) in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb"]:
+    check_extra_heads = False
+    tname = unicode(t.name)
+    if tname == u"ru-noun-alt-ё":
+      pagemsg("WARNING: Found %s template, skipping" % tname)
+      return None
+    elif tname in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb"]:
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
@@ -372,8 +376,8 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
         headword_translit.add(tr)
       else:
         headword_pronuns.add(getparam(t, "1") or pagetitle)
-      found_template = True
-    elif unicode(t.name) in ["ru-noun form", "ru-phrase"]:
+      check_extra_heads = True
+    elif tname in ["ru-noun form", "ru-phrase"]:
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
@@ -381,11 +385,11 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
         headword_translit.add(tr)
       else:
         headword_pronuns.add(getparam(t, "head") or getparam(t, "1") or pagetitle)
-      found_template = True
-    elif unicode(t.name) == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
+      check_extra_heads = True
+    elif tname == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
       pagemsg("WARNING: Skipping page with letter headword")
       return None
-    elif unicode(t.name) == "head" and getparam(t, "1") == "ru":
+    elif tname == "head" and getparam(t, "1") == "ru":
       tr = getparam(t, "tr")
       if tr:
         pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
@@ -393,9 +397,9 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
         headword_translit.add(tr)
       else:
         headword_pronuns.add(getparam(t, "head") or pagetitle)
-      found_template = True
-    elif unicode(t.name) in ["ru-noun+", "ru-proper noun+"]:
-      if unicode(t.name) == "ru-noun+":
+      check_extra_heads = True
+    elif tname in ["ru-noun+", "ru-proper noun+"]:
+      if tname == "ru-noun+":
         generate_template = re.sub(r"^\{\{ru-noun\+",
             "{{ru-generate-noun-forms", unicode(t))
       else:
@@ -418,7 +422,7 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
         else:
           headword_pronuns.add(head)
 
-    if found_template:
+    if check_extra_heads:
       for i in xrange(2, 10):
         trn = getparam(t, "tr" + str(i))
         if trn:
@@ -551,7 +555,6 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
             pronun)
     pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
 
-
   # Check for indications of pre-reform spellings
   for cat in [u"Russian spellings with е instead of ё",
       u"Russian terms spelled with Ѣ",
@@ -564,16 +567,11 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
   parsed = blib.parse_text(section)
   ipa_templates = []
   for t in parsed.filter_templates():
-    if unicode(t.name) == "ru-pre-reform":
-      pagemsg("WARNING: Found pre-reform template, skipping")
+    tname = unicode(t.name)
+    if tname in ["ru-pre-reform", u"ru-noun-alt-ё", u"ru-alt-ё", "ru-IPA-manual"]:
+      pagemsg("WARNING: Found %s template, skipping" % tname)
       return None
-    if unicode(t.name) == u"ru-noun-alt-ё":
-      pagemsg(u"WARNING: Found ru-noun-alt-ё template, skipping")
-      return None
-    if unicode(t.name) == "ru-IPA-manual":
-      pagemsg("WARNING: Found ru-IPA-manual template, skipping")
-      return None
-    if unicode(t.name) in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
+    if tname in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
       # Check if word spelled with е instead of ё, without using
       # [[Category:Russian spellings with е instead of ё]], which we
       # catch above.
@@ -582,7 +580,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
         pagemsg(u"WARNING: Found apparent alternative form using е in place of ё without explicit category, skipping: %s" %
             unicode(t))
         return None
-    if unicode(t.name) == "IPA" and getparam(t, "lang") == "ru":
+    if tname == "IPA" and getparam(t, "lang") == "ru":
       ipa_templates.append(t)
   if (re.search(r"[Aa]bbreviation", section) and not
       re.search("==Abbreviations==", section)):
@@ -789,13 +787,6 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
       return False
     return result
 
-  parsed = blib.parse_text(text)
-
-  # Get the headword pronunciation(s)
-  headword_pronuns = get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text)
-  if headword_pronuns is None:
-    return None
-
   notes = []
 
   foundrussian = False
@@ -821,18 +812,22 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         # Check if all per-etym-section headwords are the same
         etymparsed2 = blib.parse_text(etymsections[2])
         etym_headword_pronuns = {}
+        # Fetch the headword pronuns of the ===Etymology 1=== section.
+        # We don't check for None here so that an error in an individual
+        # section doesn't cause us to bow out entirely; instead, we treat
+        # any comparison with None as False so we will always end up with
+        # per-section pronunciations.
         etym_headword_pronuns[2] = get_headword_pronuns(etymparsed2, pagetitle, pagemsg, expand_text)
-        if etym_headword_pronuns[2] is None:
-          return None
         need_per_section_pronuns = False
         for k in xrange(4, len(etymsections), 2):
           etymparsed = blib.parse_text(etymsections[k])
+          # Fetch the headword pronuns of the ===Etymology N=== section.
+          # We don't check for None here; see above.
           etym_headword_pronuns[k] = get_headword_pronuns(etymparsed, pagetitle, pagemsg, expand_text)
-          if etym_headword_pronuns[k] is None:
-            return None
-          if etym_headword_pronuns[k] != etym_headword_pronuns[2]:
+          # Treat any comparison with None as False.
+          if not etym_headword_pronuns[2] or not etym_headword_pronuns[k] or etym_headword_pronuns[k] != etym_headword_pronuns[2]:
             pagemsg("WARNING: Etym section %s pronuns %s different from etym section 1 pronuns %s" % (
-              k//2, ",".join(etym_headword_pronuns[k]), ",".join(etym_headword_pronuns[2])))
+              k//2, ",".join(etym_headword_pronuns[k] or ["none"]), ",".join(etym_headword_pronuns[2] or ["none"])))
             need_per_section_pronuns = True
         numpronunsecs = len(re.findall("^===Pronunciation===$", etymsections[0], re.M))
         if numpronunsecs > 1:
@@ -861,8 +856,9 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           foundpronuns = sorted(list(set(canonicalize_monosyllabic_pronun(x) for x in foundpronuns)))
           if foundpronuns:
             joined_foundpronuns = ",".join(foundpronuns)
-            joined_headword_pronuns = ",".join(headword_pronuns)
-            if not (set(foundpronuns) <= set(headword_pronuns)):
+            combined_headword_pronuns = sorted(list(set(y for x in etym_headword_pronuns.values() for y in x or [])))
+            joined_headword_pronuns = ",".join(combined_headword_pronuns)
+            if not (set(foundpronuns) <= set(combined_headword_pronuns)):
               pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation %s not subset of headword-derived pronunciation %s, unable to delete" %
                     (joined_foundpronuns, joined_headword_pronuns))
               return None
@@ -870,6 +866,9 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           pagemsg("Removed pronunciation section because combined pronunciation with multiple etymologies needs to be split")
         if need_per_section_pronuns:
           for k in xrange(2, len(etymsections), 2):
+            # Skip processing if pronuns are None.
+            if not etym_headword_pronuns[k]:
+              continue
             result = process_section(etymsections[k], 4,
                 etym_headword_pronuns[k], override_ipa, pagetitle, pagemsg,
                 expand_text)
@@ -886,6 +885,18 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         need_l3_pronun = True
 
       if need_l3_pronun:
+        # Get the headword pronunciations for the whole page.
+        # NOTE: Perhaps when we've already computed per-section headword
+        # pronunciations, as with multiple etymologies, we should combine
+        # them rather than checking the whole page. This will make a
+        # difference if there are headwords outside of the etymology sections,
+        # but that shouldn't happen and is a malformed page if so.
+        headword_pronuns = get_headword_pronuns(blib.parse_text(text), pagetitle, pagemsg, expand_text)
+        # If error, skip page.
+        if headword_pronuns is None:
+          return None
+
+        # Process the section
         result = process_section(sections[j], 3, headword_pronuns,
             override_ipa, pagetitle, pagemsg, expand_text)
         if result is None:
