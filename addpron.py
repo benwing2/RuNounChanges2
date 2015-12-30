@@ -26,9 +26,9 @@ non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 AC = u"\u0301"
 
 cons_assim_palatal = {
-  'compulsory':set([u'stʲ', u'zdʲ', u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ', u'xkʲ',
+  'compulsory':set([u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ', u'xkʲ',
     u't͡ssʲ', u'd͡zzʲ']),
-  'optional':set([u'slʲ', u'zlʲ', u'snʲ', u'znʲ', u'nsʲ', u'nzʲ',
+  'optional':set([u'slʲ', u'zlʲ', u'nsʲ', u'nzʲ',
     u'mpʲ', u'mbʲ', u'mfʲ', u'fmʲ'])
 }
 
@@ -253,9 +253,14 @@ def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
     manword = re.sub(u"(^| )jɪ", ur"\1(j)ɪ", manword)
     manword = re.sub(ipa_vowels_c + u"([‿-]?)jɪ", ur"\1\2(j)ɪ", manword)
 
-    # consonant assimilative palatalisation of tn/dn, depending on
+    # consonant assimilative palatalisation of tn/dn/sn/zn, depending on
     # whether [rl] precedes
-    manword = re.sub(u"([rl]?)([ˈˌ]?[dt])ʲ?([ˈˌ]?nʲ)",
+    manword = re.sub(u"([rl]?)([ˈˌ]?[dtsz])ʲ?([ˈˌ]?nʲ)",
+        apply_tn_dn_assim_palatal, manword)
+
+    # consonant assimilative palatalisation of st/zd, depending on
+    # whether [rl] precedes
+    manword = re.sub(u"([rl]?)([ˈˌ]?[sz])ʲ?([ˈˌ]?[td]ʲ)",
         apply_tn_dn_assim_palatal, manword)
 
     def apply_assim_palatal(m):
