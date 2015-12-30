@@ -350,6 +350,13 @@ def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
     manual, orig_manual != manual and " (%s)" % orig_manual or "",
     ", ".join(changes), ipa_templates_msg)
 
+def canonicalize_monosyllabic_pronun(pronun):
+  # Do nothing if there are multiple words
+  if pronun not in accentless['pre'] and not re.search(r"[\s\-]", pronun):
+    return ru.try_to_stress(pronun)
+  else:
+    return pronun
+
 def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   # Get the headword pronunciation(s)
   headword_pronuns = set()
@@ -471,14 +478,7 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
 
   # Canonicalize headword pronuns. If a single monosyllabic word, add accent
   # unless it's in the list of unaccented words.
-
-  def canonicalize_headword(headword):
-    # Do nothing if there are multiple words
-    if headword not in accentless['pre'] and not re.search(r"[\s\-]", headword):
-      return ru.try_to_stress(headword)
-    else:
-      return headword
-  headword_pronuns = set(canonicalize_headword(x) for x in headword_pronuns)
+  headword_pronuns = set(canonicalize_monosyllabic_pronun(x) for x in headword_pronuns)
 
   # Also, if two pronuns differ only in that one has an additional accent on a
   # word, remove the one without the accent.
@@ -697,9 +697,13 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
           t.add("phon", newphon)
       arg1 = getparam(t, "1")
       if arg1:
-        newarg1 = canonicalize_pronun(arg1, "1")
-        if arg1 != newarg1:
-          t.add("1", newarg1)
+        if ru.is_monosyllabic(arg1) and re.sub(AC, "", arg1) == pagetitle:
+          notes.append("remove 1= because monosyllabic and same as pagetitle modulo accents (ru-IPA)")
+          rmparam(t, "1")
+        else:
+          newarg1 = canonicalize_pronun(arg1, "1")
+          if arg1 != newarg1:
+            t.add("1", newarg1)
       newt = unicode(t)
       if newt != origt:
         pagemsg("Replaced %s with %s" % (origt, newt))
@@ -709,7 +713,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
     pagemsg("Already found pronunciation template: %s" % m.group(1))
     foundpronuns.append(m.group(2) or pagetitle)
-  foundpronuns = sorted(list(set(foundpronuns)))
+  foundpronuns = sorted(list(set(canonicalize_monosyllabic_pronun(x) for x in foundpronuns)))
   if foundpronuns:
     joined_foundpronuns = ",".join(foundpronuns)
     joined_headword_pronuns = ",".join(headword_pronuns)
@@ -854,7 +858,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           foundpronuns = []
           for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", m.group(2)):
             foundpronuns.append(m.group(2) or pagetitle)
-          foundpronuns = sorted(list(set(foundpronuns)))
+          foundpronuns = sorted(list(set(canonicalize_monosyllabic_pronun(x) for x in foundpronuns)))
           if foundpronuns:
             joined_foundpronuns = ",".join(foundpronuns)
             joined_headword_pronuns = ",".join(headword_pronuns)
