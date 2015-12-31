@@ -722,16 +722,16 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
           t.add("phon", newphon)
       arg1 = getparam(t, "1")
       if arg1:
+        newarg1 = canonicalize_pronun(arg1, "1")
+        if arg1 != newarg1:
+          t.add("1", newarg1)
+          arg1 = newarg1
         if ru.is_monosyllabic(arg1) and re.sub(AC, "", arg1) == pagetitle:
           notes.append("remove 1= because monosyllabic and same as pagetitle modulo accents (ru-IPA)")
           rmparam(t, "1")
         elif re.search(u"ё", arg1) and arg1 == pagetitle:
           notes.append(u"remove 1= because same as pagetitle and has ё (ru-IPA)")
           rmparam(t, "1")
-        else:
-          newarg1 = canonicalize_pronun(arg1, "1")
-          if arg1 != newarg1:
-            t.add("1", newarg1)
       newt = unicode(t)
       if newt != origt:
         pagemsg("Replaced %s with %s" % (origt, newt))
