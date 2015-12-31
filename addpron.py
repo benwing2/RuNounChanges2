@@ -33,6 +33,7 @@ non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 
 AC = u"\u0301"
 
+# Other possibilities are special-cased, e.g. sn/zn/dn/tn, st/zd
 cons_assim_palatal = {
   'compulsory':set([u'nt͡ɕ', u'nɕ', u'ntʲ', u'ndʲ', u'xkʲ',
     u't͡ssʲ', u'd͡zzʲ']),
@@ -75,6 +76,10 @@ fronting = {
 skip_pages = [
     u"г-жа"
 ]
+
+# Make sure there are two trailing newlines
+def ensure_two_trailing_nl(text):
+  return re.sub(r"\n*$", r"\n\n", text)
 
 def contains_latin(text):
   return re.search(u"[0-9a-zščžáéíóúýàèìòùỳɛ]", text.lower())
@@ -679,7 +684,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     newpron = re.sub(u"ё́", u"ё", pron)
     newpron = re.sub(AC + "+", AC, newpron)
     if newpron != pron:
-      notes.append("removed extra accents from %s= (ru-IPA)" % paramname)
+      notes.append("remove extra accents from %s= (ru-IPA)" % paramname)
       pron = newpron
     # We want to go word-by-word and check to see if the headword word is
     # the same as the ru-IPA word but has additional accents in it, and
@@ -700,7 +705,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
             pronwords[i] = hword
       if changed:
         pron = "".join(pronwords)
-        notes.append("copied accents from headword to %s= (ru-IPA)" % paramname)
+        notes.append("copy accents from headword to %s= (ru-IPA)" % paramname)
     return pron
 
   parsed = blib.parse_text(section)
@@ -829,7 +834,18 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         pagemsg("WARNING: Found ===Pronunciation 1===, should convert page to multiple etymologies")
         return None
       if "===Etymology 1===" in sections[j]:
+
+        # If multiple etymologies, things are more complicated. We may have to
+        # process each section individually. We fetch the headwords from each
+        # section to see whether the etymologies should be in split or
+        # combined form. If they should be in split form, we remove any
+        # combined pronunciation and add pronunciations to each section if
+        # not already present. If they should be in combined form, we
+        # remove pronunciations from individual sections (PARTLY IMPLEMENTED)
+        # and add a combined pronunciation at the top.
+
         etymsections = re.split("(^===Etymology [0-9]+===\n)", sections[j], 0, re.M)
+        # Make sure there are multiple etymologies, otherwise page is malformed
         pagemsg("Found multiple etymologies (%s)" % (len(etymsections)//2))
         if len(etymsections) < 5:
           pagemsg("WARNING: Misformatted page with multiple etymologies (too few etymologies, skipping)")
@@ -874,10 +890,14 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         if numpronunsecs > 1:
           pagemsg("WARNING: Multiple ===Pronunciation=== sections in preamble to multiple etymologies, needs to be fixed")
           return None
+
         if need_per_section_pronuns:
           pagemsg("Multiple etymologies, split pronunciations needed")
         else:
           pagemsg("Multiple etymologies, combined pronunciation possible")
+
+        # If need split pronunciations and there's a combined pronunciation,
+        # delete it if possible.
         if need_per_section_pronuns and numpronunsecs == 1:
           pagemsg("Multiple etymologies, converting combined pronunciation to split pronunciation (deleting combined pronun)")
           # Remove existing pronunciation section; but make sure it's safe
@@ -905,8 +925,58 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
               pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation %s not subset of headword-derived pronunciation %s, unable to delete" %
                     (joined_foundpronuns, joined_headword_pronuns))
               return None
-          etymsections[0] = re.sub(r"(^===Pronunciation===\n)(.*?)(^==|\Z)", r"\3", etymsections[0], 1, re.M | re.S)
+          etymsections[0] = re.sub(r"(^===Pronunciation===\n)(.*?)(\Z|^==|^\[\[|^--)", r"\3", etymsections[0], 1, re.M | re.S)
+          sections[j] = "".join(etymsections)
+          text = "".join(sections)
+          notes.append("remove combined pronun section")
           pagemsg("Removed pronunciation section because combined pronunciation with multiple etymologies needs to be split")
+
+        # If need combined pronunciations, check for split pronunciations and
+        # remove them. As a special case, if there's only one split
+        # pronunciation, just move the whole section to the top. We do this
+        # so we move audio, homophones, etc. This situation will frequently
+        # happen when a script adds a non-lemma form to an existing page
+        # without split etymologies, because it wraps everything in an
+        # "Etymology 1" section.
+        # FIXME: When we move the whole section to the top, it could be
+        # incorrect to do so if the ru-IPA isn't just the headword, e.g. if
+        # it has a strange spelling, or phon= or gem=, etc. We should probably
+        # check for this.
+        if not need_per_section_pronuns:
+          # Check for a single pronunciation section that we can move
+          num_secs_with_pronun = 0
+          first_sec_with_pronun = 0
+          for k in xrange(2, len(etymsections), 2):
+            if "===Pronunciation===" in etymsections[k]:
+              num_secs_with_pronun += 1
+              if not first_sec_with_pronun:
+                first_sec_with_pronun = k
+          if num_secs_with_pronun == 1:
+            # Section ends with another section start, end of text, a wikilink
+            # or category link, or section divider. (Normally there should
+            # always be another section following.)
+            m = re.search(r"(^===+Pronunciation===+\n.*?)(\Z|^==|^\[\[|^--)",
+                etymsections[first_sec_with_pronun], re.M | re.S)
+            if not m:
+              pagemsg("WARNING: Can't find ====Pronunciation==== section when it should be there, logic error?")
+            else:
+              # Set indentation of Pronunciation to 3
+              pronunsec = re.sub(r"===+Pronunciation===+",
+                  "===Pronunciation===", m.group(1))
+              etymsections[first_sec_with_pronun] = re.sub(
+                  r"^(===+Pronunciation===+\n.*?)(\Z|^==|^\[\[|^--)", r"\2",
+                  etymsections[first_sec_with_pronun], 1, re.M | re.S)
+              etymsections[0] = ensure_two_trailing_nl(etymsections[0])
+              etymsections[0] += pronunsec
+              sections[j] = "".join(etymsections)
+              text = "".join(sections)
+              notes.append("move split pronun section to top to make combined")
+              pagemsg("Moved split pronun section for ===Etymology %s=== to top" % (k//2))
+          elif num_secs_with_pronun > 1:
+            pagemsg("WARNING: need combined pronunciation section, but there are multiple split pronunciation sections, code to delete them not implemented; delete manually)")
+              # FIXME: Implement me
+
+        # Now add the per-section or combined pronunciation
         if need_per_section_pronuns:
           for k in xrange(2, len(etymsections), 2):
             # Skip processing if pronuns are None.
@@ -1001,6 +1071,15 @@ def process_page(index, page, save, verbose, override_ipa):
   if newtext != text:
     assert comment
 
+  # Eliminate sequences of 3 or more newlines, which may come from
+  # ensure_two_trailing_nl(). Add comment if none, in case of existing page
+  # with extra newlines.
+  newnewtext = re.sub(r"\n\n\n+", r"\n\n", newtext)
+  if newnewtext != newtext and not comment:
+    comment = "eliminate sequences of 3 or more newlines"
+  newtext = newnewtext
+
+  if newtext != text:
     if verbose:
       pagemsg("Replacing <%s> with <%s>" % (text, newtext))
 
