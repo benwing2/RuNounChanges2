@@ -556,6 +556,10 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
 
   pronun_lines = []
   latin_char_msgs = []
+  if len(headword_pronuns) > 1:
+    annparam = "|ann=y"
+  else:
+    annparam = ""
   for pronun in headword_pronuns:
     if pronun.startswith("-") or pronun.endswith("-"):
       pagemsg("WARNING: Skipping prefix or suffix: %s" % pronun)
@@ -577,9 +581,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     if not latin_char_msgs and (
         ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
         re.search(u"ё", pronun) and pronun == pagetitle):
-      pronun_lines.append("* {{ru-IPA}}\n")
+      pronun_lines.append("* {{ru-IPA%s}}\n" % annparam)
     else:
-      pronun_lines.append("* {{ru-IPA|%s}}\n" % pronun)
+      pronun_lines.append("* {{ru-IPA|%s%s}}\n" % (pronun, annparam))
 
   # Check for indications of pre-reform spellings
   for cat in [u"Russian spellings with е instead of ё",
