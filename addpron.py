@@ -74,7 +74,11 @@ fronting = {
 }
 
 skip_pages = [
-    u"г-жа"
+    u"г-жа",
+    u"е",
+    u"и",
+    u"ы",
+    u"я"
 ]
 
 # Make sure there are two trailing newlines
@@ -85,10 +89,13 @@ def contains_latin(text):
   return re.search(u"[0-9a-zščžáéíóúýàèìòùỳɛ]", text.lower())
 
 def contains_non_cyrillic(text):
-  # 0300 = grave, 0301 = acute, 0302 = circumflex, 0308 = diaeresis
+  # 0300 = grave, 0301 = acute, 0302 = circumflex, 0308 = diaeresis,
+  # 0307 = dot-above, 0323 = dot-below
   # We also include basic punctuation as well as IPA chars ɣ ɕ ʑ, which
-  # we allow in Cyrillic pronunciation
-  return re.sub(ur"[\u0300\u0301\u0302\u0308 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗ]", "", text) != ""
+  # we allow in Cyrillic pronunciation; FIXME: We allow Latin h as a substitute
+  # for ɣ, we should allow it here and not have it trigger contains_latin()
+  # by itself
+  return re.sub(ur"[\u0300\u0301\u0302\u0308\u0307\u0323 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗ]", "", text) != ""
 
 def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
   orig_auto = auto
@@ -494,7 +501,7 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
           found_semireduced_inflection = True
   if found_semireduced_inflection:
     def update_semireduced(pron):
-      return re.sub(ur"я(т|м|ми|х)( |$)", ur"я̣\1\2", pron)
+      return re.sub("([" + ru.vowel + "][^" + ru.vowel + " -]" + u"*)я(т|тся|м|ми|х)( |$)", ur"\1я̣\2\3", pron)
     new_headword_pronuns = [update_semireduced(x) for x in headword_pronuns]
     if new_headword_pronuns != headword_pronuns:
       pagemsg("Using semi-reduced pronunciation: %s" % ",".join(new_headword_pronuns))
@@ -848,7 +855,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
         # remove pronunciations from individual sections (PARTLY IMPLEMENTED)
         # and add a combined pronunciation at the top.
 
-        etymsections = re.split("(^===Etymology [0-9]+===\n)", sections[j], 0, re.M)
+        etymsections = re.split("(^ *=== *Etymology +[0-9]+ *=== *\n)", sections[j], 0, re.M)
         # Make sure there are multiple etymologies, otherwise page is malformed
         pagemsg("Found multiple etymologies (%s)" % (len(etymsections)//2))
         if len(etymsections) < 5:
