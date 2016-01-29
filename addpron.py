@@ -14,6 +14,11 @@
 # 5. (DONE) Preserve order of pronunciations derived from headwords (cf. бора,
 #    where the headword order is бора́,бо́ра but we get the order backwards
 #    because we conver to a set and then sort as a list).
+# 6. Warn if there appear to be missing pronunciations when we're done
+#    (fewer ru-IPA than headwords).
+# 7. Reverse-transliterate Latin to Cyrillic to generate phon= arguments
+#    for noun forms etc. with transliterations. Make sure to check whether
+#    the transliteration is redundant.
 
 import pywikibot, re, sys, codecs, argparse
 import difflib
