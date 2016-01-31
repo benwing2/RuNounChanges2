@@ -847,17 +847,22 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
       pagemsg("WARNING: Fewer existing pronunciations (%s) than headword-derived pronunciations (%s): existing %s, headword-derived %s" % (
         len(foundpronuns), len(headword_pronuns_as_pronuns),
         joined_foundpronuns, joined_headword_pronuns))
-    headword_pronuns_as_pronuns_no_dotbelow = [x.replace(DOTBELOW, "") for x in headword_pronuns_as_pronuns]
+    headword_pronuns_as_pronuns_no_grave = [ru.remove_grave_accents(x) for x in headword_pronuns_as_pronuns]
+    headword_pronuns_as_pronuns_no_grave_or_dotbelow = [x.replace(DOTBELOW, "") for x in headword_pronuns_as_pronuns_no_grave]
     foundpronuns_no_gem = [re.sub(r"\|gem=[^|]*", "", x) for x in foundpronuns]
-    foundpronuns_no_gem_or_dotbelow = [x.replace(DOTBELOW, "") for x in foundpronuns_no_gem]
-    if set(foundpronuns_no_gem_or_dotbelow) != set(headword_pronuns_as_pronuns_no_dotbelow):
-      pagemsg("WARNING: Existing pronunciation template (w/o gem or dotbelow) has different pronunciation %s from headword-derived pronunciation %s" %
+    foundpronuns_no_gem_or_grave = [ru.remove_grave_accents(x) for x in foundpronuns_no_gem]
+    foundpronuns_no_gem_grave_or_dotbelow = [x.replace(DOTBELOW, "") for x in foundpronuns_no_gem_or_grave]
+    if set(foundpronuns_no_gem_grave_or_dotbelow) != set(headword_pronuns_as_pronuns_no_grave_or_dotbelow):
+      pagemsg("WARNING: Existing pronunciation template (w/o gem=, grave accent or dotbelow) has different pronunciation %s from headword-derived pronunciation %s" %
+            (joined_foundpronuns, joined_headword_pronuns))
+    elif set(foundpronuns_no_gem_or_grave) != set(headword_pronuns_as_pronuns_no_grave):
+      pagemsg("WARNING: Existing pronunciation template (w/o gem= or grave accent) has different pronunciation %s from headword-derived pronunciation %s, but only in dotbelow" %
             (joined_foundpronuns, joined_headword_pronuns))
     elif set(foundpronuns_no_gem) != set(headword_pronuns_as_pronuns):
-      pagemsg("WARNING: Existing pronunciation template (w/o gem) has different pronunciation %s from headword-derived pronunciation %s, but only in dotbelow" %
+      pagemsg("WARNING: Existing pronunciation template (w/o gem=) has different pronunciation %s from headword-derived pronunciation %s, but only in grave accents" %
             (joined_foundpronuns, joined_headword_pronuns))
     elif set(foundpronuns) != set(headword_pronuns_as_pronuns):
-      pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s, but only in gem= and maybe dotbelow" %
+      pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s, but only in gem=" %
             (joined_foundpronuns, joined_headword_pronuns))
 
     return section, notes
