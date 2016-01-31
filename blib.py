@@ -125,14 +125,16 @@ def cat_articles(page, startsort = None, endsort = None):
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
   
-  for i, current in iter_items(page.articles(startsort = startsort if not isinstance(startsort, int) else None), startsort, endsort):
+  for i, current in iter_items(page.articles(# startsort = startsort if not isinstance(startsort, int) else None
+    ), startsort, endsort):
     yield i, current
 
 def cat_subcats(page, startsort = None, endsort = None):
   if isinstance(page, basestring):
     page = pywikibot.Category(site, "Category:" + page)
   
-  for i, current in iter_items(page.subcategories(startsort = startsort if not isinstance(startsort, int) else None), startsort, endsort):
+  for i, current in iter_items(page.subcategories(# deprecated, doesn't work: startsort = startsort if not isinstance(startsort, int) else None
+    ), startsort, endsort):
     yield i, current
 
 def prefix(prefix, startsort = None, endsort = None, namespace = None):
@@ -175,14 +177,18 @@ def iter_items(items, startsort = None, endsort = None, get_name = get_page_name
   for current in items:
     i += 1
 
-    if startsort != None and isinstance(startsort, int) and i < startsort:
-      continue
+    if startsort != None:
+      if isinstance(startsort, int):
+        if i < startsort:
+          continue
+      elif get_page_name(current) < startsort:
+        continue
 
     if endsort != None:
       if isinstance(endsort, int):
         if i > endsort:
           break
-      elif get_page_name(current) >= endsort:
+      elif get_page_name(current) > endsort:
         break
 
     if isinstance(endsort, int) and not t:
