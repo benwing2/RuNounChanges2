@@ -1114,6 +1114,7 @@ parser.add_argument('end', help="Ending page index", nargs="?")
 parser.add_argument('--save', action="store_true", help="Save results")
 parser.add_argument('--verbose', action="store_true", help="More verbose output")
 parser.add_argument('--override-IPA', action="store_true", help="Change IPA to ru-IPA even when pronunciations can't be reconciled")
+parser.add_argument('--cats', default="lemma,nonlemma", help="Categories to do (lemma, nonlemma or comma-separated list)")
 args = parser.parse_args()
 start, end = blib.get_args(args.start, args.end)
 
@@ -1161,7 +1162,16 @@ elif args.tempfile:
       process_page_text(index, text, pagetitle, args.verbose, args.override_IPA)
 
 else:
-  for category in ["Russian lemmas", "Russian non-lemma forms"]:
+  categories = []
+  for cattype in re.split(",", args.cats):
+    if cattype == "lemma":
+      categories.append("Russian lemmas")
+    elif cattype == "nonlemma":
+      categories.append("Russian non-lemma forms")
+    else:
+      raise RuntimeError("Invalid value %s, should be 'lemma' or 'nonlemma'" %
+          cattype)
+  for category in categories:
     msg("Processing category: %s" % category)
     for i, page in blib.cat_articles(category, start, end):
       process_page(i, page, args.save, args.verbose, args.override_IPA)
