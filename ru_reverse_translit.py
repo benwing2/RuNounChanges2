@@ -5,8 +5,7 @@
 # so we can generate phon= for ru-IPA calls from the transliteration.
 
 import re, sys, codecs
-
-import rulib as ru
+import rulib
 
 latin_to_russian_tab_1_char = {
   u"A":u"А", u"B":u"Б", u"V":u"В", u"G":u"Г", u"D":u"Д",
@@ -69,23 +68,8 @@ def rsub(text, fr, to):
 def error(text):
     raise RuntimeError(text)
 
-def decompose_latin_acute_grave(text):
-  # decompose acute/grave accents on vowels, but leave alone other
-  # accented chars (ě, š, č, ž, etc.)
-  text = rsub(text, u".",
-      {u"á":u"a" + AC, u"é":u"e" + AC, u"í":u"i" + AC,
-       u"ó":u"o" + AC, u"ú":u"u" + AC, u"ý":u"y" + AC,
-       u"Á":u"A" + AC, u"É":u"E" + AC, u"Í":u"I" + AC,
-       u"Ó":u"O" + AC, u"Ú":u"U" + AC, u"Ý":u"Y" + AC,
-       u"à":u"a" + GR, u"è":u"e" + GR, u"ì":u"i" + GR,
-       u"ò":u"o" + GR, u"ù":u"u" + GR, u"ỳ":u"y" + GR,
-       u"À":u"A" + GR, u"È":u"E" + GR, u"Ì":u"I" + GR,
-       u"Ò":u"O" + GR, u"Ù":u"U" + GR, u"Ỳ":u"Y" + GR,
-       })
-  return text
-
 def reverse_translit(text):
-  text = decompose_latin_acute_grave(text)
+  text = rulib.decompose(text)
   # Not necessary, hard sign should already be present:
   # Need to add hard sign between consonant and j
   # text = rsub(text, "(" + consonants + ")j", ur"\1ʺj")
