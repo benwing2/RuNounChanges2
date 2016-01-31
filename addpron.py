@@ -405,6 +405,12 @@ def printable_ru_tr(cyr, tr):
 def printable_ru_tr_list(values):
   return ",".join(printable_ru_tr(cyr, tr) for cyr, tr in values)
 
+def ru_tr_as_pronun(cyr, tr):
+  if tr:
+    return "phon=%s" % ru_reverse_translit.reverse_translit(tr)
+  else:
+    return cyr
+
 # Get a list of headword pronuns, a list of (HEAD, TRANSLIT) tuples.
 def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   # Get the headword pronunciation(s)
@@ -802,22 +808,42 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
 
   foundpronuns = []
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
-    pagemsg("Already found pronunciation template: %s" % m.group(1))
-    foundpronuns.append(m.group(2) or pagetitle)
-  # FIXME, this may be wrong with translit
-  foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x, "")[0] for x in foundpronuns])
+    template_text = m.group(1)
+    pagemsg("Already found pronunciation template: %s" % template_text)
+    template = blib.parse_text(template_text).filter_templates()[0]
+    phonparam = getparam(template, "phon")
+    foundpronun = phonparam or getparam(template, "1") or pagetitle
+    foundpronun = canonicalize_monosyllabic_pronun(foundpronun, "")[0]
+    if phonparam:
+      foundpronun = "phon=" + foundpronun
+    # FIXME, not clear if we want to do this
+    gemparam = getparam(template, "gem")
+    if gemparam:
+      foundpronun += "|gem=" + gemparam
+    foundpronuns.append(foundpronun)
   if foundpronuns:
     joined_foundpronuns = ",".join(foundpronuns)
-    joined_headword_pronuns = printable_ru_tr_list(headword_pronuns)
-    if "phon=" not in joined_foundpronuns and contains_latin(joined_headword_pronuns):
+    headword_pronuns_as_pronuns = [ru_tr_as_pronun(cyr, tr) for cyr, tr in headword_pronuns]
+    joined_headword_pronuns = ",".join(headword_pronuns_as_pronuns)
+    if "phon=" not in joined_foundpronuns and "phon=" in joined_headword_pronuns:
       pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" % (
         joined_foundpronuns, joined_headword_pronuns))
-    if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
+    if "phon=" in joined_foundpronuns and "phon=" not in joined_headword_pronuns:
       pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
           (joined_foundpronuns, joined_headword_pronuns))
-    if set(foundpronuns) != set(printable_ru_tr(cyr, tr) for cyr, tr in headword_pronuns):
-      pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
+    headword_pronun_set = set(headword_pronuns_as_pronuns)
+    foundpronuns_no_gem = [re.sub(r"\|gem=[^|]*", "", x) for x in foundpronuns]
+    foundpronuns_no_gem_or_dotbelow = [x.replace(DOTBELOW, "") for x in foundpronuns_no_gem]
+    if set(foundpronuns_no_gem_or_dotbelow) != headword_pronun_set:
+      pagemsg("WARNING: Existing pronunciation template (w/o gem or dotbelow) has different pronunciation %s from headword-derived pronunciation %s" %
+            (",".join(foundpronuns_no_gem_or_dotbelow), joined_headword_pronuns))
+    elif set(foundpronuns_no_gem) != headword_pronun_set:
+      pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s, but only in dotbelow" %
+            (",".join(foundpronuns_no_gem), joined_headword_pronuns))
+    elif set(foundpronuns) != headword_pronun_set:
+      pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s, but only in gem= and maybe dotbelow" %
             (joined_foundpronuns, joined_headword_pronuns))
+
     return section, notes
 
   pronunsection = "%sPronunciation%s\n%s\n" % ("="*indentlevel, "="*indentlevel,
@@ -977,6 +1003,8 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
             return None
           foundpronuns = []
           for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", m.group(2)):
+            # FIXME, not right, should do what we do above with foundpronuns
+            # where we work with the actual parsed template
             foundpronuns.append(m.group(2) or pagetitle)
           # FIXME, this may be wrong with translit
           foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x, "")[0] for x in foundpronuns])
@@ -985,7 +1013,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
             # Combine headword pronuns while preserving order. To do this,
             # we sort by numbered etymology sections and then flatten.
             combined_headword_pronuns = remove_list_duplicates([y for k,v in sorted(etym_headword_pronuns.iteritems(), key=lambda x:x[0]) for y in (v or [])])
-            joined_headword_pronuns = printable_ru_tr_list(combined_headword_pronuns)
+            joined_headword_pronuns = ",".join(ru_tr_as_pronun(cyr, tr) for cyr, tr in combined_headword_pronuns)
             if not (set(foundpronuns) <= set(combined_headword_pronuns)):
               pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation %s not subset of headword-derived pronunciation %s, unable to delete" %
                     (joined_foundpronuns, joined_headword_pronuns))
