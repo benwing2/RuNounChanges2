@@ -801,6 +801,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
         elif re.search(u"ё", arg1) and arg1 == pagetitle:
           notes.append(u"remove 1= because same as pagetitle and has ё (ru-IPA)")
           rmparam(t, "1")
+      if t.has("adj"):
+        notes.append("remove unused adj= (ru-IPA)")
+        rmparam(t, "adj")
       newt = unicode(t)
       if newt != origt:
         pagemsg("Replaced %s with %s" % (origt, newt))
