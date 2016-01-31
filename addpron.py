@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# FIXME:
+# FIXME (many older FIXME's missing):
 
 # 1. (DONE) Check that headword matches page name
 # 2. (DONE) Auto-accent single-syllable words that would be accented by ru-pron,
@@ -14,16 +14,25 @@
 # 5. (DONE) Preserve order of pronunciations derived from headwords (cf. бора,
 #    where the headword order is бора́,бо́ра but we get the order backwards
 #    because we conver to a set and then sort as a list).
-# 6. Warn if there appear to be missing pronunciations when we're done
+# 6. (DONE) Add ann=y if more than one pronun line (NOTE: fixed below when
+#    reverse-translit support added to include ann=фоо for actual headword,
+#    and only add ann= if multiple headwords, not just multiple pronunciation
+#    variants of same headword ({{ru-noun form|а́бвера|tr=ábvera, ábvɛra|m-in}}).
+# 7. (DONE) Warn if there appear to be missing pronunciations when we're done
 #    (fewer ru-IPA than headwords).
-# 7. (DONE) Reverse-transliterate Latin to Cyrillic to generate phon= arguments
+# 8. (DONE) Support --cats so we can do just non-lemma forms.
+# 9. (DONE) Reverse-transliterate Latin to Cyrillic to generate phon= arguments
 #    for noun forms etc. with transliterations. Make sure to check whether
 #    the transliteration is redundant. Need to check the following to see how
 #    translit with semireduction is handled: адекватностям, амнезиями,
 #    амнезиях, педерастиями. The last one has annotations with translit
 #    (in fact, two translits for each of two forms, four total pronuns).
 #    Make sure the dot-under doesn't show in the annotation.
-
+# 10. (DONE) Clean up 'Existing pronunciation ... different' messages to not
+#    pay attention to pos=,adj=,etc. and to output different messages when
+#    differences only due to gem= or dotbelow.
+# 11. (DONE) Remove no-longer-used adj=.
+#
 import pywikibot, re, sys, codecs, argparse
 import difflib
 import unicodedata
@@ -834,6 +843,10 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     if "phon=" in joined_foundpronuns and "phon=" not in joined_headword_pronuns:
       pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
           (joined_foundpronuns, joined_headword_pronuns))
+    if len(foundpronuns) < len(headword_pronuns_as_pronuns):
+      pagemsg("WARNING: Fewer existing pronunciations (%s) than headword-derived pronunciations (%s): existing %s, headword-derived %s" % (
+        len(foundpronuns), len(headword_pronuns_as_pronuns),
+        joined_foundpronuns, joined_headword_pronuns))
     headword_pronuns_as_pronuns_no_dotbelow = [x.replace(DOTBELOW, "") for x in headword_pronuns_as_pronuns]
     foundpronuns_no_gem = [re.sub(r"\|gem=[^|]*", "", x) for x in foundpronuns]
     foundpronuns_no_gem_or_dotbelow = [x.replace(DOTBELOW, "") for x in foundpronuns_no_gem]
