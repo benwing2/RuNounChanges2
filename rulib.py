@@ -93,9 +93,13 @@ deaccenter = grave_deaccenter.copy()
 deaccenter[AC] = "" # acute accent
 deaccenter[DI] = "" # diaeresis
 
+def remove_grave_accents(word):
+  # remove grave accents
+  return re.sub("([" + GR + u"ѐЀѝЍ])", lambda m: grave_deaccenter[m.group(1)], word)
+
 def remove_accents(word):
   # remove acute, grave and diaeresis (but not affecting composed ёЁ)
-    return re.sub(u"([̀́̈ѐЀѝЍ])", lambda m: deaccenter[m.group(1)], word)
+  return re.sub("([" + AC + GR + DI + u"ѐЀѝЍ])", lambda m: deaccenter[m.group(1)], word)
 
 def remove_monosyllabic_accents(word):
   # note: This doesn't affect ё or Ё, provided that the word is
@@ -111,7 +115,7 @@ destresser[u"ё"] = u"е"
 destresser[u"Ё"] = u"Е"
 
 def make_unstressed(word):
-  return re.sub(u"([̀́̈ёЁѐЀѝЍ])", lambda m: destresser[m.group(1)], word)
+  return re.sub("([" + AC + GR + DI + u"ёЁѐЀѝЍ])", lambda m: destresser[m.group(1)], word)
 
 def remove_jo(word):
   return re.sub(u"([ёЁ])", lambda m: destresser[m.group(1)], word)
