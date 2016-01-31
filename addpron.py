@@ -16,18 +16,24 @@
 #    because we conver to a set and then sort as a list).
 # 6. Warn if there appear to be missing pronunciations when we're done
 #    (fewer ru-IPA than headwords).
-# 7. Reverse-transliterate Latin to Cyrillic to generate phon= arguments
+# 7. (DONE) Reverse-transliterate Latin to Cyrillic to generate phon= arguments
 #    for noun forms etc. with transliterations. Make sure to check whether
-#    the transliteration is redundant.
+#    the transliteration is redundant. Need to check the following to see how
+#    translit with semireduction is handled: адекватностям, амнезиями,
+#    амнезиях, педерастиями. The last one has annotations with translit
+#    (in fact, two translits for each of two forms, four total pronuns).
+#    Make sure the dot-under doesn't show in the annotation.
 
 import pywikibot, re, sys, codecs, argparse
 import difflib
+import unicodedata
 from collections import Counter
 
 import blib
 from blib import getparam, rmparam, msg, site
 
 import rulib as ru
+import ru_reverse_translit
 
 vowel_list = u"aeiouyɛəäëöü"
 ipa_vowel_list = vowel_list + u"ɐɪʊɨæɵʉ"
@@ -37,6 +43,7 @@ non_ipa_vowels_re = "[^ " + ipa_vowel_list + "]"
 non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
 
 AC = u"\u0301"
+DOTBELOW = u"\u0323" # dot below =  ̣
 
 # Other possibilities are special-cased, e.g. sn/zn/dn/tn, st/zd
 cons_assim_palatal = {
@@ -91,16 +98,16 @@ def ensure_two_trailing_nl(text):
   return re.sub(r"\n*$", r"\n\n", text)
 
 def contains_latin(text):
-  return re.search(u"[0-9a-zščžáéíóúýàèìòùỳɛ]", text.lower())
+  return re.search(u"[0-9a-zščžáéíóúýàèìòùỳɛě]", text.lower())
 
-def contains_non_cyrillic(text):
+def contains_non_cyrillic_non_latin(text):
   # 0300 = grave, 0301 = acute, 0302 = circumflex, 0308 = diaeresis,
   # 0307 = dot-above, 0323 = dot-below
   # We also include basic punctuation as well as IPA chars ɣ ɕ ʑ, which
   # we allow in Cyrillic pronunciation; FIXME: We allow Latin h as a substitute
   # for ɣ, we should allow it here and not have it trigger contains_latin()
   # by itself
-  return re.sub(ur"[\u0300\u0301\u0302\u0308\u0307\u0323 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗ]", "", text) != ""
+  return re.sub(ur"[\u0300\u0301\u0302\u0308\u0307\u0323 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗa-zščžáéíóúýàèìòùỳɛě]", "", text.lower()) != ""
 
 def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
   orig_auto = auto
@@ -375,12 +382,12 @@ def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
     manual, orig_manual != manual and " (%s)" % orig_manual or "",
     ", ".join(changes), ipa_templates_msg)
 
-def canonicalize_monosyllabic_pronun(pronun):
+def canonicalize_monosyllabic_pronun(pronun, tr):
   # Do nothing if there are multiple words
   if pronun not in accentless['pre'] and not re.search(r"[\s\-]", pronun):
-    return ru.try_to_stress(pronun)
+    return ru.try_to_stress(pronun), ru.try_to_stress(tr)
   else:
-    return pronun
+    return pronun, tr
 
 def remove_list_duplicates(l):
   newl = []
@@ -389,10 +396,45 @@ def remove_list_duplicates(l):
       newl.append(x)
   return newl
 
+def printable_ru_tr(cyr, tr):
+  if tr:
+    return "%s//%s" % (cyr, tr)
+  else:
+    return cyr
+
+def printable_ru_tr_list(values):
+  return ",".join(printable_ru_tr(cyr, tr) for cyr, tr in values)
+
+# Get a list of headword pronuns, a list of (HEAD, TRANSLIT) tuples.
 def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   # Get the headword pronunciation(s)
   headword_pronuns = []
-  headword_translit = []
+
+  # Append headword to headword_pronuns, possibly with translit.
+  # If translit is present, split on commas to handle cases like
+  # {{ru-noun form|а́бвера|tr=ábvera, ábvɛra|m-in}}. Don't split regular
+  # headwords on commas because sometimes they legitimately have commas
+  # in them (idioms, phrases, etc.). When we have translit, check each
+  # value against the headword to see if the translit is redundant
+  # (e.g. as in {{ru-noun form|а́бвера|tr=ábvera, ábvɛra|m-in}}, where the
+  # first is redundant).
+  def append_headword(head, tr, trparam):
+    if not tr:
+      headword_pronuns.append((head, ""))
+    else:
+      pagemsg("WARNING: Using Latin for pronunciation, based on %s%s" %
+          (trparam, tr))
+      tr = ru.decompose(tr)
+      for trval in re.split(r"\s*,\s*", tr):
+        autotranslit = expand_text("{{xlit|ru|%s}}" % head)
+        # Just in case, normalize both when comparing; not generally
+        # necessary because we called ru.decompose() above
+        if unicodedata.normalize("NFC", autotranslit) == unicodedata.normalize("NFC", trval):
+          pagemsg("Ignoring redundant translit %s%s for headword %s" %
+              (trparam, trval, head))
+          headword_pronuns.append((head, ""))
+        else:
+          headword_pronuns.append((head, trval))
 
   for t in parsed.filter_templates():
     check_extra_heads = False
@@ -401,34 +443,22 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       pagemsg("WARNING: Found %s template, skipping" % tname)
       return None
     elif tname in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb"]:
+      head = getparam(t, "1") or pagetitle
       tr = getparam(t, "tr")
-      if tr:
-        pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
-          tr))
-        headword_translit.append(tr)
-      else:
-        headword_pronuns.append(getparam(t, "1") or pagetitle)
+      append_headword(head, tr, "tr=")
       check_extra_heads = True
     elif tname in ["ru-noun form", "ru-phrase"]:
+      head = getparam(t, "head") or getparam(t, "1") or pagetitle
       tr = getparam(t, "tr")
-      if tr:
-        pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
-          tr))
-        headword_translit.append(tr)
-      else:
-        headword_pronuns.append(getparam(t, "head") or getparam(t, "1") or pagetitle)
+      append_headword(head, tr, "tr=")
       check_extra_heads = True
     elif tname == "head" and getparam(t, "1") == "ru" and getparam(t, "2") == "letter":
       pagemsg("WARNING: Skipping page with letter headword")
       return None
     elif tname == "head" and getparam(t, "1") == "ru":
+      head = getparam(t, "head") or pagetitle
       tr = getparam(t, "tr")
-      if tr:
-        pagemsg("WARNING: Using Latin for pronunciation, based on tr=%s" % (
-          tr))
-        headword_translit.append(tr)
-      else:
-        headword_pronuns.append(getparam(t, "head") or pagetitle)
+      append_headword(head, tr, "tr=")
       check_extra_heads = True
     elif tname in ["ru-noun+", "ru-proper noun+"]:
       if tname == "ru-noun+":
@@ -447,37 +477,30 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
         args[name] = re.sub("<!>", "|", value)
       lemma = args["nom_sg"] if "nom_sg" in args else args["nom_pl"]
       for head in re.split(",", lemma):
+        tr = None
         if "//" in head:
-          _, tr = re.split("//", head)
-          pagemsg("WARNING: Using Latin for pronunciation, based on translit %s" % tr)
-          headword_translit.append(tr)
-        else:
-          headword_pronuns.append(head)
+          head, tr = re.split("//", head)
+        append_headword(head, tr, "translit ")
 
     if check_extra_heads:
       for i in xrange(2, 10):
+        headn = getparam(t, "head" + str(i))
         trn = getparam(t, "tr" + str(i))
-        if trn:
-          pagemsg("WARNING: Using Latin for pronunciation, based on tr%s=%s" % (
-            str(i), trn))
-          headword_translit.append(trn)
-        else:
-          headn = getparam(t, "head" + str(i))
-          if headn:
-            headword_pronuns.append(headn)
+        if headn:
+          append_headword(headn, trn, "tr%s=" % str(i))
 
   # Do the following two sections before adding semi-reduced inflection
   # since ru.* may not be aware of dot-under.
 
   # Canonicalize by removing links and final !, ?
-  headword_pronuns = [re.sub("[!?]$", "", blib.remove_links(x)) for x in headword_pronuns]
-  for pronun in headword_pronuns:
+  headword_pronuns = [(re.sub("[!?]$", "", blib.remove_links(x)), re.sub("[!?]$", "", blib.remove_links(tr))) for x, tr in headword_pronuns]
+  for pronun, translit in headword_pronuns:
     if ru.remove_accents(pronun) != pagetitle:
       pagemsg("WARNING: Headword pronun %s doesn't match page title, skipping" % pronun)
       return None
 
   # Check for acronym/non-syllabic.
-  for pronun in headword_pronuns:
+  for pronun, translit in headword_pronuns:
     if ru.is_nonsyllabic(pronun):
       pagemsg("WARNING: Pronunciation is non-syllabic, skipping: %s" % pronun)
       return None
@@ -505,16 +528,22 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
           "pre" in numparams or "prep" in numparams or "prepositional" in numparams)):
           found_semireduced_inflection = True
   if found_semireduced_inflection:
-    def update_semireduced(pron):
-      return re.sub("([" + ru.vowel + "][^" + ru.vowel + " -]" + u"*)я(т|тся|м|ми|х)( |$)", ur"\1я̣\2\3", pron)
-    new_headword_pronuns = [update_semireduced(x) for x in headword_pronuns]
+    def update_semireduced(pron, tr):
+      if tr:
+        # If translit, only add dot-below to translit, not to Cyrillic, which
+        # is used only for the annotation and will show verbatim
+        tr = re.sub("([" + ru.translit_vowel + "][^" + ru.translit_vowel + " -]" + u"*)ja(t|tsja|m|mi|x)( |$)", r"\1ja" + DOTBELOW + r"\2\3", tr)
+      else:
+        pron = re.sub("([" + ru.vowel + "][^" + ru.vowel + " -]" + u"*)я(т|тся|м|ми|х)( |$)", ur"\1я̣\2\3", pron)
+      return pron, tr
+    new_headword_pronuns = [update_semireduced(pron, tr) for pron, tr in headword_pronuns]
     if new_headword_pronuns != headword_pronuns:
-      pagemsg("Using semi-reduced pronunciation: %s" % ",".join(new_headword_pronuns))
+      pagemsg("Using semi-reduced pronunciation: %s" % printable_ru_tr_list(new_headword_pronuns))
       headword_pronuns = new_headword_pronuns
 
   # Canonicalize headword pronuns. If a single monosyllabic word, add accent
   # unless it's in the list of unaccented words.
-  headword_pronuns = [canonicalize_monosyllabic_pronun(x) for x in headword_pronuns]
+  headword_pronuns = [canonicalize_monosyllabic_pronun(x, tr) for x, tr in headword_pronuns]
 
   # Also, if two pronuns differ only in that one has an additional accent on a
   # word, remove the one without the accent.
@@ -530,22 +559,23 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       return True
     return False
   def headword_should_be_removed_due_to_unaccent(hword, hwords):
+    hwordru, hwordtr = hword
     for h in hwords:
-      if hword != h and headwords_same_but_first_maybe_lacks_accents(hword, h):
-        pagemsg("Removing headword %s because same as headword %s but lacking an accent" % (
-          hword, h))
-        return True
+      if hword != h:
+        hru, htr = h
+        if (headwords_same_but_first_maybe_lacks_accents(hwordru, hru) and
+            headwords_same_but_first_maybe_lacks_accents(hwordtr, htr)):
+          pagemsg("Removing headword %s because same as headword %s but lacking an accent" % (
+            printable_ru_tr(hwordru, hwordtr), printable_ru_tr(hru, htr)))
+          return True
     return False
   headword_pronuns = remove_list_duplicates(headword_pronuns)
   new_headword_pronuns = [x for x in headword_pronuns if not
       headword_should_be_removed_due_to_unaccent(x, headword_pronuns)]
   if len(new_headword_pronuns) <= len(headword_pronuns) - 2:
     pagemsg("WARNING: Removed two or more headword pronuns, check that something didn't go wrong: old=%s, new=%s" % (
-      ",".join(headword_pronuns), ",".join(new_headword_pronuns)))
+      printable_ru_tr_list(headword_pronuns), printable_ru_tr_list(new_headword_pronuns)))
   headword_pronuns = new_headword_pronuns
-
-  # Now add Latin translit to headword pronuns
-  headword_pronuns.extend(headword_translit)
 
   if len(headword_pronuns) < 1:
     pagemsg("WARNING: Can't find headword template")
@@ -559,7 +589,8 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
 
   def compute_ipa():
     computed_ipa = {}
-    for pronun in headword_pronuns:
+    for cyr, tr in headword_pronuns:
+      pronun = tr or cyr
       result = expand_text("{{#invoke:ru-pron|ipa|%s}}" % pronun)
       if not result:
         return False
@@ -567,12 +598,23 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     return computed_ipa
 
   pronun_lines = []
-  latin_char_msgs = []
-  if len(headword_pronuns) > 1:
-    annparam = "|ann=y"
-  else:
-    annparam = ""
-  for pronun in headword_pronuns:
+  bad_char_msgs = []
+  # Figure out how many headword variants there are, and if there is more
+  # than one, add |ann=y to each one; but don't get confused by cases where
+  # there are multiple translit variants of the same headword, as in
+  # {{ru-noun form|а́бвера|tr=ábvera, ábvɛra|m-in}}.
+  num_annotations = 0
+  annotations_set = set()
+  for cyr, tr in headword_pronuns:
+    annotations_set.add(cyr)
+  for pronun, tr in headword_pronuns:
+    if len(annotations_set) > 1:
+      if tr:
+        annparam = "|ann=%s" % pronun
+      else:
+        annparam = "|ann=y"
+    else:
+      annparam = ""
     if pronun.startswith("-") or pronun.endswith("-"):
       pagemsg("WARNING: Skipping prefix or suffix: %s" % pronun)
       return None
@@ -582,16 +624,20 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     if ru.needs_accents(pronun, split_dash=True):
       pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
       return None
-    if contains_latin(pronun):
-      latin_char_msgs.append(
-          "WARNING: Pronunciation %s to be added contains Latin chars, skipping" %
-            pronun)
-    elif contains_non_cyrillic(pronun):
-      latin_char_msgs.append(
+    if contains_non_cyrillic_non_latin(pronun):
+      bad_char_msgs.append(
           "WARNING: Pronunciation %s to be added contains non-Cyrillic non-Latin chars, skipping" %
             pronun)
-    if not latin_char_msgs and (
-        ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
+    elif contains_latin(pronun):
+      bad_char_msgs.append(
+          "WARNING: Cyrillic pronunciation %s contains Latin characters, skipping" %
+          pronun)
+    if tr:
+      reverse_translit = ru_reverse_translit.reverse_translit(tr)
+      pagemsg("WARNING: Reverse-transliterating %s to phon=%s" %
+          (tr, reverse_translit))
+      pronun_lines.append("* {{ru-IPA|phon=%s%s}}\n" % (reverse_translit, annparam))
+    elif (ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
         re.search(u"ё", pronun) and pronun == pagetitle):
       pronun_lines.append("* {{ru-IPA%s}}\n" % annparam)
     else:
@@ -638,7 +684,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     ipa_templates_msg = (
       "Processing raw IPA %s for headword(s) %s" % (
       "++".join([unicode(x) for x in ipa_templates]),
-      "++".join(headword_pronuns)))
+      "++".join(printable_ru_tr(cyr, ru) for cyr, ru in headword_pronuns)))
     pagemsg(ipa_templates_msg)
     computed_ipa = compute_ipa()
     num_replaced = 0
@@ -707,8 +753,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     # if so copy the headword word to the ru-IPA word. One way to do that
     # is to check that the ru-IPA word has no accents and that the headword
     # word minus accents is the same as the ru-IPA word.
-    if not latin_char_msgs and len(headword_pronuns) == 1:
-      hwords = re.split(r"([\s\-]+)", headword_pronuns[0])
+    if not bad_char_msgs and len(headword_pronuns) == 1 and not headword_pronuns[0][1]:
+      # FIXME, handle translit here
+      hwords = re.split(r"([\s\-]+)", headword_pronuns[0][0])
       pronwords = re.split(r"([\s\-]+)", pron)
       changed = False
       if len(hwords) == len(pronwords):
@@ -757,17 +804,18 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
     pagemsg("Already found pronunciation template: %s" % m.group(1))
     foundpronuns.append(m.group(2) or pagetitle)
-  foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x) for x in foundpronuns])
+  # FIXME, this may be wrong with translit
+  foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x, "")[0] for x in foundpronuns])
   if foundpronuns:
     joined_foundpronuns = ",".join(foundpronuns)
-    joined_headword_pronuns = ",".join(headword_pronuns)
+    joined_headword_pronuns = printable_ru_tr_list(headword_pronuns)
     if "phon=" not in joined_foundpronuns and contains_latin(joined_headword_pronuns):
       pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" % (
         joined_foundpronuns, joined_headword_pronuns))
     if "phon=" in joined_foundpronuns and not contains_latin(joined_headword_pronuns):
       pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
           (joined_foundpronuns, joined_headword_pronuns))
-    if set(foundpronuns) != set(headword_pronuns):
+    if set(foundpronuns) != set(printable_ru_tr(cyr, tr) for cyr, tr in headword_pronuns):
       pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s" %
             (joined_foundpronuns, joined_headword_pronuns))
     return section, notes
@@ -775,9 +823,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
   pronunsection = "%sPronunciation%s\n%s\n" % ("="*indentlevel, "="*indentlevel,
       "".join(pronun_lines))
 
-  if latin_char_msgs:
-    for latinmsg in latin_char_msgs:
-      pagemsg(latinmsg)
+  if bad_char_msgs:
+    for badmsg in bad_char_msgs:
+      pagemsg(badmsg)
       return None
 
   origsection = section
@@ -813,7 +861,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
     return None
 
-  notes.append("add pronunciation %s" % ",".join(headword_pronuns))
+  notes.append("add pronunciation %s" % printable_ru_tr_list(headword_pronuns))
 
   return section, notes
 
@@ -900,7 +948,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           # Treat any comparison with None as False.
           if not etym_headword_pronuns[2] or not etym_headword_pronuns[k] or set(etym_headword_pronuns[k]) != set(etym_headword_pronuns[2]):
             pagemsg("WARNING: Etym section %s pronuns %s different from etym section 1 pronuns %s" % (
-              k//2, ",".join(etym_headword_pronuns[k] or ["none"]), ",".join(etym_headword_pronuns[2] or ["none"])))
+              k//2, printable_ru_tr_list(etym_headword_pronuns[k] or [("none", "")]), printable_ru_tr_list(etym_headword_pronuns[2] or [("none", "")])))
             need_per_section_pronuns = True
         numpronunsecs = len(re.findall("^===Pronunciation===$", etymsections[0], re.M))
         if numpronunsecs > 1:
@@ -930,13 +978,14 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
           foundpronuns = []
           for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", m.group(2)):
             foundpronuns.append(m.group(2) or pagetitle)
-          foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x) for x in foundpronuns])
+          # FIXME, this may be wrong with translit
+          foundpronuns = remove_list_duplicates([canonicalize_monosyllabic_pronun(x, "")[0] for x in foundpronuns])
           if foundpronuns:
             joined_foundpronuns = ",".join(foundpronuns)
             # Combine headword pronuns while preserving order. To do this,
             # we sort by numbered etymology sections and then flatten.
             combined_headword_pronuns = remove_list_duplicates([y for k,v in sorted(etym_headword_pronuns.iteritems(), key=lambda x:x[0]) for y in (v or [])])
-            joined_headword_pronuns = ",".join(combined_headword_pronuns)
+            joined_headword_pronuns = printable_ru_tr_list(combined_headword_pronuns)
             if not (set(foundpronuns) <= set(combined_headword_pronuns)):
               pagemsg("WARNING: When trying to delete pronunciation section, existing pronunciation %s not subset of headword-derived pronunciation %s, unable to delete" %
                     (joined_foundpronuns, joined_headword_pronuns))
