@@ -538,9 +538,9 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       if tr:
         # If translit, only add dot-below to translit, not to Cyrillic, which
         # is used only for the annotation and will show verbatim
-        tr = re.sub("([" + ru.translit_vowel + "][^" + ru.translit_vowel + " -]" + u"*)ja(t|tsja|m|mi|x)( |$)", r"\1ja" + DOTBELOW + r"\2\3", tr)
+        tr = re.sub("([" + ru.translit_vowel + "][^" + ru.translit_vowel + " -]" + u"*(?:ja|ča))(t|tsja|m|mi|x)( |$)", r"\1" + DOTBELOW + r"\2\3", tr)
       else:
-        pron = re.sub("([" + ru.vowel + "][^" + ru.vowel + " -]" + u"*)я(т|тся|м|ми|х)( |$)", ur"\1я̣\2\3", pron)
+        pron = re.sub("([" + ru.vowel + "][^" + ru.vowel + " -]" + u"*(?:я|[щч]а))(т|тся|м|ми|х)( |$)", r"\1" + DOTBELOW + r"\2\3", pron)
       return pron, tr
     new_headword_pronuns = [update_semireduced(pron, tr) for pron, tr in headword_pronuns]
     if new_headword_pronuns != headword_pronuns:
@@ -834,16 +834,16 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     if "phon=" in joined_foundpronuns and "phon=" not in joined_headword_pronuns:
       pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
           (joined_foundpronuns, joined_headword_pronuns))
-    headword_pronun_set = set(headword_pronuns_as_pronuns)
+    headword_pronuns_as_pronuns_no_dotbelow = [x.replace(DOTBELOW, "") for x in headword_pronuns_as_pronuns]
     foundpronuns_no_gem = [re.sub(r"\|gem=[^|]*", "", x) for x in foundpronuns]
     foundpronuns_no_gem_or_dotbelow = [x.replace(DOTBELOW, "") for x in foundpronuns_no_gem]
-    if set(foundpronuns_no_gem_or_dotbelow) != headword_pronun_set:
+    if set(foundpronuns_no_gem_or_dotbelow) != set(headword_pronuns_as_pronuns_no_dotbelow):
       pagemsg("WARNING: Existing pronunciation template (w/o gem or dotbelow) has different pronunciation %s from headword-derived pronunciation %s" %
-            (",".join(foundpronuns_no_gem_or_dotbelow), joined_headword_pronuns))
-    elif set(foundpronuns_no_gem) != headword_pronun_set:
-      pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s, but only in dotbelow" %
-            (",".join(foundpronuns_no_gem), joined_headword_pronuns))
-    elif set(foundpronuns) != headword_pronun_set:
+            (joined_foundpronuns, joined_headword_pronuns))
+    elif set(foundpronuns_no_gem) != set(headword_pronuns_as_pronuns):
+      pagemsg("WARNING: Existing pronunciation template (w/o gem) has different pronunciation %s from headword-derived pronunciation %s, but only in dotbelow" %
+            (joined_foundpronuns, joined_headword_pronuns))
+    elif set(foundpronuns) != set(headword_pronuns_as_pronuns):
       pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s, but only in gem= and maybe dotbelow" %
             (joined_foundpronuns, joined_headword_pronuns))
 
