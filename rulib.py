@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import re
+import re, unicodedata
 
 AC = u"\u0301" # acute =  ́
 GR = u"\u0300" # grave =  ̀
@@ -12,9 +12,14 @@ DI = u"\u0308" # diaeresis =  ̈
 DUBGR = u"\u030F" # double grave =  ̏
 accents = AC + GR + CFLEX + DOTABOVE + DOTBELOW + DI + DUBGR
 
+# Extra accents used in recomposition
+CARON = u"\u030C" # caron =  ̌
+BREVE = u"\u0306" # breve =  ̆
+
 composed_grave_vowel = u"ѐЀѝЍ"
-vowel_no_jo = u"аеиоуяэыюіѣѵАЕИОУЯЭЫЮІѢѴ" + composed_grave_vowel #omit ёЁ
+vowel_no_jo = u"аеиоуяэыюіѣѵАЕИОУЯЭЫЮІѢѴaeiouyAEIOUY" + composed_grave_vowel #omit ёЁ
 vowel = vowel_no_jo + u"ёЁ"
+translit_vowel = u"aeiouyěAEIOUYĚ" # assumes that decompose() already called
 cons_except_sib_c = u"бдфгйклмнпрствхзьъБДФГЙКЛМНПРСТВХЗЬЪ"
 sib = u"шщчжШЩЧЖ"
 sib_c = sib + u"цЦ"
@@ -164,3 +169,36 @@ def split_generate_args(tempresult):
     args[name] = re.sub("<!>", "|", value)
   return args
 
+recomposer = {
+  u"и"+BREVE:u"й",
+  u"И"+BREVE:u"Й",
+  u"е"+DI:u"ё", # WARNING: Cyrillic е and Е
+  u"Е"+DI:u"Ё",
+  "e"+CARON:u"ě", # WARNING: Latin e and E
+  "E"+CARON:u"Ě",
+  "c"+CARON:u"č",
+  "C"+CARON:u"Č",
+  "s"+CARON:u"š",
+  "S"+CARON:u"Š",
+  "z"+CARON:u"ž",
+  "Z"+CARON:u"Ž",
+  # used in ru-pron:
+  u"ж"+BREVE:u"ӂ", # used in ru-pron
+  u"Ж"+BREVE:u"Ӂ",
+  "j"+CFLEX:u"ĵ",
+  "J"+CFLEX:u"Ĵ",
+  "j"+CARON:u"ǰ",
+  # no composed uppercase equivalent of J-caron
+  u"ʒ"+CARON:u"ǯ",
+  u"Ʒ"+CARON:u"Ǯ",
+}
+
+# Decompose acute, grave, etc. on letters (esp. Latin) into individivual
+# character + combining accent. But recompose Cyrillic and Latin characters
+# that we want to treat as units and get caught in the crossfire.
+def decompose(text):
+  def sub_char(m):
+    return recomposer[m.group(0)]
+  text = unicodedata.normalize("NFD", unicode(text))
+  text = re.sub(".[" + BREVE + DI + CARON + "]", sub_char, text)
+  return text
