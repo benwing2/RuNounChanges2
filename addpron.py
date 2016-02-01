@@ -32,6 +32,8 @@
 #    pay attention to pos=,adj=,etc. and to output different messages when
 #    differences only due to gem= or dotbelow.
 # 11. (DONE) Remove no-longer-used adj=.
+# 12. (DONE) When splitting translit on a comma, don't do it if there's a comma
+#     in the headword.
 #
 import pywikibot, re, sys, codecs, argparse
 import difflib
@@ -440,7 +442,14 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
       pagemsg("WARNING: Using Latin for pronunciation, based on %s%s" %
           (trparam, tr))
       tr = ru.decompose(tr)
-      for trval in re.split(r"\s*,\s*", tr):
+      # Split on commas, as described above; but don't do it if there's
+      # a comma in the headword, e.g. in 'из-за того, что' (translit no
+      # longer needed but formerly present).
+      if "," in head:
+        translits = [tr]
+      else:
+        translits = re.split(r"\s*,\s*", tr)
+      for trval in translits:
         autotranslit = expand_text("{{xlit|ru|%s}}" % head)
         # Just in case, normalize both when comparing; not generally
         # necessary because we called ru.decompose() above
