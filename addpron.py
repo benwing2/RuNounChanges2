@@ -34,6 +34,19 @@
 # 11. (DONE) Remove no-longer-used adj=.
 # 12. (DONE) When splitting translit on a comma, don't do it if there's a comma
 #     in the headword.
+# 13. (DONE) If there are inflection-of templates on the page, look up the
+#     lemma page and fetch the ru-IPA template(s) on the page and the value(s)
+#     of gem= for each. (Cache these results.) (If there are multiple
+#     lemmas mentioned in inflection-of templates, look up the value(s) of
+#     gem= for each page and combine them all.) If multiple such values, issue
+#     a warning and do do nothing. If one value representing no gem= param,
+#     do nothing. Else, add the value to each of the headword-derived ru-IPA
+#     templates. When comparing existing pronunciations to headword-derived
+#     pronunciations, if they differ and gem= is present in headword-derived
+#     pronun, and not in existing pronun, issue a warning.
+# 14. Allow fixing of situation where gem= is in headword-derived
+#     pronun but not existing pronun, either given a list of lemmas whose forms
+#     we should fix, or perhaps a list of those forms themselves.
 #
 import pywikibot, re, sys, codecs, argparse
 import difflib
@@ -607,6 +620,41 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   headword_pronuns = remove_list_duplicates(headword_pronuns)
   return headword_pronuns
 
+# Cache mapping page titles to a set of the gem= values found on the page.
+lemma_gem_cache = {}
+
+# Look up the lemmas of all inflection-of templates in PARSED (the contents
+# of an etym section), and fetch the gem= values from the ru-IPA templates in
+# each such lemma. We return a set of all the gem= values found this way.
+def lookup_gem_values(parsed, pagemsg):
+  lemmas = set()
+  for t in parsed.filter_templates():
+    tname = unicode(t.name)
+    if (tname == "inflection of" and getparam(t, "lang") == "ru" or
+        tname == "ru-participle of"):
+      lemma = ru.remove_accents(getparam(t, "1"))
+      lemmas.add(lemma)
+  all_gemvals = set()
+  for lemma in lemmas:
+    if lemma in lemma_gem_cache:
+      cached = True
+      gemval = lemma_gem_cache[lemma]
+    else:
+      cached = False
+      newpage = pywikibot.Page(site, lemma)
+      gemval = set()
+      for t in blib.parse(newpage).filter_templates():
+        if unicode(t.name) == "ru-IPA":
+          gemval.add(getparam(t, "gem"))
+      lemma_gem_cache[lemma] = gemval
+    pagemsg("For lemma %s, found gem=%s%s" % (lemma, ",".join(gemval),
+      cached and " (cached)" or ""))
+    all_gemvals |= gemval
+  if len(all_gemvals) > 1:
+    pagemsg("WARNING: Found multiple gem= values (gem=%s) corresponding to lemma %s, not using" %
+        (",".join(all_gemvals), ",".join(lemmas)))
+  return all_gemvals
+
 def process_section(section, indentlevel, headword_pronuns, override_ipa, pagetitle, pagemsg, expand_text):
   assert indentlevel in [3, 4]
   notes = []
@@ -620,6 +668,17 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
         return False
       computed_ipa[pronun] = result
     return computed_ipa
+
+  parsed = blib.parse_text(section)
+
+  # Find gem= param by looking up {{inflection of}} pages
+  gemparam = ""
+  gemvals = lookup_gem_values(parsed, pagemsg)
+  if len(gemvals) == 1:
+    gemval = list(gemvals)[0]
+    if gemval:
+      gemparam = "|gem=%s" % gemval
+      pagemsg("Adding %s to ru-IPA pronun(s)" % gemparam)
 
   pronun_lines = []
   bad_char_msgs = []
@@ -663,9 +722,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
       pronun_lines.append("* {{ru-IPA|phon=%s%s}}\n" % (reverse_translit, annparam))
     elif (ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
         re.search(u"ё", pronun) and pronun == pagetitle):
-      pronun_lines.append("* {{ru-IPA%s}}\n" % annparam)
+      pronun_lines.append("* {{ru-IPA%s%s}}\n" % (annparam, gemparam))
     else:
-      pronun_lines.append("* {{ru-IPA|%s%s}}\n" % (pronun, annparam))
+      pronun_lines.append("* {{ru-IPA|%s%s%s}}\n" % (pronun, annparam, gemparam))
 
   # Check for indications of pre-reform spellings
   for cat in [u"Russian spellings with е instead of ё",
@@ -676,7 +735,6 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
       pagemsg(u"WARNING: Found [[Category:%s]], skipping" % cat)
       return None
 
-  parsed = blib.parse_text(section)
   ipa_templates = []
   for t in parsed.filter_templates():
     tname = unicode(t.name)
@@ -847,11 +905,15 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     headword_pronuns_as_pronuns = [ru_tr_as_pronun(cyr, tr) for cyr, tr in headword_pronuns]
     joined_headword_pronuns = ",".join(headword_pronuns_as_pronuns)
     if "phon=" not in joined_foundpronuns and "phon=" in joined_headword_pronuns:
-      pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" % (
-        joined_foundpronuns, joined_headword_pronuns))
+      pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" %
+        (joined_foundpronuns, joined_headword_pronuns))
     if "phon=" in joined_foundpronuns and "phon=" not in joined_headword_pronuns:
       pagemsg("WARNING: Existing pronunciation template has pronunciation %s with phon=, headword-derived pronunciation %s isn't Latin, probably need manual translit in headword and decl" %
-          (joined_foundpronuns, joined_headword_pronuns))
+        (joined_foundpronuns, joined_headword_pronuns))
+    if "gem=" not in joined_foundpronuns and "gem=" in joined_headword_pronuns:
+      pagemsg("WARNING: Existing pronunciation template %s probably needs gem= because headword-derived pronunciation %s has it" %
+        (joined_foundpronuns, joined_headword_pronuns))
+
     if len(foundpronuns) < len(headword_pronuns_as_pronuns):
       pagemsg("WARNING: Fewer existing pronunciations (%s) than headword-derived pronunciations (%s): existing %s, headword-derived %s" % (
         len(foundpronuns), len(headword_pronuns_as_pronuns),
