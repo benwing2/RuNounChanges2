@@ -47,7 +47,24 @@
 # 14. Allow fixing of situation where gem= is in headword-derived
 #     pronun but not existing pronun, either given a list of lemmas whose forms
 #     we should fix, or perhaps a list of those forms themselves.
+# 15. If base lemma ends in a double consonant: If no other double consonant,
+#     add gem=n. If other double consonant, issue warning. (NOTE: We need to
+#     be careful because some things that don't look like double consonants
+#     end up that way through phonetic respellings, voicing/devoicing, etc.)
+
+# WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
+# бессо́нница: First is geminated, second is not, needs respelling бессо́ница,
+#    etc.
+# вентиляционный компрессор: First is geminated, second is not, needs
+#    respelling вентиляцио́нный компре́сор etc.
+# анте́нна радиолокацио́нного дальноме́ра: антенна not geminated, second нн is,
+#    needs respelling анте́на радиолокацио́нного дальноме́ра etc.
+# расстаться, расставаться: Needs с(с) because first gemination is optional,
+#    second isn't.
+# носовой радиопрозрачный обтекатель антенны радиолокационной станции: антенна
+#    not geminated, second нн is, needs respelling.
+
 import pywikibot, re, sys, codecs, argparse
 import difflib
 import unicodedata
@@ -632,7 +649,7 @@ def lookup_gem_values(parsed, pagemsg):
     tname = unicode(t.name)
     if (tname == "inflection of" and getparam(t, "lang") == "ru" or
         tname == "ru-participle of"):
-      lemma = ru.remove_accents(getparam(t, "1"))
+      lemma = ru.remove_accents(blib.remove_links(getparam(t, "1")))
       lemmas.add(lemma)
   all_gemvals = set()
   for lemma in lemmas:
@@ -643,7 +660,13 @@ def lookup_gem_values(parsed, pagemsg):
       cached = False
       newpage = pywikibot.Page(site, lemma)
       gemval = set()
-      for t in blib.parse(newpage).filter_templates():
+      try:
+        parsed = blib.parse(newpage)
+      except pywikibot.exceptions.InvalidTitle as e:
+        pagemsg("WARNING: Invalid title, skipping")
+        traceback.print_exc(file=sys.stdout)
+        continue
+      for t in parsed.filter_templates():
         if unicode(t.name) == "ru-IPA":
           gemval.add(getparam(t, "gem"))
       lemma_gem_cache[lemma] = gemval
