@@ -16,5 +16,6 @@ grep 'WARNING' "$@" | \
     -e 's/canon manual .*? compared to auto .*? accepting/canon manual compared to auto, accepting/;' \
     -e 's/Headword .*? to be used/Headword to be used/;' \
     -e 's/skipping: .*/skipping:/;' \
+    -e 's/(Reverse-transliterating) .* (to phon=)/$1 $2/;' \
     -e 's/based on .*//;' \
     |grep -v 'not same as' |sort|uniq -c|sort -nr
