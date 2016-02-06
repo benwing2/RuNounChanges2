@@ -47,11 +47,12 @@
 # 14. Allow fixing of situation where gem= is in headword-derived
 #     pronun but not existing pronun, either given a list of lemmas whose forms
 #     we should fix, or perhaps a list of those forms themselves.
-# 15. If base lemma ends in a double consonant cf. финн: If no other
-#     double consonant, add gem=n. If other double consonant or if gem= is
-#     already present, issue warning and do nothing. To check for double
-#     consonant, expand the base pronunciation and look for geminates other
-#     than those caused by щ or ӂӂ. FIXME: Handle multiple words.
+# 15. If base lemma ends in a double consonant cf. финн, англо-норманн,
+#     аламанн/алеманн: If no other double consonant, add gem=n. If other double
+#     consonant or if gem= is already present, issue warning and do nothing. To
+#     check for double consonant, expand the base pronunciation and look for
+#     geminates other than those caused by щ or ӂӂ. FIXME: Handle multiple
+#     words.
 # 16. If form ends in a double consonant and gem=y or gem=opt is
 #     present on the base form (cf. группа, рок-группа), we need to remove
 #     this. FIXME: Need to check if removing is safe, and issue warning if
@@ -70,6 +71,15 @@
 #     the pronunciation (although this won't work for multiple words). This
 #     will take care of many cases with translit, but we fall back on reverse
 #     translit.
+# 19. (DONE) Need to handle reduce/dereduce forms when mapping headword stems
+#     to pronunciation.
+# 20. (DONE) Need to handle adjectival nouns when mapping headword stems to
+#     pronun, cf. несовершѐнноле́тний. Probably need to have some way of
+#     indicating multiple possible stems in the stem->pronun mapping.
+# 21. (DONE) Add dot-under to both Cyrillic and translit so it's present in
+#     case we use the Cyrillic with propagated headword->pronun mapping rather
+#     than reverse-transliterating, and remove the dot-under from the
+#     annotation.
 
 # WORDS NEEDING MANUAL FIXING:
 #
@@ -602,11 +612,8 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   if found_semireduced_inflection:
     def update_semireduced(pron, tr):
       if tr:
-        # If translit, only add dot-below to translit, not to Cyrillic, which
-        # is used only for the annotation and will show verbatim
         tr = re.sub("([" + ru.translit_vowel + "][^" + ru.translit_vowel + " -]" + u"*(?:ja|ča))(t|tsja|m|mi|x)( |$)", r"\1" + DOTBELOW + r"\2\3", tr)
-      else:
-        pron = re.sub("([" + ru.vowel + "][^" + ru.vowel + " -]" + u"*(?:я|[щч]а))(т|тся|м|ми|х)( |$)", r"\1" + DOTBELOW + r"\2\3", pron)
+      pron = re.sub("([" + ru.vowel + "][^" + ru.vowel + " -]" + u"*(?:я|[щч]а))(т|тся|м|ми|х)( |$)", r"\1" + DOTBELOW + r"\2\3", pron)
       return pron, tr
     new_headword_pronuns = [update_semireduced(pron, tr) for pron, tr in headword_pronuns]
     if new_headword_pronuns != headword_pronuns:
@@ -656,39 +663,55 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   return headword_pronuns
 
 def pronun_matches(hpron, foundpron, pagemsg):
+  orighpron = hpron
+  origfoundpron = foundpron
   foundpron = re.sub("^phon=", "", foundpron)
   if hpron == foundpron or not foundpron:
     return True
   foundpron = ru.remove_grave_accents(foundpron.replace(CFLEX, ""))
   if hpron == foundpron:
     pagemsg("Matching headword pronun %s to found pronun %s after removing circumflex and grave accents from the latter" %
-      (hpron, foundpron))
+      (orighpron, origfoundpron))
     return True
   foundpron = foundpron.replace(u"э", u"е")
   hpron = hpron.replace(u"э", u"е")
   if hpron == foundpron:
     pagemsg(u"Matching headword pronun %s to found pronun %s after converting э to е (and removing circumflex and grave accents)" %
-      (hpron, foundpron))
+      (orighpron, origfoundpron))
     return True
   foundpron = foundpron.lower()
   hpron = hpron.lower()
   if hpron == foundpron:
     pagemsg(u"Matching headword pronun %s to found pronun %s after lowercasing (and converting э to е and removing circumflex and grave accents)" %
-      (hpron, foundpron))
+      (orighpron, origfoundpron))
     return True
   hpron = hpron.replace(u"зж", u"ӂӂ")
   hpron = hpron.replace(u"жж", u"ӂӂ")
   if hpron == foundpron:
     pagemsg(u"Matching headword pronun %s to found pronun %s after converting зж and жж to ӂӂ (and lowercasing, converting э to е and removing circumflex and grave accents)" %
-      (hpron, foundpron))
+      (orighpron, origfoundpron))
     return True
 
   return False
 
 # Match up the stems of headword pronunciations and found pronunciations.
 # If able to do so, return a dictionary of all non-identity matchings, else
-# return None.
-def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg):
+# return None. For each headword in the dictionary, the entry is a list of
+# tuples of (STEM, FOUNDPRONSTEMS) where STEM is a possible stem of that
+# headword and FOUNDPRONSTEMS is a list of the corresponding
+# found-pronunciation stems. We return a list of stem tuples because
+# there may be multiple stems to consider for each headword -- including
+# reduced and dereduced variants (e.g. for автозапра́вка with corresponding
+# pronunciation а̀втозапра́вка we need to consider both the regular stem
+# автозапарвк- with stemmed pronunciation а̀втозапра́вк- and dereduced stem
+# автозапра́вок- with stemmed pronunciation а̀втозапра́вок- in order to handle
+# genitive plural автозаправок) and adjectival variants (e.g. for
+# несовершенноле́тний with pronunciation несовершѐнноле́тний we need to
+# consider the stem несовершенноле́тн-). FOUNDPRONSTEMS is a list because
+# there may be multiple such pronunciations per headword stem, e.g. а́бвер
+# has two corresponding pronunciations а́бвер and а́бвэр.
+def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
+    expand_text):
   matches = {}
   if not headword_pronuns:
     pagemsg("WARNING: No headword pronuns, possible error")
@@ -697,19 +720,17 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg):
   if not found_pronuns:
     pagemsg("WARNING: No found pronuns")
     return None
-  found_pronuns = [(x, re.sub(u"[аеиояыьй]́?$", "", x)) for x in found_pronuns]
   # How many headword pronuns? If only one, automatically assign all found
   # pronuns to it.
   distinct_hprons = set(hpron for hpron, tr in headword_pronuns)
   if len(distinct_hprons) == 1:
     hpron = list(distinct_hprons)[0]
-    hpronstem = re.sub(u"[аеиояыьй]́?$", "", hpron)
-    for foundpron, foundpronstem in found_pronuns:
-      valtoadd = foundpronstem or hpronstem
-      if hpronstem in matches:
-        matches[hpronstem].append(valtoadd)
+    for foundpron in found_pronuns:
+      valtoadd = foundpron or hpron
+      if hpron in matches:
+        matches[hpron].append(valtoadd)
       else:
-        matches[hpronstem] = [valtoadd]
+        matches[hpron] = [valtoadd]
 
   else:
     # Multiple headwords, need to match "the hard way"
@@ -722,33 +743,97 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg):
           hpron, tr and "//" + tr))
         continue
       hpron_seen.add(hpron)
-      hpronstem = re.sub(u"[аеиояыьй]́?$", "", hpron)
       new_found_pronuns = []
       matched = False
-      for foundpron, foundpronstem in found_pronuns:
-        if pronun_matches(hpronstem, foundpronstem, pagemsg):
-          if tr and not "phon=" in foundpronstem:
+      for foundpron in found_pronuns:
+        if pronun_matches(hpron, foundpron, pagemsg):
+          if tr and not "phon=" in foundpron:
             pagemsg("WARNING: Found translit %s for headword %s, but matched against ru-IPA pronun %s lacking phon=" % (
-              tr, hpronstem, foundpronstem))
-          valtoadd = foundpronstem or hpronstem
-          if hpronstem in matches:
-            matches[hpronstem].append(valtoadd)
+              tr, hpron, foundpron))
+          valtoadd = foundpron or hpron
+          if hpron in matches:
+            matches[hpron].append(valtoadd)
           else:
-            matches[hpronstem] = [valtoadd]
+            matches[hpron] = [valtoadd]
           matched = True
         else:
-          new_found_pronuns.append((foundpron, foundpronstem))
+          new_found_pronuns.append(foundpron)
       found_prons = new_found_pronuns
       if not matched:
         all_match = False
-        unmatched_hpron.add(hpronstem)
+        unmatched_hpron.add(hpron)
     if not all_match:
       pagemsg("WARNING: Unable to match headword pronuns %s against found pronuns %s" %
-          (",".join(unmatched_hpron), ",".join(foundpronstem for foundpron, foundpronstem in found_pronuns)))
+          (",".join(unmatched_hpron), ",".join(found_pronuns)))
       return None
 
+  def get_reduced_stem(nom):
+    # The stem for reduce_stem() should preserve -й
+    stem_for_reduce = re.sub(u"[аяеоьыи]́?$", "", nom)
+    epenthetic_vowel = nom.endswith(AC)
+    if re.search(u"[аяеоыи]́?$", nom):
+      reduced_stem = expand_text("{{#invoke:ru-common|dereduce_stem|%s||%s}}" %
+        (stem_for_reduce, "y" if epenthetic_vowel else ""))
+    else:
+      reduced_stem = expand_text("{{#invoke:ru-common|reduce_stem|%s}}" %
+          stem_for_reduce)
+    return reduced_stem
+
+  def get_dereduced_adj_stem(stem, epvowel):
+    return expand_text("{{#invoke:ru-common|dereduce_stem|%s||%s}}" %
+        (stem, "y" if epvowel else ""))
+
+  # Apply a function to a list of found pronunciations. If a pronunciation
+  # begins with phon=, strip it off before applying the function and then
+  # add it back. Don't include results where the return value from the
+  # function is logically false.
+  def frob_foundprons(foundprons, fun):
+    retval = []
+    for foundpron in foundprons:
+      if foundpron.startswith("phon="):
+        funval = fun(re.sub("^phon=", "", foundpron))
+        if funval:
+          retval.append("phon=" + funval)
+      else:
+        funval = fun(foundpron)
+        if funval:
+          retval.append(funval)
+    return retval
+
   # Remove cases where key just maps to itself (as a list)
-  return dict((k,v) for k,v in matches.iteritems() if v != [k])
+  #return dict((k,v) for k,v in matches.iteritems() if v != [k])
+  matches = dict((k,v) for k,v in matches.iteritems() if v != [k])
+  matches_stems = {}
+
+  for hpron,foundprons in matches.iteritems():
+    stems = []
+    def append_stem_foundstems(stem, foundpronunstems):
+      if stem and foundpronunstems:
+        stems.append((stem, foundpronunstems))
+    append_stem_foundstems(re.sub(u"[аеиояыьй]́?$", "", hpron),
+      frob_foundprons(foundprons, lambda x:re.sub(u"[аеиояыьй]́?$", "", x)))
+    # Also compute reduced/unreduced stem
+    append_stem_foundstems(get_reduced_stem(hpron),
+      frob_foundprons(foundprons, get_reduced_stem))
+    # Also check for adjectival stem
+    if re.search(u"[иыо]́?й$", hpron):
+      stem = re.sub(u"[иыо]́?й$", "", hpron)
+      foundpronstems = frob_foundprons(foundprons,
+          lambda x:re.sub(u"[иыо]́?й$", "", x))
+      append_stem_foundstems(stem, foundpronstems)
+      pagemsg("Adding adjectival stem mapping %s->%s" % (
+        stem, ",".join(foundpronstems)))
+      # If adjectival, dereduce with both stressed and unstressed epenthetic
+      # vowel
+      for epvowel in [False, True]:
+        deredstem = get_dereduced_adj_stem(stem, epvowel)
+        deredfoundpronstems = frob_foundprons(foundpronstems,
+            lambda x:get_dereduced_adj_stem(x, epvowel))
+        append_stem_foundstems(deredstem, deredfoundpronstems)
+        pagemsg("Adding adjectival dereduced stem mapping %s->%s" % (
+          deredstem, ",".join(deredfoundpronstems)))
+    matches_stems[hpron] = stems
+  return matches_stems
 
 def get_lemmas_of_form_page(parsed):
   lemmas = set()
@@ -812,15 +897,20 @@ def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
           else:
             foundpronuns.append(getparam(t, "1"))
       pronunmapping = match_headword_and_found_pronuns(headwords, foundpronuns,
-          pagemsg)
+          pagemsg, expand_text)
       lemma_headword_to_pronun_mapping_cache[lemma] = pronunmapping
 
     pagemsg("For lemma %s, found gem=%s%s" % (lemma, ",".join(gemval),
       cached and " (cached)" or ""))
     all_gemvals |= gemval
+    # The output is HEADWORD->(STEMS_AND_PRONUNS),HEADWORD->(STEMS_AND_PRONUNS)...
+    # where STEMS_AND_PRONUNS is STEM:PRONUNS,STEM:PRONUNS,...,
+    # where PRONUNS is PRONUN/PRONUN/...
     pagemsg("For lemma %s, found pronun mapping %s%s" % (lemma, "None" if
       pronunmapping is None else "(empty)" if not pronunmapping else ",".join(
-      "%s->%s" % (hpron, "/".join(foundpron)) for hpron, foundpron in pronunmapping.iteritems()),
+        "%s->(%s)" % (hpron, ",".join("%s:%s" % (stem, "/".join(foundprons))
+          for stem, foundprons in stem_foundprons))
+        for hpron, stem_foundprons in pronunmapping.iteritems()),
       cached and " (cached)" or ""))
     if pronunmapping:
       all_pronunmappings.update(pronunmapping)
@@ -870,7 +960,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
   for pronun, tr in headword_pronuns:
     if len(annotations_set) > 1:
       if tr:
-        headword_annparam = "|ann=%s" % pronun
+        # Don't include DOTBELOW in the annotation param or it will be shown
+        # to the user.
+        headword_annparam = "|ann=%s" % pronun.replace(DOTBELOW, "")
       else:
         headword_annparam = "|ann=y"
     else:
@@ -904,16 +996,23 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
         pronun_lines.append(pronun)
     subbed_pronun = False
     if pronunmapping:
-      for hpron, foundprons in pronunmapping.iteritems():
-        if pronun.startswith(hpron):
-          for foundpron in foundprons:
-            newpronun = re.sub("^" + re.escape(hpron), foundpron, pronun)
-            if newpronun != pronun:
-              pagemsg("Replacing headword-based pronunciation %s with %s" %
-                  (pronun, newpronun))
-            append_pronun_line(newpronun)
-          subbed_pronun = True
-          matched_hpron.add(hpron)
+      for hpron, stem_foundprons in pronunmapping.iteritems():
+        outerbreak = False
+        for stem, foundpronstems in stem_foundprons:
+          assert stem
+          assert foundpronstems
+          if pronun.startswith(stem):
+            for foundpronstem in foundpronstems:
+              newpronun = re.sub("^" + re.escape(stem), foundpronstem, pronun)
+              if newpronun != pronun:
+                pagemsg("Replacing headword-based pronunciation %s with %s" %
+                    (pronun, newpronun))
+              append_pronun_line(newpronun)
+            subbed_pronun = True
+            matched_hpron.add(hpron)
+            outerbreak = True
+            break
+        if outerbreak:
           break
     if subbed_pronun:
       pass
@@ -926,10 +1025,11 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
       append_pronun_line(pronun)
 
   if pronunmapping:
-    for hpron, foundpron in pronunmapping.iteritems():
+    for hpron, stem_foundprons in pronunmapping.iteritems():
       if hpron not in matched_hpron:
-        pagemsg("WARNING: Unable to match mapping %s->%s in non-lemma form(s)"
-            % (hpron, "/".join(foundpron)))
+        pagemsg("WARNING: Unable to match mapping %s->(%s) in non-lemma form(s)"
+          % (hpron, ",".join("%s:%s" % (stem, "/".join(foundprons))
+            for stem, foundprons in stem_foundprons)))
 
   # Check for indications of pre-reform spellings
   for cat in [u"Russian spellings with е instead of ё",
