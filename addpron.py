@@ -15,9 +15,9 @@
 #    where the headword order is бора́,бо́ра but we get the order backwards
 #    because we conver to a set and then sort as a list).
 # 6. (DONE) Add ann=y if more than one pronun line (NOTE: fixed below when
-#    reverse-translit support added to include ann=фоо for actual headword,
-#    and only add ann= if multiple headwords, not just multiple pronunciation
-#    variants of same headword ({{ru-noun form|а́бвера|tr=ábvera, ábvɛra|m-in}}).
+#    reverse-translit support added to include ann=фоо for actual headword, and
+#    only add ann= if multiple headwords, not just multiple pronun variants
+#    of same headword ({{ru-noun form|а́бвера|tr=ábvera, ábvɛra|m-in}})).
 # 7. (DONE) Warn if there appear to be missing pronunciations when we're done
 #    (fewer ru-IPA than headwords).
 # 8. (DONE) Support --cats so we can do just non-lemma forms.
@@ -47,23 +47,43 @@
 # 14. Allow fixing of situation where gem= is in headword-derived
 #     pronun but not existing pronun, either given a list of lemmas whose forms
 #     we should fix, or perhaps a list of those forms themselves.
-# 15. If base lemma ends in a double consonant: If no other double consonant,
-#     add gem=n. If other double consonant, issue warning. (NOTE: We need to
-#     be careful because some things that don't look like double consonants
-#     end up that way through phonetic respellings, voicing/devoicing, etc.)
+# 15. If base lemma ends in a double consonant cf. финн: If no other
+#     double consonant, add gem=n. If other double consonant or if gem= is
+#     already present, issue warning and do nothing. To check for double
+#     consonant, expand the base pronunciation and look for geminates other
+#     than those caused by щ or ӂӂ. FIXME: Handle multiple words.
+# 16. If form ends in a double consonant and gem=y or gem=opt is
+#     present on the base form (cf. группа, рок-группа), we need to remove
+#     this. FIXME: Need to check if removing is safe, and issue warning if
+#     not. FIXME: Handle multiple words.
+# 17. Issue warning if grave accent or circumflex or ӂӂ found in lemma
+#     pronun, and maybe more generally if lemma pronun doesn't match headword
+#     pronun. Consider trying to copy the lemma pronun by extracting out the
+#     stem.
+# 18. (DONE) When creating the pronunciation of non-lemma forms, work out a
+#     mapping from headword stems to pronunciation for the lemma and propagate
+#     that to the non-lemma. Do this in a way that succeeds if there are
+#     multiple headword stems and pronunciations, as long as we can match them
+#     up. Matching up should allow for identity as well as extra grave accents,
+#     circumflexes, э vs. е, зж/жж vs ӂӂ in the ru-IPA pronunciation. We
+#     propagate by just trying to replace the corresponding headword stem with
+#     the pronunciation (although this won't work for multiple words). This
+#     will take care of many cases with translit, but we fall back on reverse
+#     translit.
+
+# WORDS NEEDING MANUAL FIXING:
+#
+# вожжи and other words in жж
+# съезжая and other words in зж
+# хаос and other words with circumflex in the pronun
+# words with grave accents in the pronun
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
 # бессо́нница: First is geminated, second is not, needs respelling бессо́ница,
 #    etc.
-# вентиляционный компрессор: First is geminated, second is not, needs
-#    respelling вентиляцио́нный компре́сор etc.
-# анте́нна радиолокацио́нного дальноме́ра: антенна not geminated, second нн is,
-#    needs respelling анте́на радиолокацио́нного дальноме́ра etc.
 # расстаться, расставаться: Needs с(с) because first gemination is optional,
 #    second isn't.
-# носовой радиопрозрачный обтекатель антенны радиолокационной станции: антенна
-#    not geminated, second нн is, needs respelling.
 
 import pywikibot, re, sys, codecs, argparse
 import difflib
@@ -74,6 +94,7 @@ import blib
 from blib import getparam, rmparam, msg, site
 
 import rulib as ru
+from rulib import AC, GR, CFLEX, DOTBELOW
 import ru_reverse_translit
 
 vowel_list = u"aeiouyɛəäëöü"
@@ -82,9 +103,6 @@ ipa_vowels_re = "[" + ipa_vowel_list + "]"
 ipa_vowels_c = "([" + ipa_vowel_list + "])"
 non_ipa_vowels_re = "[^ " + ipa_vowel_list + "]"
 non_ipa_vowels_non_accent_re = u"[^ ˈˌ" + ipa_vowel_list + "]"
-
-AC = u"\u0301"
-DOTBELOW = u"\u0323" # dot below =  ̣
 
 # Other possibilities are special-cased, e.g. sn/zn/dn/tn, st/zd
 cons_assim_palatal = {
@@ -637,13 +655,102 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   headword_pronuns = remove_list_duplicates(headword_pronuns)
   return headword_pronuns
 
-# Cache mapping page titles to a set of the gem= values found on the page.
-lemma_gem_cache = {}
+def pronun_matches(hpron, foundpron, pagemsg):
+  foundpron = re.sub("^phon=", "", foundpron)
+  if hpron == foundpron or not foundpron:
+    return True
+  foundpron = ru.remove_grave_accents(foundpron.replace(CFLEX, ""))
+  if hpron == foundpron:
+    pagemsg("Matching headword pronun %s to found pronun %s after removing circumflex and grave accents from the latter" %
+      (hpron, foundpron))
+    return True
+  foundpron = foundpron.replace(u"э", u"е")
+  hpron = hpron.replace(u"э", u"е")
+  if hpron == foundpron:
+    pagemsg(u"Matching headword pronun %s to found pronun %s after converting э to е (and removing circumflex and grave accents)" %
+      (hpron, foundpron))
+    return True
+  foundpron = foundpron.lower()
+  hpron = hpron.lower()
+  if hpron == foundpron:
+    pagemsg(u"Matching headword pronun %s to found pronun %s after lowercasing (and converting э to е and removing circumflex and grave accents)" %
+      (hpron, foundpron))
+    return True
+  hpron = hpron.replace(u"зж", u"ӂӂ")
+  hpron = hpron.replace(u"жж", u"ӂӂ")
+  if hpron == foundpron:
+    pagemsg(u"Matching headword pronun %s to found pronun %s after converting зж and жж to ӂӂ (and lowercasing, converting э to е and removing circumflex and grave accents)" %
+      (hpron, foundpron))
+    return True
 
-# Look up the lemmas of all inflection-of templates in PARSED (the contents
-# of an etym section), and fetch the gem= values from the ru-IPA templates in
-# each such lemma. We return a set of all the gem= values found this way.
-def lookup_gem_values(parsed, pagemsg):
+  return False
+
+# Match up the stems of headword pronunciations and found pronunciations.
+# If able to do so, return a dictionary of all non-identity matchings, else
+# return None.
+def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg):
+  matches = {}
+  if not headword_pronuns:
+    pagemsg("WARNING: No headword pronuns, possible error")
+    # Error finding headword pronunciations, or something
+    return None
+  if not found_pronuns:
+    pagemsg("WARNING: No found pronuns")
+    return None
+  found_pronuns = [(x, re.sub(u"[аеиояыьй]́?$", "", x)) for x in found_pronuns]
+  # How many headword pronuns? If only one, automatically assign all found
+  # pronuns to it.
+  distinct_hprons = set(hpron for hpron, tr in headword_pronuns)
+  if len(distinct_hprons) == 1:
+    hpron = list(distinct_hprons)[0]
+    hpronstem = re.sub(u"[аеиояыьй]́?$", "", hpron)
+    for foundpron, foundpronstem in found_pronuns:
+      valtoadd = foundpronstem or hpronstem
+      if hpronstem in matches:
+        matches[hpronstem].append(valtoadd)
+      else:
+        matches[hpronstem] = [valtoadd]
+
+  else:
+    # Multiple headwords, need to match "the hard way"
+    all_match = True
+    unmatched_hpron = set()
+    hpron_seen = set()
+    for hpron, tr in headword_pronuns:
+      if hpron in hpron_seen:
+        pagemsg("Skipping already-seen headword pronun %s%s" % (
+          hpron, tr and "//" + tr))
+        continue
+      hpron_seen.add(hpron)
+      hpronstem = re.sub(u"[аеиояыьй]́?$", "", hpron)
+      new_found_pronuns = []
+      matched = False
+      for foundpron, foundpronstem in found_pronuns:
+        if pronun_matches(hpronstem, foundpronstem, pagemsg):
+          if tr and not "phon=" in foundpronstem:
+            pagemsg("WARNING: Found translit %s for headword %s, but matched against ru-IPA pronun %s lacking phon=" % (
+              tr, hpronstem, foundpronstem))
+          valtoadd = foundpronstem or hpronstem
+          if hpronstem in matches:
+            matches[hpronstem].append(valtoadd)
+          else:
+            matches[hpronstem] = [valtoadd]
+          matched = True
+        else:
+          new_found_pronuns.append((foundpron, foundpronstem))
+      found_prons = new_found_pronuns
+      if not matched:
+        all_match = False
+        unmatched_hpron.add(hpronstem)
+    if not all_match:
+      pagemsg("WARNING: Unable to match headword pronuns %s against found pronuns %s" %
+          (",".join(unmatched_hpron), ",".join(foundpronstem for foundpron, foundpronstem in found_pronuns)))
+      return None
+
+  # Remove cases where key just maps to itself (as a list)
+  return dict((k,v) for k,v in matches.iteritems() if v != [k])
+
+def get_lemmas_of_form_page(parsed):
   lemmas = set()
   for t in parsed.filter_templates():
     tname = unicode(t.name)
@@ -651,11 +758,30 @@ def lookup_gem_values(parsed, pagemsg):
         tname == "ru-participle of"):
       lemma = ru.remove_accents(blib.remove_links(getparam(t, "1")))
       lemmas.add(lemma)
+  return lemmas
+
+# Cache mapping page titles to a set of the gem= values found on the page.
+lemma_gem_cache = {}
+# Cache mapping page titles to a map from headwords to pronunciations
+# found on the page.
+lemma_headword_to_pronun_mapping_cache = {}
+
+# Look up the lemmas of all inflection-of templates in PARSED (the contents
+# of an etym section), and for each such lemma, do two things: (1) fetch the
+# gem= values from the ru-IPA templates, (2) fetch a mapping from
+# headword-derived stems to pronunciations as found in the ru-IPA templates.
+# Return a tuple (GEMVALS, PRONUNMAPPING), where GEMVALS is the set of all
+# gem= values found this way and PRONUNMAPPING is a map as described above.
+def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
+  lemmas = get_lemmas_of_form_page(parsed)
   all_gemvals = set()
+  all_pronunmappings = {}
   for lemma in lemmas:
     if lemma in lemma_gem_cache:
       cached = True
+      assert lemma in lemma_headword_to_pronun_mapping_cache
       gemval = lemma_gem_cache[lemma]
+      pronunmapping = lemma_headword_to_pronun_mapping_cache[lemma]
     else:
       cached = False
       newpage = pywikibot.Page(site, lemma)
@@ -666,19 +792,45 @@ def lookup_gem_values(parsed, pagemsg):
         pagemsg("WARNING: Invalid title, skipping")
         traceback.print_exc(file=sys.stdout)
         continue
+      # Compute gemval
       for t in parsed.filter_templates():
         if unicode(t.name) == "ru-IPA":
           gemval.add(getparam(t, "gem"))
       lemma_gem_cache[lemma] = gemval
+      # Compute headword->pronun mapping
+      # Need to create our own expand_text() with the page title set to the
+      # lemma
+      def expand_text(t):
+        return blib.expand_text(t, lemma, pagemsg, verbose)
+      headwords = get_headword_pronuns(parsed, lemma, pagemsg, expand_text)
+      foundpronuns = []
+      for t in parsed.filter_templates():
+        if unicode(t.name) == "ru-IPA":
+          phon = getparam(t, "phon")
+          if phon:
+            foundpronuns.append("phon=%s" % phon)
+          else:
+            foundpronuns.append(getparam(t, "1"))
+      pronunmapping = match_headword_and_found_pronuns(headwords, foundpronuns,
+          pagemsg)
+      lemma_headword_to_pronun_mapping_cache[lemma] = pronunmapping
+
     pagemsg("For lemma %s, found gem=%s%s" % (lemma, ",".join(gemval),
       cached and " (cached)" or ""))
     all_gemvals |= gemval
+    pagemsg("For lemma %s, found pronun mapping %s%s" % (lemma, "None" if
+      pronunmapping is None else "(empty)" if not pronunmapping else ",".join(
+      "%s->%s" % (hpron, "/".join(foundpron)) for hpron, foundpron in pronunmapping.iteritems()),
+      cached and " (cached)" or ""))
+    if pronunmapping:
+      all_pronunmappings.update(pronunmapping)
   if len(all_gemvals) > 1:
     pagemsg("WARNING: Found multiple gem= values (gem=%s) corresponding to lemma %s, not using" %
         (",".join(all_gemvals), ",".join(lemmas)))
-  return all_gemvals
+  return all_gemvals, all_pronunmappings
 
-def process_section(section, indentlevel, headword_pronuns, override_ipa, pagetitle, pagemsg, expand_text):
+def process_section(section, indentlevel, headword_pronuns, override_ipa,
+    pagetitle, verbose, pagemsg, expand_text):
   assert indentlevel in [3, 4]
   notes = []
 
@@ -695,13 +847,14 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
   parsed = blib.parse_text(section)
 
   # Find gem= param by looking up {{inflection of}} pages
-  gemparam = ""
-  gemvals = lookup_gem_values(parsed, pagemsg)
+  headword_gemparam = ""
+  gemvals, pronunmapping = lookup_gem_values_and_pronun_mapping(parsed,
+      verbose, pagemsg)
   if len(gemvals) == 1:
     gemval = list(gemvals)[0]
     if gemval:
-      gemparam = "|gem=%s" % gemval
-      pagemsg("Adding %s to ru-IPA pronun(s)" % gemparam)
+      headword_gemparam = "|gem=%s" % gemval
+      pagemsg("Adding %s to ru-IPA pronun(s)" % headword_gemparam)
 
   pronun_lines = []
   bad_char_msgs = []
@@ -713,14 +866,15 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
   annotations_set = set()
   for cyr, tr in headword_pronuns:
     annotations_set.add(cyr)
+  matched_hpron = set()
   for pronun, tr in headword_pronuns:
     if len(annotations_set) > 1:
       if tr:
-        annparam = "|ann=%s" % pronun
+        headword_annparam = "|ann=%s" % pronun
       else:
-        annparam = "|ann=y"
+        headword_annparam = "|ann=y"
     else:
-      annparam = ""
+      headword_annparam = ""
     if pronun.startswith("-") or pronun.endswith("-"):
       pagemsg("WARNING: Skipping prefix or suffix: %s" % pronun)
       return None
@@ -738,16 +892,44 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
       bad_char_msgs.append(
           "WARNING: Cyrillic pronunciation %s contains Latin characters, skipping" %
           pronun)
-    if tr:
+    def append_pronun_line(pronun):
+      if (not pronun.startswith("phon=") and (
+         ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
+         re.search(u"ё", pronun) and pronun == pagetitle)):
+        pronun = "* {{ru-IPA%s%s}}\n" % (headword_annparam, headword_gemparam)
+      else:
+        pronun = "* {{ru-IPA|%s%s%s}}\n" % (pronun, headword_annparam,
+            headword_gemparam)
+      if pronun not in pronun_lines:
+        pronun_lines.append(pronun)
+    subbed_pronun = False
+    if pronunmapping:
+      for hpron, foundprons in pronunmapping.iteritems():
+        if pronun.startswith(hpron):
+          for foundpron in foundprons:
+            newpronun = re.sub("^" + re.escape(hpron), foundpron, pronun)
+            if newpronun != pronun:
+              pagemsg("Replacing headword-based pronunciation %s with %s" %
+                  (pronun, newpronun))
+            append_pronun_line(newpronun)
+          subbed_pronun = True
+          matched_hpron.add(hpron)
+          break
+    if subbed_pronun:
+      pass
+    elif tr:
       reverse_translit = ru_reverse_translit.reverse_translit(tr)
       pagemsg("WARNING: Reverse-transliterating %s to phon=%s" %
           (tr, reverse_translit))
-      pronun_lines.append("* {{ru-IPA|phon=%s%s}}\n" % (reverse_translit, annparam))
-    elif (ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
-        re.search(u"ё", pronun) and pronun == pagetitle):
-      pronun_lines.append("* {{ru-IPA%s%s}}\n" % (annparam, gemparam))
+      append_pronun_line("phon=%s" % reverse_translit)
     else:
-      pronun_lines.append("* {{ru-IPA|%s%s%s}}\n" % (pronun, annparam, gemparam))
+      append_pronun_line(pronun)
+
+  if pronunmapping:
+    for hpron, foundpron in pronunmapping.iteritems():
+      if hpron not in matched_hpron:
+        pagemsg("WARNING: Unable to match mapping %s->%s in non-lemma form(s)"
+            % (hpron, "/".join(foundpron)))
 
   # Check for indications of pre-reform spellings
   for cat in [u"Russian spellings with е instead of ё",
@@ -925,7 +1107,8 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
     foundpronuns.append(foundpronun)
   if foundpronuns:
     joined_foundpronuns = ",".join(foundpronuns)
-    headword_pronuns_as_pronuns = [ru_tr_as_pronun(cyr, tr) for cyr, tr in headword_pronuns]
+    headword_pronuns_as_pronuns_no_gem = [ru_tr_as_pronun(cyr, tr) for cyr, tr in headword_pronuns]
+    headword_pronuns_as_pronuns = [x + headword_gemparam for x in headword_pronuns_as_pronuns_no_gem]
     joined_headword_pronuns = ",".join(headword_pronuns_as_pronuns)
     if "phon=" not in joined_foundpronuns and "phon=" in joined_headword_pronuns:
       pagemsg("WARNING: Existing pronunciation template %s probably needs phon= because headword-derived pronunciation %s contains Latin" %
@@ -941,18 +1124,18 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa, pageti
       pagemsg("WARNING: Fewer existing pronunciations (%s) than headword-derived pronunciations (%s): existing %s, headword-derived %s" % (
         len(foundpronuns), len(headword_pronuns_as_pronuns),
         joined_foundpronuns, joined_headword_pronuns))
-    headword_pronuns_as_pronuns_no_grave = [ru.remove_grave_accents(x) for x in headword_pronuns_as_pronuns]
-    headword_pronuns_as_pronuns_no_grave_or_dotbelow = [x.replace(DOTBELOW, "") for x in headword_pronuns_as_pronuns_no_grave]
+    headword_pronuns_as_pronuns_no_gem_or_grave = [ru.remove_grave_accents(x) for x in headword_pronuns_as_pronuns_no_gem]
+    headword_pronuns_as_pronuns_no_gem_grave_or_dotbelow = [x.replace(DOTBELOW, "") for x in headword_pronuns_as_pronuns_no_gem_or_grave]
     foundpronuns_no_gem = [re.sub(r"\|gem=[^|]*", "", x) for x in foundpronuns]
     foundpronuns_no_gem_or_grave = [ru.remove_grave_accents(x) for x in foundpronuns_no_gem]
     foundpronuns_no_gem_grave_or_dotbelow = [x.replace(DOTBELOW, "") for x in foundpronuns_no_gem_or_grave]
-    if set(foundpronuns_no_gem_grave_or_dotbelow) != set(headword_pronuns_as_pronuns_no_grave_or_dotbelow):
+    if set(foundpronuns_no_gem_grave_or_dotbelow) != set(headword_pronuns_as_pronuns_no_gem_grave_or_dotbelow):
       pagemsg("WARNING: Existing pronunciation template (w/o gem=, grave accent or dotbelow) has different pronunciation %s from headword-derived pronunciation %s" %
             (joined_foundpronuns, joined_headword_pronuns))
-    elif set(foundpronuns_no_gem_or_grave) != set(headword_pronuns_as_pronuns_no_grave):
+    elif set(foundpronuns_no_gem_or_grave) != set(headword_pronuns_as_pronuns_no_gem_or_grave):
       pagemsg("WARNING: Existing pronunciation template (w/o gem= or grave accent) has different pronunciation %s from headword-derived pronunciation %s, but only in dotbelow" %
             (joined_foundpronuns, joined_headword_pronuns))
-    elif set(foundpronuns_no_gem) != set(headword_pronuns_as_pronuns):
+    elif set(foundpronuns_no_gem) != set(headword_pronuns_as_pronuns_no_gem):
       pagemsg("WARNING: Existing pronunciation template (w/o gem=) has different pronunciation %s from headword-derived pronunciation %s, but only in grave accents" %
             (joined_foundpronuns, joined_headword_pronuns))
     elif set(foundpronuns) != set(headword_pronuns_as_pronuns):
@@ -1011,16 +1194,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
 
   def expand_text(tempcall):
-    if verbose:
-      pagemsg("Expanding text: %s" % tempcall)
-    result = site.expand_text(tempcall, title=pagetitle)
-    if verbose:
-      pagemsg("Raw result is %s" % result)
-    if result.startswith('<strong class="error">'):
-      result = re.sub("<.*?>", "", result)
-      pagemsg("WARNING: Got error: %s" % result)
-      return False
-    return result
+    return blib.expand_text(tempcall, pagetitle, pagemsg, verbose)
 
   notes = []
 
@@ -1191,8 +1365,8 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
             if not etym_headword_pronuns[k]:
               continue
             result = process_section(etymsections[k], 4,
-                etym_headword_pronuns[k], override_ipa, pagetitle, pagemsg,
-                expand_text)
+                etym_headword_pronuns[k], override_ipa, pagetitle,
+                verbose, pagemsg, expand_text)
             if result is None:
               continue
             etymsections[k], etymsection_notes = result
@@ -1221,7 +1395,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
 
         # Process the section
         result = process_section(sections[j], 3, headword_pronuns,
-            override_ipa, pagetitle, pagemsg, expand_text)
+            override_ipa, pagetitle, verbose, pagemsg, expand_text)
         if result is None:
           continue
         sections[j], section_notes = result
