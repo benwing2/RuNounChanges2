@@ -80,6 +80,8 @@
 #     case we use the Cyrillic with propagated headword->pronun mapping rather
 #     than reverse-transliterating, and remove the dot-under from the
 #     annotation.
+# 22. (DONE) Support manual_pronun_mapping for cases where stem->pronun mapping
+#     fails.
 
 # WORDS NEEDING MANUAL FIXING:
 #
@@ -164,6 +166,13 @@ skip_pages = [
     u"я"
 ]
 
+applied_manual_pronun_mappings = set()
+
+# Used when the automatic headword->pronun mapping fails (typically, where
+# there's a secondary stress and either multiword phrases or accent type
+# c/d/e/f or accent type b with masculine nouns). Each tuple is of the form
+# (HEADWORD, SUB) where HEADWORD is a regex and SUB is either a single string
+# to substitute in the regex or a list of such strings.
 manual_pronun_mapping = [
     (u"^аминокисло́т", u"амѝнокисло́т"),
     (u"^ампер-час", u"ампѐр-час"),
@@ -223,7 +232,12 @@ manual_pronun_mapping = [
     (u"^пресс(-секретар)", ur"прѐсс\1"),
     (u"^про́волок", u"про́вол(о)к"),
     (u"^прое́зж(.*? ча́?ст)", [ur"прое́зж\1", ur"прое́ӂӂ\1"]),
-    (u"^тео́ри(.*?) ха́оса$", ur"тео́ри\1 ха́о̂са")
+    (u"^соцсет", u"со̀цсет"),
+    (u"^(су́?д.*? на подво́дных )кры́льях", ur"\1кры́лья̣х"),
+    (u"^тео́ри(.*?) ха́оса", ur"тео́ри\1 ха́о̂са"),
+    (u"^трёх(эта́жн.*? сло́?в)", ur"трё̀х\1"),
+    (u"^четырёх(та́кт.*? дви́гател)", ur"четырё̀х\1"),
+    (u"^четверг", [u"четверг", "phon=четверьг"]),
 ]
 
 # Make sure there are two trailing newlines
@@ -1024,6 +1038,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
   for cyr, tr in headword_pronuns:
     annotations_set.add(cyr)
   matched_hpron = set()
+  manually_subbed_pronun = False
   for pronun, tr in headword_pronuns:
     if len(annotations_set) > 1:
       if tr:
@@ -1061,8 +1076,26 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
             headword_gemparam)
       if pronun not in pronun_lines:
         pronun_lines.append(pronun)
+
     subbed_pronun = False
-    if pronunmapping:
+
+    # Check for manual pronunciation mapping
+    for regex, subvals in manual_pronun_mapping:
+      if re.search(regex, pronun):
+        applied_manual_pronun_mappings.add(regex)
+        if type(subvals) is not list:
+          subvals = [subvals]
+        for subval in subvals:
+          newpronun = re.sub(regex, subval, pronun)
+          pagemsg("Replacing headword-based pronunciation %s with %s due to manual_pronun_mapping"
+              % (pronun, newpronun))
+          append_pronun_line(newpronun)
+        subbed_pronun = True
+        manually_subbed_pronun = True
+
+    # If there is an automatically-derived headword->pronun mapping (e.g.
+    # in case of secondary stress or phon=), try to apply it.
+    if not subbed_pronun and pronunmapping:
       for hpron, stem_foundprons in pronunmapping.iteritems():
         outerbreak = False
         for stem, foundpronstems in stem_foundprons:
@@ -1081,6 +1114,9 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
             break
         if outerbreak:
           break
+
+    # Otherwise, reverse-translit if transliteration, or use headword pronun
+    # unchanged.
     if subbed_pronun:
       pass
     elif tr:
@@ -1091,7 +1127,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
     else:
       append_pronun_line(pronun)
 
-  if pronunmapping:
+  if pronunmapping and not manually_subbed_pronun:
     for hpron, stem_foundprons in pronunmapping.iteritems():
       if hpron not in matched_hpron:
         pagemsg("WARNING: Unable to match mapping %s->(%s) in non-lemma form(s)"
@@ -1708,3 +1744,8 @@ else:
     msg("Processing category: %s" % category)
     for i, page in blib.cat_articles(category, start, end):
       process_page(i, page, args.save, args.verbose, args.override_IPA)
+
+for regex, subvals in manual_pronun_mapping:
+  if regex not in applied_manual_pronun_mappings:
+    msg("WARNING: Unapplied manual_pronun_mapping %s->%s" % (regex,
+      ",".join(subvals) if type(subvals) is list else subvals))
