@@ -52,7 +52,7 @@
 #     If other double consonant or if gem= is already present, issue warning
 #     and do nothing. To check for double consonant, expand the base
 #     pronunciation and look for geminates other than those caused by щ or ӂӂ.
-# 16. If form ends in a double consonant and gem=y or gem=opt is
+# 16. (DONE) If form ends in a double consonant and gem=y or gem=opt is
 #     present on the base form (cf. абелевых групп of абелева группа,
 #     абсцисс of абсцисса, etc.), we need to remove this. FIXME: Need to
 #     check if removing is safe, and issue warning if not. FIXME: Handle
@@ -981,7 +981,8 @@ def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
           gemval.add(getparam(t, "gem"))
 
       # Now, see if we need to modify the gem= value to take into account final
-      # geminates in the lemma or non-lemma forms.
+      # geminates in the lemma.
+
       if re.search("([" + ru.cons + r"])\1( |,|$)", lemma):
         pagemsg("Found lemma %s with final geminate" % lemma)
         has_gemval = not not [x for x in gemval if x]
@@ -1098,13 +1099,43 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
           "WARNING: Cyrillic pronunciation %s contains Latin characters, skipping" %
           pronun)
     def append_pronun_line(pronun):
+      # If pronunciation has final geminate and we found gem=y or gem=opt in
+      # the lemma, remove it.
+      our_headword_gemparam = headword_gemparam # avoid 'ref before assign' err
+      if re.search("([" + ru.cons + r"])\1( |,|$)", pronun):
+        pagemsg("Found pronun %s with final geminate" % pronun)
+        gem_y_or_opt = False
+        if not headword_gemparam or headword_gemparam == "|gem=n":
+          pass
+        elif headword_gemparam in ["|gem=y", "|gem=opt"]:
+          gem_y_or_opt = True
+        else:
+          pagemsg("WARNING: Unrecognized gemination spec %s, skipping" %
+              headword_gemparam)
+        if gem_y_or_opt:
+          other_geminate_in_pronun = False
+          pronunval = expand_text("{{ru-IPA|%s%s|raw=y}}" %
+              (pronun, headword_gemparam))
+          # Eliminate final geminates from pronunciation
+          pronunval = re.sub(ur"(ː|\(ː\))( |,|\]|$)", r"\2", pronunval)
+          # The following regex will trigger on C(ː), which is correct
+          if re.search(u"[^ɕʑ]ː", pronunval):
+            other_geminate_in_pronun = True
+          if other_geminate_in_pronun:
+            pagemsg("WARNING: Other geminate in pronun %s with final geminate, can't remove gem=y or gem=opt" %
+                pronun)
+          else:
+            pagemsg("Found final geminate in pronun %s, removing gem=y and gem=opt" % pronun)
+            our_headword_gemparam = ""
+
       if (not pronun.startswith("phon=") and (
          ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
          re.search(u"ё", pronun) and pronun == pagetitle)):
-        pronun = "* {{ru-IPA%s%s}}\n" % (headword_annparam, headword_gemparam)
+        pronun = "* {{ru-IPA%s%s}}\n" % (headword_annparam,
+            our_headword_gemparam)
       else:
         pronun = "* {{ru-IPA|%s%s%s}}\n" % (pronun, headword_annparam,
-            headword_gemparam)
+            our_headword_gemparam)
       if pronun not in pronun_lines:
         pronun_lines.append(pronun)
 
