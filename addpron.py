@@ -788,7 +788,8 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
     for foundpron in found_pronuns:
       valtoadd = foundpron or hpron
       if hpron in matches:
-        matches[hpron].append(valtoadd)
+        if valtoadd not in matches[hpron]:
+          matches[hpron].append(valtoadd)
       else:
         matches[hpron] = [valtoadd]
 
@@ -812,7 +813,8 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
               tr, hpron, foundpron))
           valtoadd = foundpron or hpron
           if hpron in matches:
-            matches[hpron].append(valtoadd)
+            if valtoadd not in matches[hpron]:
+              matches[hpron].append(valtoadd)
           else:
             matches[hpron] = [valtoadd]
           matched = True
