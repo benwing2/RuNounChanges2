@@ -17,7 +17,7 @@ CARON = u"\u030C" # caron =  ̌
 BREVE = u"\u0306" # breve =  ̆
 
 composed_grave_vowel = u"ѐЀѝЍ"
-vowel_no_jo = u"аеиоуяэыюіѣѵАЕИОУЯЭЫЮІѢѴaeiouyAEIOUY" + composed_grave_vowel #omit ёЁ
+vowel_no_jo = u"аеиоуяэыюіѣѵүАЕИОУЯЭЫЮІѢѴҮaeiouyěɛAEIOUYĚƐ" + composed_grave_vowel #omit ёЁ
 vowel = vowel_no_jo + u"ёЁ"
 translit_vowel = u"aeiouyěAEIOUYĚ" # assumes that decompose() already called
 cons_except_sib_c = u"бдфгйклмнпрствхзьъБДФГЙКЛМНПРСТВХЗЬЪ"

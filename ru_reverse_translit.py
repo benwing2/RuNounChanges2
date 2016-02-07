@@ -36,11 +36,9 @@ latin_to_russian_tab_2_char = {
   u"šč":u"щ", u"Šč":u"Щ",
 }
 
-vowels = u"аеиоуяэыюіѣѵүАЕИОУЯЭЫЮІѢѴҮѐЀѝЍёЁAEIOUYĚƐaeiouyěɛ"
-
 # FIXME! Doesn't work with ɣ, which gets included in this character set
-non_consonants = "[" + vowels + ur"ЪЬъьʹʺ\W]"
-consonants = "[^" + vowels + ur"ЪЬъьʹʺ\W]"
+non_consonants = "[" + rulib.vowel + ur"ЪЬъьʹʺ\W]"
+consonants = "[^" + rulib.vowel + ur"ЪЬъьʹʺ\W]"
 
 AC = u"\u0301"
 GR = u"\u0300"
