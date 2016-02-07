@@ -94,6 +94,8 @@
 #    etc.
 # расстаться, расставаться: Needs с(с) because first gemination is optional,
 #    second isn't.
+# колба Эрленмейера: should have two pronuns, first gem=n, second gem=y,
+#    because (j) is optional when gem=n. Don't use gem=opt.
 
 import pywikibot, re, sys, codecs, argparse
 import difflib
@@ -762,9 +764,10 @@ def pronun_matches(hpron, foundpron, pagemsg):
 # pronunciation а̀втозапра́вка we need to consider both the regular stem
 # автозапарвк- with stemmed pronunciation а̀втозапра́вк- and dereduced stem
 # автозапра́вок- with stemmed pronunciation а̀втозапра́вок- in order to handle
-# genitive plural автозаправок) and adjectival variants (e.g. for
-# несовершенноле́тний with pronunciation несовершѐнноле́тний we need to
-# consider the stem несовершенноле́тн-). FOUNDPRONSTEMS is a list because
+# genitive plural автозаправок, or for амстерда́мец with pronun амстэрда́мец
+# most forms require reduced амстерда́мц -> амстэрда́мц) and adjectival variants
+# (e.g. for несовершенноле́тний with pronunciation несовершѐнноле́тний we need
+# to consider the stem несовершенноле́тн-). FOUNDPRONSTEMS is a list because
 # there may be multiple such pronunciations per headword stem, e.g. а́бвер
 # has two corresponding pronunciations а́бвер and а́бвэр.
 def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
