@@ -878,17 +878,17 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
     append_stem_foundstems(get_reduced_stem(hpron),
       frob_foundprons(foundprons, get_reduced_stem))
     # Also check for adjectival stem
-    if re.search(u"[иыо]́?й$", hpron):
-      stem = re.sub(u"[иыо]́?й$", "", hpron)
+    adjstem = re.sub(u"([иыо]́?й|[ая]́?я|[ое]́?е|[ыи]́?е)$", "", hpron)
+    if adjstem != hpron:
       foundpronstems = frob_foundprons(foundprons,
-          lambda x:re.sub(u"[иыо]́?й$", "", x))
-      append_stem_foundstems(stem, foundpronstems)
+          lambda x:re.sub(u"([иыо]́?й|[ая]́?я|[ое]́?е|[ыи]́?е)$", "", x))
+      append_stem_foundstems(adjstem, foundpronstems)
       pagemsg("Adding adjectival stem mapping %s->%s" % (
-        stem, ",".join(foundpronstems)))
+        adjstem, ",".join(foundpronstems)))
       # If adjectival, dereduce with both stressed and unstressed epenthetic
       # vowel
       for epvowel in [False, True]:
-        deredstem = get_dereduced_adj_stem(stem, epvowel)
+        deredstem = get_dereduced_adj_stem(adjstem, epvowel)
         deredfoundpronstems = frob_foundprons(foundpronstems,
             lambda x:get_dereduced_adj_stem(x, epvowel))
         append_stem_foundstems(deredstem, deredfoundpronstems)
