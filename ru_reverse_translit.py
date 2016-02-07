@@ -66,7 +66,9 @@ def rsub(text, fr, to):
 def error(text):
     raise RuntimeError(text)
 
-def reverse_translit(text):
+# Reverse transliterate. Corresponding Cyrillic can be passed in and will be
+# used to attempt to reverse transliterate -vo to -го.
+def reverse_translit(text, cyrillic=None):
   text = rulib.decompose(text)
   # Not necessary, hard sign should already be present:
   # Need to add hard sign between consonant and j
@@ -83,6 +85,17 @@ def reverse_translit(text):
   text = rsub(text, r"(^|\s)-e", ur"\1-е")
   text = rsub(text, "(" + consonants + r"['\(\)]*)e", ur"\1е")
   text = rsub(text, u".", latin_to_russian_tab_1_char)
+  # If Cyrillic passed in, try to convert -во in output back to -го when
+  # appropriate
+  if cyrillic:
+    textwords = re.split(r"([\s,-]+)", text)
+    cyrwords = re.split(r"([\s,-]+)", cyrillic)
+    if len(textwords) == len(cyrwords):
+      for i in xrange(len(textwords)):
+        if re.search(u"го́?$", cyrwords[i]) and re.search(u"во́?$", textwords[i]):
+          textwords[i] = re.sub(u"в(о́?)$", ur"г\1", textwords[i])
+      return "".join(textwords)
+
   return text
 
 ################################ Test code ##########################

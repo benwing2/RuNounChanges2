@@ -82,8 +82,8 @@
 #     annotation.
 # 22. (DONE) Support manual_pronun_mapping for cases where stem->pronun mapping
 #     fails.
-# 23. In reverse transliteration, check against original when -vo or -vó is
-#     found, and convert to -го or -го́ if appropriate.
+# 23. (DONE) In reverse transliteration, check against original when -vo or -vó
+#     is found, and convert to -го or -го́ if appropriate.
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
@@ -549,7 +549,7 @@ def printable_ru_tr_list(values):
 
 def ru_tr_as_pronun(cyr, tr):
   if tr:
-    return "phon=%s" % ru_reverse_translit.reverse_translit(tr)
+    return "phon=%s" % ru_reverse_translit.reverse_translit(tr, cyr)
   else:
     return cyr
 
@@ -1182,7 +1182,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
     if subbed_pronun:
       pass
     elif tr:
-      reverse_translit = ru_reverse_translit.reverse_translit(tr)
+      reverse_translit = ru_reverse_translit.reverse_translit(tr, pronun)
       pagemsg("WARNING: Reverse-transliterating %s to phon=%s" %
           (tr, reverse_translit))
       append_pronun_line("phon=%s" % reverse_translit)
