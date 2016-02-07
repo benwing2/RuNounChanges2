@@ -47,20 +47,20 @@
 # 14. Allow fixing of situation where gem= is in headword-derived
 #     pronun but not existing pronun, either given a list of lemmas whose forms
 #     we should fix, or perhaps a list of those forms themselves.
-# 15. If base lemma ends in a double consonant cf. финн, англо-норманн,
-#     аламанн/алеманн: If no other double consonant, add gem=n. If other double
-#     consonant or if gem= is already present, issue warning and do nothing. To
-#     check for double consonant, expand the base pronunciation and look for
-#     geminates other than those caused by щ or ӂӂ. FIXME: Handle multiple
-#     words.
+# 15. (DONE) If a word in base lemma ends in a double consonant cf. абсцесс,
+#     аламанн/алеманн, англо-норманн: If no other double consonant, add gem=n.
+#     If other double consonant or if gem= is already present, issue warning
+#     and do nothing. To check for double consonant, expand the base
+#     pronunciation and look for geminates other than those caused by щ or ӂӂ.
 # 16. If form ends in a double consonant and gem=y or gem=opt is
-#     present on the base form (cf. группа, рок-группа), we need to remove
-#     this. FIXME: Need to check if removing is safe, and issue warning if
-#     not. FIXME: Handle multiple words.
-# 17. Issue warning if grave accent or circumflex or ӂӂ found in lemma
-#     pronun, and maybe more generally if lemma pronun doesn't match headword
-#     pronun. Consider trying to copy the lemma pronun by extracting out the
-#     stem.
+#     present on the base form (cf. абелевых групп of абелева группа,
+#     абсцисс of абсцисса, etc.), we need to remove this. FIXME: Need to
+#     check if removing is safe, and issue warning if not. FIXME: Handle
+#     multiple words (e.g. групп войск of группа войск).
+# 17. (DONE, WITHOUT WARNING) Issue warning if grave accent or circumflex or ӂӂ
+#     found in lemma pronun, and maybe more generally if lemma pronun doesn't
+#     match headword pronun. Consider trying to copy the lemma pronun by
+#     extracting out the stem.
 # 18. (DONE) When creating the pronunciation of non-lemma forms, work out a
 #     mapping from headword stems to pronunciation for the lemma and propagate
 #     that to the non-lemma. Do this in a way that succeeds if there are
@@ -82,13 +82,8 @@
 #     annotation.
 # 22. (DONE) Support manual_pronun_mapping for cases where stem->pronun mapping
 #     fails.
-
-# WORDS NEEDING MANUAL FIXING:
-#
-# вожжи and other words in жж
-# съезжая and other words in зж
-# хаос and other words with circumflex in the pronun
-# words with grave accents in the pronun
+# 23. In reverse transliteration, check against original when -vo or -vó is
+#     found, and convert to -го or -го́ if appropriate.
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
@@ -937,12 +932,19 @@ lemma_headword_to_pronun_mapping_cache = {}
 # gem= values from the ru-IPA templates, (2) fetch a mapping from
 # headword-derived stems to pronunciations as found in the ru-IPA templates.
 # Return a tuple (GEMVALS, PRONUNMAPPING), where GEMVALS is the set of all
-# gem= values found this way and PRONUNMAPPING is a map as described above.
+# gem= values found and PRONUNMAPPING is a map as described above.
 def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
   lemmas = get_lemmas_of_form_page(parsed)
   all_gemvals = set()
   all_pronunmappings = {}
+  final_geminate_in_lemma = False
+  lemma_has_geminate_other_than_final = False
   for lemma in lemmas:
+    # Need to create our own expand_text() with the page title set to the
+    # lemma
+    def expand_text(t):
+      return blib.expand_text(t, lemma, pagemsg, verbose)
+
     if lemma in lemma_gem_cache:
       cached = True
       assert lemma in lemma_headword_to_pronun_mapping_cache
@@ -958,16 +960,8 @@ def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
         pagemsg("WARNING: Invalid title, skipping")
         traceback.print_exc(file=sys.stdout)
         continue
-      # Compute gemval
-      for t in parsed.filter_templates():
-        if unicode(t.name) == "ru-IPA":
-          gemval.add(getparam(t, "gem"))
-      lemma_gem_cache[lemma] = gemval
+
       # Compute headword->pronun mapping
-      # Need to create our own expand_text() with the page title set to the
-      # lemma
-      def expand_text(t):
-        return blib.expand_text(t, lemma, pagemsg, verbose)
       headwords = get_headword_pronuns(parsed, lemma, pagemsg, expand_text)
       foundpronuns = []
       for t in parsed.filter_templates():
@@ -980,6 +974,42 @@ def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
       pronunmapping = match_headword_and_found_pronuns(headwords, foundpronuns,
           pagemsg, expand_text)
       lemma_headword_to_pronun_mapping_cache[lemma] = pronunmapping
+
+      # Compute gemval
+      for t in parsed.filter_templates():
+        if unicode(t.name) == "ru-IPA":
+          gemval.add(getparam(t, "gem"))
+
+      # Now, see if we need to modify the gem= value to take into account final
+      # geminates in the lemma or non-lemma forms.
+      if re.search("([" + ru.cons + r"])\1( |,|$)", lemma):
+        pagemsg("Found lemma %s with final geminate" % lemma)
+        has_gemval = not not [x for x in gemval if x]
+        if has_gemval:
+          pagemsg("WARNING: Found final geminate in lemma %s and gem= present, can't set gem=n" %
+              lemma)
+        else:
+          other_geminate_in_lemma = False
+          for t in parsed.filter_templates():
+            if unicode(t.name) == "ru-IPA":
+              pronunval = expand_text(re.sub(r"\}\}$", "|raw=y}}", unicode(t)))
+              # The following regex will trigger on C(ː), which is correct
+              if re.search(u"[^ɕʑ]ː", pronunval):
+                other_geminate_in_lemma = True
+          # Also try the plain headwords as pronun, in case of missing pronun
+          # or some reason where the stem->pronun mapping fails
+          for headword, tr in headwords:
+            pronunval = expand_text("{{ru-IPA|%s|raw=y}}" % headword)
+            if re.search(u"[^ɕʑ]ː", pronunval):
+              other_geminate_in_lemma = True
+          if other_geminate_in_lemma:
+            pagemsg("WARNING: Other geminate in lemma %s with final geminate, can't set gem=n" %
+                lemma)
+          else:
+            pagemsg("Found final geminate in lemma %s, setting gem=n" % lemma)
+            gemval = set(["n"])
+
+      lemma_gem_cache[lemma] = gemval
 
     pagemsg("For lemma %s, found gem=%s%s" % (lemma, ",".join(gemval),
       cached and " (cached)" or ""))
@@ -995,6 +1025,7 @@ def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
       cached and " (cached)" or ""))
     if pronunmapping:
       all_pronunmappings.update(pronunmapping)
+
   if len(all_gemvals) > 1:
     pagemsg("WARNING: Found multiple gem= values (gem=%s) corresponding to lemma %s, not using" %
         (",".join(all_gemvals), ",".join(lemmas)))
