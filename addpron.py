@@ -240,7 +240,7 @@ def contains_non_cyrillic_non_latin(text):
   # we allow in Cyrillic pronunciation; FIXME: We allow Latin h as a substitute
   # for ɣ, we should allow it here and not have it trigger contains_latin()
   # by itself
-  return re.sub(ur"[\u0300\u0301\u0302\u0308\u0307\u0323 \-,.?!ɣɕʑЀ-џҊ-ԧꚀ-ꚗa-zščžáéíóúýàèìòùỳɛě]", "", text.lower()) != ""
+  return re.sub(ur"[\u0300\u0301\u0302\u0308\u0307\u0323 \-,.?!ɣɕʑЀ-ԧꚀ-ꚗa-zščžáéíóúýàèìòùỳɛě]", "", text.lower()) != ""
 
 def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
   orig_auto = auto
