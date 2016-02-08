@@ -84,15 +84,21 @@
 #     fails.
 # 23. (DONE) In reverse transliteration, check against original when -vo or -vó
 #     is found, and convert to -го or -го́ if appropriate.
+# 24. Consider fixing dereduce so it converts words in -ье to -ий
+#     (e.g. варе́нье gen pl варе́ний).
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
+# алла́х: Normally gem=n, but has gem=y as emphatic form.
 # бессо́нница: First is geminated, second is not, needs respelling бессо́ница,
 #    etc.
-# расстаться, расставаться: Needs с(с) because first gemination is optional,
-#    second isn't.
 # колба Эрленмейера: should have two pronuns, first gem=n, second gem=y,
 #    because (j) is optional when gem=n. Don't use gem=opt.
+# Пикассо прямоугольчатый: two stress variants, gem=opt when Пика́ссо, but
+#    not when Пикассо́.
+# пресса/пресс: Forms of пре́сса have gem=y, forms of пресс have gem=n (?).
+# расстаться, расставаться: Needs с(с) because first gemination is optional,
+#    second isn't.
 
 import pywikibot, re, sys, codecs, argparse
 import difflib
@@ -173,8 +179,8 @@ manual_pronun_mapping = [
     (u"^ампер-час", u"ампѐр-час"),
     (u"^антител", u"а̀нтител"),
     (u"^аэронавигацио́нн(.*?) ог", ur"а̀эронавигацио́нн\1 ог"),
-    # override pronunciation бох
-    (u"^(бо́?г)", ur"\1"),
+    # override pronunciation бох/Бох
+    (u"^([Бб]о́?г(а|у|ом|е|и|о́в|а́м|а́ми|а́х))$", ur"\1"),
     (u"^бронекатер", u"бро̀некатер"),
     (u"^бухга́лтерск(.*?) кни́г", [
       ur"phon=буга́лтерск\1 кни́г",
@@ -182,14 +188,15 @@ manual_pronun_mapping = [
       ur"бухга́лтерск\1 кни́г"]),
     (u"^видеои́гр", u"вѝдеои́гр"),
     (u"^госдепартамент", u"го̀сдепартамент"),
-    (u"^госсекретар", u"го̀ссекретар"),
     (u"^го́спод", [u"го́спод", u"ɣо́спод"]),
     (u"^Го́спод", [u"Го́спод", u"ɣо́спод"]),
+    (u"^госсекретар", u"го̀ссекретар"),
     (u"^дезоксирибонуклеи́нов(.*?) кисл", ur"дезоксирѝбонуклеи́нов\1 кисл"),
     # override pronunciation дощ
-    (u"^(до́?жд)", ur"\1"),
+    (u"^(дожд(я́|ю́|ём|е́|и́|е́й|я́м|я́ми|я́х)$", ur"\1"),
     (u"^домохозя́", u"до̀мохозя́"),
     (u"^дрожж", [u"дроӂӂ", u"дрожж"]),
+    (u"^жа(ле́?)", ur"phon=же\1"),
     (u"^заво́д(.*?)-подря́дчик", ur"заво̀д\1-подря́дчик"),
     # reverse-translit would produce ёркширский тэрье́р etc.
     (u"^(йо́ркширск.*?) терье́р", ur"phon=\1 тэрье́р"),
