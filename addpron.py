@@ -86,6 +86,14 @@
 #     is found, and convert to -го or -го́ if appropriate.
 # 24. Consider fixing dereduce so it converts words in -ье to -ий
 #     (e.g. варе́нье gen pl варе́ний).
+# 25. (DONE) Support allow_unaccented to allow processing of 'unaccented'
+#     forms, e.g. forms of бальза́м на́ душу.
+# 26. (DONE) BUG: Need to add stress to monosyllabic pronunciations in lemmas
+#     or we will end up with unstressed multisyllabic pronunciations in forms,
+#     e.g. forms of бренд (phon=брэнд).
+# 27. (DONE) BUG: In forms of педерастия, скучный, свитер etc. where we have
+#     two stress variants each with two translits, we get 6 or 8 pronunciations
+#     instead of 4.
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
@@ -167,6 +175,10 @@ skip_pages = [
     u"я"
 ]
 
+allow_unaccented = [
+    u"^бальзам.* на душу"
+]
+
 applied_manual_pronun_mappings = set()
 
 # Used when the automatic headword->pronun mapping fails (typically, where
@@ -179,13 +191,17 @@ manual_pronun_mapping = [
     (u"^ампер-час", u"ампѐр-час"),
     (u"^антител", u"а̀нтител"),
     (u"^аэронавигацио́нн(.*?) ог", ur"а̀эронавигацио́нн\1 ог"),
+    (u"^(бальза́м.*?) на́ душу", ur"\1 на́‿душу"),
     # override pronunciation бох/Бох
     (u"^([Бб]о́?г(а|у|ом|е|и|о́в|а́м|а́ми|а́х))$", ur"\1"),
     (u"^бронекатер", u"бро̀некатер"),
-    (u"^бухга́лтерск(.*?) кни́г", [
-      ur"phon=буга́лтерск\1 кни́г",
-      ur"буɣа́лтерск\1 кни́г",
-      ur"бухга́лтерск\1 кни́г"]),
+    # the following helps with бухгалтерская кинга, also forms like
+    # бухгалтера́ of бухга́лтер, where the automatic headword->pronun mapping
+    # fails and reverse-translit leaves out spelling pronun бухгалтера́
+    (u"^бухг(а́?лтер)", [
+      ur"phon=буг\1",
+      ur"буɣ\1",
+      ur"бухг\1"]),
     (u"^видеои́гр", u"вѝдеои́гр"),
     (u"^госдепартамент", u"го̀сдепартамент"),
     (u"^го́спод", [u"го́спод", u"ɣо́спод"]),
@@ -193,7 +209,7 @@ manual_pronun_mapping = [
     (u"^госсекретар", u"го̀ссекретар"),
     (u"^дезоксирибонуклеи́нов(.*?) кисл", ur"дезоксирѝбонуклеи́нов\1 кисл"),
     # override pronunciation дощ
-    (u"^(дожд(я́|ю́|ём|е́|и́|е́й|я́м|я́ми|я́х)$", ur"\1"),
+    (u"^(дожд(я́|ю́|ём|е́|и́|е́й|я́м|я́ми|я́х))$", ur"\1"),
     (u"^дрожж", [u"дроӂӂ", u"дрожж"]),
     (u"^жа(ле́?)", ur"phon=же\1"),
     (u"^заво́д(.*?)-подря́дчик", ur"заво̀д\1-подря́дчик"),
@@ -210,7 +226,7 @@ manual_pronun_mapping = [
     (u"^несча́стий$", u"неща́стий"),
     (u"^обезьяно([лч])", ur"обезья̀но\1"),
     (u"^(пере́дн.*?) бронеперегоро́д", ur"\1 бро̀неперегоро́д"),
-    (u"^подна́йм", u"по̀дна́йм"),
+    #(u"^подна́йм", u"по̀дна́йм"),
     (u"^полу(в[её]д)", ur"по̀лу\1"),
     (u"^полу(ве́?к)", ur"по̀лу\1"),
     (u"^полу(го́?д)", ur"по̀лу\1"),
@@ -224,21 +240,21 @@ manual_pronun_mapping = [
     (u"^полу(ос)", ur"по̀лу\1"),
     (u"^полу(остров)", [ur"по̀лу\1", ur"полу\1"]),
     (u"^полу(очк)", ur"по̀лу\1"),
-    (u"^полу(со́тн)", ur"по̀лу\1"),
+    (u"^полу(со́т)", ur"по̀лу\1"),
     (u"^полу(ты́сяч)", ur"по̀лу\1"),
     (u"^полу(ча́?с)", ur"по̀лу\1"),
-    (u"^посттравмат", u"по̀сттравмат"),
+    (u"^пост(травмат.*?) стре́сс", ur"phon=по̀ст\1 стрэ̀сс"),
     (u"^пра(воохрани́тельн.*? о́рган)", ur"пра̀\1"),
     (u"^пра(материк)", ur"пра̀\1"),
     (u"^пресс(-секретар)", ur"прѐсс\1"),
-    (u"^про́волок", u"про́вол(о)к"),
+    (u"^про́волок(.)", ur"про́вол(о)к\1"),
     (u"^прое́зж(.*? ча́?ст)", [ur"прое́зж\1", ur"прое́ӂӂ\1"]),
     (u"^соцсет", u"со̀цсет"),
     (u"^(су́?д.*? на подво́дных )кры́льях", ur"\1кры́лья̣х"),
     (u"^тео́ри(.*?) ха́оса", ur"тео́ри\1 ха́о̂са"),
     (u"^трёх(эта́жн.*? сло́?в)", ur"трё̀х\1"),
     (u"^четырёх(та́кт.*? дви́гател)", ur"четырё̀х\1"),
-    (u"^четверг", [u"четверг", "phon=четверьг"]),
+    (u"^четверг", [u"четверг", u"phon=четверьг"]),
 ]
 
 # Make sure there are two trailing newlines
@@ -887,7 +903,7 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
   matches = dict((k,v) for k,v in matches.iteritems() if v != [k])
   matches_stems = {}
 
-  for hpron,foundprons in matches.iteritems():
+  for hpron, foundprons in matches.iteritems():
     stems = []
     def append_stem_foundstems(stem, foundpronunstems):
       if stem and foundpronunstems:
@@ -915,6 +931,21 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
         pagemsg("Adding adjectival dereduced stem mapping %s->%s" % (
           deredstem, ",".join(deredfoundpronstems)))
     matches_stems[hpron] = stems
+
+  # Check to see if the mappings have different numbers of acute accents and
+  # warn if so, esp. if one mapping has acute accents and the other doesn't
+  for hpron, stem_foundprons in matches_stems.iteritems():
+    for stem, foundprons in stem_foundprons:
+      stemaccents = stem.count(AC)
+      for foundpron in foundprons:
+        foundpronaccents = foundpron.count(AC)
+        if stemaccents != foundpronaccents:
+          pagemsg("WARNING: Mapping %s->%s has different number of acute accents (%s->%s)" %
+              (stem, foundpron, stemaccents, foundpronaccents))
+          if not stemaccents or not foundpronaccents:
+            pagemsg("WARNING: In mapping %s->%s, one has no acute accents and the other has acute accents (%s->%s)" %
+                (stem, foundpron, stemaccents, foundpronaccents))
+
   return matches_stems
 
 def get_lemmas_of_form_page(parsed):
@@ -974,9 +1005,9 @@ def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
         if unicode(t.name) == "ru-IPA":
           phon = getparam(t, "phon")
           if phon:
-            foundpronuns.append("phon=%s" % phon)
+            foundpronuns.append("phon=%s" % ru.try_to_stress(phon))
           else:
-            foundpronuns.append(getparam(t, "1"))
+            foundpronuns.append(ru.try_to_stress(getparam(t, "1")))
       pronunmapping = match_headword_and_found_pronuns(headwords, foundpronuns,
           pagemsg, expand_text)
       lemma_headword_to_pronun_mapping_cache[lemma] = pronunmapping
@@ -1078,33 +1109,59 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
   matched_hpron = set()
   manually_subbed_pronun = False
   for pronun, tr in headword_pronuns:
-    if len(annotations_set) > 1:
-      if tr:
-        # Don't include DOTBELOW in the annotation param or it will be shown
-        # to the user.
-        headword_annparam = "|ann=%s" % pronun.replace(DOTBELOW, "")
-      else:
-        headword_annparam = "|ann=y"
-    else:
-      headword_annparam = ""
-    if pronun.startswith("-") or pronun.endswith("-"):
-      pagemsg("WARNING: Skipping prefix or suffix: %s" % pronun)
-      return None
-    if "." in pronun:
-      pagemsg("WARNING: Pronunciation has dot in it, skipping: %s" % pronun)
-      return None
-    if ru.needs_accents(pronun, split_dash=True):
-      pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
-      return None
-    if contains_non_cyrillic_non_latin(pronun):
-      bad_char_msgs.append(
-          "WARNING: Pronunciation %s to be added contains non-Cyrillic non-Latin chars, skipping" %
-            pronun)
-    elif contains_latin(pronun):
-      bad_char_msgs.append(
-          "WARNING: Cyrillic pronunciation %s contains Latin characters, skipping" %
-          pronun)
+    # Signal from within append_pronun_line() that we encountered badness
+    # in the pronunciation and need to skip setting it.
+    # HACK! Use an array to avoid problems setting non-local variables.
+    bad_pronun_need_to_return = [False]
+
+    orig_pronun = pronun
+
     def append_pronun_line(pronun):
+      if len(annotations_set) > 1:
+        # Need an annotation. Check to see whether |ann=y is possible: The
+        # original pronunciation is the same as the new one (but we allow
+        # possible differences in DOTBELOW because it will be stripped with
+        # |ann=y).
+        if (orig_pronun.replace(DOTBELOW, "") !=
+            pronun.replace(DOTBELOW, "")):
+          # Don't include DOTBELOW in the annotation param or it will be shown
+          # to the user.
+          headword_annparam = "|ann=%s" % orig_pronun.replace(DOTBELOW, "")
+        else:
+          headword_annparam = "|ann=y"
+      else:
+        headword_annparam = ""
+
+      # Check for various badnesses in the pronunciation
+      check_pronun = re.sub("^phon=", "", pronun)
+      if check_pronun.startswith("-") or check_pronun.endswith("-"):
+        pagemsg("WARNING: Skipping prefix or suffix: %s" % pronun)
+        bad_pronun_need_to_return[0] = True
+      if "." in check_pronun:
+        pagemsg("WARNING: Pronunciation has dot in it, skipping: %s" % pronun)
+        bad_pronun_need_to_return[0] = True
+      if ru.needs_accents(check_pronun, split_dash=True):
+        for allow_regex in allow_unaccented:
+          if re.search(allow_regex, pagetitle):
+            pagemsg("Pronunciation lacks accents but pagetitle in allow_unaccented, allowing: %s"
+                 % pronun)
+            break
+        else: # no break
+          pagemsg("WARNING: Pronunciation lacks accents, skipping: %s" % pronun)
+          bad_pronun_need_to_return[0] = True
+      # Check for non-Cyrillic or Latin chars. We set bad_char_msgs, which we
+      # pay attention to farther down, just before adding the actual pronun,
+      # so we can get other warnings as well. FIXME: Maybe we should do the
+      # same with the above badnesses?
+      if contains_non_cyrillic_non_latin(check_pronun):
+        bad_char_msgs.append(
+            "WARNING: Pronunciation %s to be added contains non-Cyrillic non-Latin chars, skipping" %
+              pronun)
+      elif contains_latin(check_pronun):
+        bad_char_msgs.append(
+            "WARNING: Cyrillic pronunciation %s contains Latin characters, skipping" %
+            pronun)
+
       # If pronunciation has final geminate and we found gem=y or gem=opt in
       # the lemma, remove it.
       our_headword_gemparam = headword_gemparam # avoid 'ref before assign' err
@@ -1194,6 +1251,10 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
       append_pronun_line("phon=%s" % reverse_translit)
     else:
       append_pronun_line(pronun)
+
+    # Skip if badness in pronunciation
+    if bad_pronun_need_to_return[0]:
+      return None
 
   if pronunmapping and not manually_subbed_pronun:
     for hpron, stem_foundprons in pronunmapping.iteritems():
