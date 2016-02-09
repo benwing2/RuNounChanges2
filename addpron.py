@@ -269,10 +269,11 @@ def contains_non_cyrillic_non_latin(text):
   # 0300 = grave, 0301 = acute, 0302 = circumflex, 0308 = diaeresis,
   # 0307 = dot-above, 0323 = dot-below
   # We also include basic punctuation as well as IPA chars ɣ ɕ ʑ, which
-  # we allow in Cyrillic pronunciation; FIXME: We allow Latin h as a substitute
-  # for ɣ, we should allow it here and not have it trigger contains_latin()
-  # by itself
-  return re.sub(ur"[\u0300\u0301\u0302\u0308\u0307\u0323 \-,.?!ɣɕʑЀ-ԧꚀ-ꚗa-zščžáéíóúýàèìòùỳɛě]", "", text.lower()) != ""
+  # we allow in Cyrillic pronunciation; we also allow ()_/, which have
+  # significance as phonological characters. FIXME: We allow Latin h as a
+  # substitute for ɣ, we should allow it here and not have it trigger
+  # contains_latin() by itself.
+  return re.sub(ur"[\u0300\u0301\u0302\u0308\u0307\u0323 \-,.?!()_/ɣɕʑЀ-ԧꚀ-ꚗa-zščžáéíóúýàèìòùỳɛě]", "", text.lower()) != ""
 
 def ipa_matches(headword, manual, auto, ipa_templates_msg, pagemsg):
   orig_auto = auto
