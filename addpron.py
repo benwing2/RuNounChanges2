@@ -1122,13 +1122,14 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
       if len(annotations_set) > 1:
         # Need an annotation. Check to see whether |ann=y is possible: The
         # original pronunciation is the same as the new one (but we allow
-        # possible differences in DOTBELOW because it will be stripped with
-        # |ann=y).
-        if (orig_pronun.replace(DOTBELOW, "") !=
-            pronun.replace(DOTBELOW, "")):
-          # Don't include DOTBELOW in the annotation param or it will be shown
-          # to the user.
-          headword_annparam = "|ann=%s" % orig_pronun.replace(DOTBELOW, "")
+        # possible differences in DOTBELOW and grave accents because they
+        # will be stripped with |ann=y).
+        if (ru.remove_grave_accents(orig_pronun.replace(DOTBELOW, "")) !=
+            ru.remove_grave_accents(pronun.replace(DOTBELOW, ""))):
+          # Don't include DOTBELOW or grave accents in the annotation param
+          # or they will be shown to the user.
+          headword_annparam = "|ann=%s" % ru.remove_grave_accents(
+              orig_pronun.replace(DOTBELOW, ""))
         else:
           headword_annparam = "|ann=y"
       else:
