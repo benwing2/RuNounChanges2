@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, json, argparse
+import pywikibot, mwparserfromhell, re, string, sys, codecs, urllib2, datetime, json, argparse, time
 
 site = pywikibot.Site()
 
@@ -304,3 +304,28 @@ def getEtymLanguageData():
   for etyl in etym_languages:
     etym_languages_byCode[etyl["code"]] = etyl
     etym_languages_byCanonicalName[etyl["canonicalName"]] = etyl
+
+def try_repeatedly(fun, pagemsg, max_tries=10, sleep_time=5):
+  num_tries = 0
+  while True:
+    try:
+      fun()
+      break
+    except KeyboardInterrupt as e:
+      raise
+    except Exception as e:
+      #except (pywikibot.exceptions.Error, StandardError) as e:
+      pagemsg("WARNING: Error saving: %s" % unicode(e))
+      errmsg("WARNING: Error saving: %s" % unicode(e))
+      num_tries += 1
+      if num_tries >= max_tries:
+        pagemsg("WARNING: Can't save!!!!!!!")
+        errmsg("WARNING: Can't save!!!!!!!")
+        raise
+      errmsg("Sleeping for 5 seconds")
+      time.sleep(sleep_time)
+      if sleep_time >= 40:
+        sleep_time += 40
+      else:
+        sleep_time *= 2
+
