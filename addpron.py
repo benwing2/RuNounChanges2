@@ -94,6 +94,11 @@
 # 27. (DONE) BUG: In forms of педерастия, скучный, свитер etc. where we have
 #     two stress variants each with two translits, we get 6 or 8 pronunciations
 #     instead of 4.
+# 28. (DONE) Canonicalize headword annotations by removing all the characters
+#     that Module:ru-pron removes (various accents, ‿); similarly when
+#     comparing to see whether |ann=y is possible or we need to explicitly
+#     specify the annotation.
+# 29. (DONE) Make skip_pages have regexes instead of just a list.
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
@@ -117,7 +122,7 @@ import blib
 from blib import getparam, rmparam, msg, site
 
 import rulib as ru
-from rulib import AC, GR, CFLEX, DOTBELOW
+from rulib import AC, GR, DUBGR, CFLEX, DOTABOVE, DOTBELOW
 import ru_reverse_translit
 
 vowel_list = u"aeiouyɛəäëöü"
@@ -168,13 +173,18 @@ fronting = {
 }
 
 skip_pages = [
-    u"г-жа",
-    u"е",
-    u"и",
-    u"ы",
-    u"я"
+    u"^г-ж",
+    u"^г-н",
+    u"^е$",
+    u"^и$",
+    u"^ы$",
+    u"^я$"
 ]
 
+# Pages where we allow unaccented multisyllabic words in the pronunciation.
+# NOTE: This isn't actually necessary for бальза́м.* на́ душу because we
+# rewrite it in manual_pronun_mapping to have ‿ in на́‿душу, which gets
+# treated as a single word for unaccented-checking.
 allow_unaccented = [
     u"^бальзам.* на душу"
 ]
@@ -1118,18 +1128,21 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
 
     orig_pronun = pronun
 
+    def canonicalize_annotation(ann):
+       return ru.remove_grave_accents(re.sub(
+         "[" + CFLEX + DUBGR + DOTABOVE + DOTBELOW + GR + u"‿]", "", ann))
+
     def append_pronun_line(pronun):
       if len(annotations_set) > 1:
         # Need an annotation. Check to see whether |ann=y is possible: The
         # original pronunciation is the same as the new one (but we allow
-        # possible differences in DOTBELOW and grave accents because they
+        # possible differences in DOTBELOW, grave accents, etc. because they
         # will be stripped with |ann=y).
-        if (ru.remove_grave_accents(orig_pronun.replace(DOTBELOW, "")) !=
-            ru.remove_grave_accents(pronun.replace(DOTBELOW, ""))):
-          # Don't include DOTBELOW or grave accents in the annotation param
+        if (canonicalize_annotation(orig_pronun) !=
+            canonicalize_annotation(pronun)):
+          # Don't include DOTBELOW, grave accents, etc. in the annotation param
           # or they will be shown to the user.
-          headword_annparam = "|ann=%s" % ru.remove_grave_accents(
-              orig_pronun.replace(DOTBELOW, ""))
+          headword_annparam = "|ann=%s" % canonicalize_annotation(orig_pronun)
         else:
           headword_annparam = "|ann=y"
       else:
@@ -1770,9 +1783,11 @@ def process_page(index, page, save, verbose, override_ipa):
     pagemsg("WARNING: Colon in page title, skipping")
     return
 
-  if pagetitle in skip_pages:
-    pagemsg("WARNING: Skipping because page in skip_pages list")
-    return
+  for skip_regex in skip_pages:
+    if re.search(skip_regex, pagetitle):
+      pagemsg("WARNING: Skipping because page in skip_pages matching %s" %
+          skip_regex)
+      return
 
   if not page.exists():
     pagemsg("WARNING: Page doesn't exist")
