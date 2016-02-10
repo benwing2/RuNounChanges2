@@ -1128,6 +1128,11 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
     annotations_set.add(cyr)
   matched_hpron = set()
   manually_subbed_pronun = False
+  # List of pronunciations to insert into comment message; approximately
+  # the same as what goes inside {{ru-IPA}}, except we don't include the
+  # ann= parameter and we do include the pronunciation even if we leave
+  # it out in {{ru-IPA}} because it's the same as the page title.
+  pronuns_for_comment = []
   for pronun, tr in headword_pronuns:
     # Signal from within append_pronun_line() that we encountered badness
     # in the pronunciation and need to skip setting it.
@@ -1214,6 +1219,10 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
           else:
             pagemsg("Found final geminate in pronun %s, removing gem=y and gem=opt" % pronun)
             our_headword_gemparam = ""
+
+      pronun_for_comment = "%s%s" % (pronun, our_headword_gemparam)
+      if pronun_for_comment not in pronuns_for_comment:
+        pronuns_for_comment.append(pronun_for_comment)
 
       if (not pronun.startswith("phon=") and (
          ru.is_monosyllabic(pronun) and re.sub(AC, "", pronun) == pagetitle or
@@ -1541,7 +1550,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
     pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
     return None
 
-  notes.append("add pronunciation %s" % printable_ru_tr_list(headword_pronuns))
+  notes.append("add pronunciation %s" % ",".join(pronuns_for_comment))
 
   return section, notes
 
@@ -1826,7 +1835,7 @@ def process_page(index, page, save, verbose, override_ipa):
     if save:
       pagemsg("Saving with comment = %s" % comment)
       page.text = newtext
-      page.save(comment=comment)
+      blib.try_repeatedly(lambda:page.save(comment=comment), pagemsg)
     else:
       pagemsg("Would save with comment = %s" % comment)
 
