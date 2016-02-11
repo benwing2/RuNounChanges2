@@ -99,6 +99,10 @@
 #     comparing to see whether |ann=y is possible or we need to explicitly
 #     specify the annotation.
 # 29. (DONE) Make skip_pages have regexes instead of just a list.
+# 30. (DONE) Implement --override-pronun to remove existing pronunciation
+#     before adding new one.
+# 31. (DONE) Implement --non-lemma-file and --forms to specify a list of
+#     lemmas whose non-lemma forms should be processed.
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
@@ -1093,7 +1097,7 @@ def lookup_gem_values_and_pronun_mapping(parsed, verbose, pagemsg):
         (",".join(all_gemvals), ",".join(lemmas)))
   return all_gemvals, all_pronunmappings
 
-def process_section(section, indentlevel, headword_pronuns, override_ipa,
+def process_section(section, indentlevel, headword_pronuns, program_args,
     pagetitle, verbose, pagemsg, expand_text):
   assert indentlevel in [3, 4]
   notes = []
@@ -1361,11 +1365,11 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
           return None
         retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
             ipa_templates_msg, pagemsg)
-        if retval != True and override_ipa and (len(ipa_templates) > 1 or
-            len(computed_ipa_items) > 1):
+        if retval != True and program_args.override_ipa and (
+            len(ipa_templates) > 1 or len(computed_ipa_items) > 1):
           pagemsg("WARNING: Can't override IPA because multiple IPA templates or headwords: %s template(s), %s headword(s)" % (
             len(ipa_templates), len(computed_ipa_items)))
-        elif retval == True or override_ipa:
+        elif retval == True or program_args.override_ipa:
           orig_ipa_template = unicode(ipa_template)
           rmparam(ipa_template, "lang")
           rmparam(ipa_template, "1")
@@ -1375,7 +1379,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
             return None
           ipa_template.name = "ru-IPA"
           ipa_template.add("1", headword)
-          if retval != True and override_ipa:
+          if retval != True and program_args.override_ipa:
             pagemsg("WARNING: Overriding IPA despite pronunciation mismatch")
             mismatch_msgs.append(retval)
             for m in mismatch_msgs:
@@ -1385,7 +1389,7 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
           num_replaced += 1
           mismatch_msgs = []
           notes.append("replace {{IPA|...}} with {{ru-IPA|...}} for %s%s" % (
-            headword, " (IPA override)" if retval != True and override_ipa else ""))
+            headword, " (IPA override)" if retval != True and program_args.override_ipa else ""))
           break
         mismatch_msgs.append(retval)
       if mismatch_msgs:
@@ -1459,6 +1463,15 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
         pagemsg("Replaced %s with %s" % (origt, newt))
   section = unicode(parsed)
 
+  overrode_existing_pronun = False
+  if program_args.override_pronun:
+    pronun_line_re = r"^(\* \{\{ru-IPA(?:\|([^}]*))?\}\})\n"
+    for m in re.finditer(pronun_line_re, section, re.M):
+      overrode_existing_pronun = True
+      pagemsg("WARNING: Removing pronunciation due to --override-pronun: %s" %
+          m.group(1))
+    section = re.sub(pronun_line_re, "", section, 0, re.M)
+
   foundpronuns = []
   for m in re.finditer(r"(\{\{ru-IPA(?:\|([^}]*))?\}\})", section):
     template_text = m.group(1)
@@ -1523,10 +1536,11 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
 
   origsection = section
   # If pronunciation section already present, insert pronun into it; this
-  # could happen when audio but not IPA is present
+  # could happen when audio but not IPA is present, or when we deleted the
+  # pronunciation because of --override-pronun
   if re.search(r"^===+Pronunciation===+$", section, re.M):
     pagemsg("Found pronunciation section without ru-IPA or IPA")
-    section = re.sub(r"^(===+Pronunciation===+)\n+", r"\1\n%s" %
+    section = re.sub(r"^(===+Pronunciation===+)\n", r"\1\n%s" %
         "".join(pronun_lines), section, 1, re.M)
   else:
     # Otherwise, skip past any ===Etymology=== or ===Alternative forms===
@@ -1554,11 +1568,14 @@ def process_section(section, indentlevel, headword_pronuns, override_ipa,
     pagemsg("WARNING: Something wrong, couldn't sub in pronunciation section")
     return None
 
-  notes.append("add pronunciation %s" % ",".join(pronuns_for_comment))
+  if overrode_existing_pronun:
+    notes.append("override pronunciation with %s" % ",".join(pronuns_for_comment))
+  else:
+    notes.append("add pronunciation %s" % ",".join(pronuns_for_comment))
 
   return section, notes
 
-def process_page_text(index, text, pagetitle, verbose, override_ipa):
+def process_page_text(index, text, pagetitle, verbose, program_args):
   def pagemsg(txt):
     msg("Page %s %s: %s" % (index, pagetitle, txt))
 
@@ -1734,7 +1751,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
             if not etym_headword_pronuns[k]:
               continue
             result = process_section(etymsections[k], 4,
-                etym_headword_pronuns[k], override_ipa, pagetitle,
+                etym_headword_pronuns[k], program_args, pagetitle,
                 verbose, pagemsg, expand_text)
             if result is None:
               continue
@@ -1764,7 +1781,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
 
         # Process the section
         result = process_section(sections[j], 3, headword_pronuns,
-            override_ipa, pagetitle, verbose, pagemsg, expand_text)
+            program_args, pagetitle, verbose, pagemsg, expand_text)
         if result is None:
           continue
         sections[j], section_notes = result
@@ -1792,7 +1809,7 @@ def process_page_text(index, text, pagetitle, verbose, override_ipa):
 
   return text, comment
 
-def process_page(index, page, save, verbose, override_ipa):
+def process_page(index, page, save, verbose, program_args):
   pagetitle = unicode(page.title())
 
   def pagemsg(txt):
@@ -1815,7 +1832,7 @@ def process_page(index, page, save, verbose, override_ipa):
     return
 
   text = unicode(page.text)
-  result = process_page_text(index, text, pagetitle, verbose, override_ipa)
+  result = process_page_text(index, text, pagetitle, verbose, program_args)
   if result is None:
     return
 
@@ -1843,20 +1860,51 @@ def process_page(index, page, save, verbose, override_ipa):
     else:
       pagemsg("Would save with comment = %s" % comment)
 
-parser = argparse.ArgumentParser(description="Add pronunciation sections to Russian Wiktionary entries")
-parser.add_argument('--pagefile', help="File containing pages to process, one per line")
-parser.add_argument('--tempfile', help="File containing templates and headwords for quick offline reprocessing, one per line")
-parser.add_argument('start', help="Starting page index", nargs="?")
-parser.add_argument('end', help="Ending page index", nargs="?")
-parser.add_argument('--save', action="store_true", help="Save results")
-parser.add_argument('--verbose', action="store_true", help="More verbose output")
-parser.add_argument('--override-IPA', action="store_true", help="Change IPA to ru-IPA even when pronunciations can't be reconciled")
-parser.add_argument('--cats', default="lemma,nonlemma", help="Categories to do (lemma, nonlemma or comma-separated list)")
-args = parser.parse_args()
-start, end = blib.get_args(args.start, args.end)
+def process_lemma(index, pagetitle, forms, save, verbose, program_args):
+  def pagemsg(txt):
+    msg("Page %s %s: %s" % (index, pagetitle, txt))
 
-if args.pagefile:
-  lines = [x.strip() for x in codecs.open(args.pagefile, "r", "utf-8")]
+  pagemsg("Processing")
+
+  def expand_text(tempcall):
+    return blib.expand_text(tempcall, pagetitle, pagemsg, verbose)
+
+  page = pywikibot.Page(site, pagetitle)
+  parsed = blib.parse(page)
+  for t in parsed.filter_templates():
+    tname = unicode(t.name)
+    tempcall = None
+    if tname.startswith("ru-conj-"):
+      m = re.search(r"^\{\{ru-conj-(.*?)\|(.*)\}\}$", unicode(t), re.S)
+      verbtype, params = m.groups()
+      tempcall = "{{ru-generate-verb-forms|type=%s|%s}}" % (verbtype, params)
+    elif tname == "ru-noun-table":
+      tempcall = re.sub(r"^\{\{ru-noun-table", "{{ru-generate-noun-args",
+          unicode(t))
+    elif tname == "ru-decl-adj":
+      tempcall = re.sub(r"^\{\{ru-decl-adj", "{{ru-generate-adj-forms",
+          unicode(t))
+    if tempcall:
+      result = expand_text(tempcall)
+      if not result:
+        pagemsg("WARNING: Error generating forms, skipping")
+        continue
+      args = ru.split_generate_args(result)
+
+      for form in forms:
+        if form in args:
+          for formpagename in re.split(",", args[form]):
+            formpagename = ru.remove_accents(formpagename)
+            formpage = pywikibot.Page(site, formpagename)
+            if not formpage.exists():
+              pagemsg("WARNING: Form page %s doesn't exist, skipping" % formpagename)
+            elif formpagename == pagetitle:
+              pagemsg("WARNING: Skipping dictionary form")
+            else:
+              process_page(i, formpage, save, verbose, program_args)
+
+def read_pages(filename, start, end):
+  lines = [x.strip() for x in codecs.open(filename, "r", "utf-8")]
   for i, line in blib.iter_items(lines, start, end):
     if line.startswith("#"):
       continue
@@ -1869,9 +1917,54 @@ if args.pagefile:
         page = m.group(2)
       else:
         page = line
+    yield i, page
+
+parser = argparse.ArgumentParser(description="Add pronunciation sections to Russian Wiktionary entries")
+parser.add_argument('--pagefile', help="File containing pages to process, one per line")
+parser.add_argument('--non-lemma-file', help="File containing lemmas to process, one per line; non-lemma forms will be done")
+parser.add_argument("--forms", help="Form codes of non-lemma forms to process in conjunction with --non-lemma-file.")
+parser.add_argument('--tempfile', help="File containing templates and headwords for quick offline reprocessing, one per line")
+parser.add_argument('start', help="Starting page index", nargs="?")
+parser.add_argument('end', help="Ending page index", nargs="?")
+parser.add_argument('--save', action="store_true", help="Save results")
+parser.add_argument('--verbose', action="store_true", help="More verbose output")
+parser.add_argument('--override-IPA', action="store_true", help="Change IPA to ru-IPA even when pronunciations can't be reconciled")
+parser.add_argument('--override-pronun', action="store_true", help="Override existing pronunciations")
+parser.add_argument('--cats', default="lemma,nonlemma", help="Categories to do (lemma, nonlemma or comma-separated list)")
+args = parser.parse_args()
+start, end = blib.get_args(args.start, args.end)
+
+if args.non_lemma_file:
+  if args.forms == "all-verb":
+    forms = [
+        "pres_1sg", "pres_2sg", "pres_3sg", "pres_1pl", "pres_2pl", "pres_3pl",
+        "futr_1sg", "futr_2sg", "futr_3sg", "futr_1pl", "futr_2pl", "futr_3pl",
+        "impr_sg", "impr_pl",
+        "past_m", "past_f", "past_n", "past_pl",
+        "past_m_short", "past_f_short", "past_n_short", "past_pl_short"
+    ]
+  elif args.forms == "all-noun":
+    forms = [
+        "nom_sg", "gen_sg", "dat_sg", "acc_sg", "acc_sg_an", "acc_sg_in",
+          "ins_sg", "pre_sg",
+        "nom_pl", "gen_pl", "dat_pl", "acc_pl", "acc_pl_an", "acc_pl_in",
+          "ins_pl", "pre_pl"
+    ]
+  elif args.forms == "all-adj":
+    forms = [
+        "nom_m", "nom_f", "nom_n", "nom_p", "nom_mp", "gen_m", "gen_f", "gen_p",
+        "dat_m", "dat_f", "dat_p", "acc_f", "acc_n", "ins_m", "ins_f", "ins_p",
+        "pre_m", "pre_f", "pre_p", "short_m", "short_f", "short_n", "short_p"]
+  else:
+    forms = re.split(",", args.forms)
+
+  for i, lemma in read_pages(args.non_lemma_file, start, end):
+    process_lemma(i, lemma, forms, args.save, args.verbose, args)
+
+elif args.pagefile:
+  for i, page in read_pages(args.pagefile, start, end):
     msg("Page %s %s: Processing" % (i, page))
-    process_page(i, pywikibot.Page(site, page), args.save, args.verbose,
-        args.override_IPA)
+    process_page(i, pywikibot.Page(site, page), args.save, args.verbose, args)
 
 elif args.tempfile:
   lines = [x.strip() for x in codecs.open(args.tempfile, "r", "utf-8")]
@@ -1896,7 +1989,7 @@ elif args.tempfile:
 
 {{ru-noun|%s}}
 """ % ("\n".join(ipa_templates), "|".join(headword_args))
-      process_page_text(index, text, pagetitle, args.verbose, args.override_IPA)
+      process_page_text(index, text, pagetitle, args.verbose, args)
 
 else:
   categories = []
@@ -1911,7 +2004,7 @@ else:
   for category in categories:
     msg("Processing category: %s" % category)
     for i, page in blib.cat_articles(category, start, end):
-      process_page(i, page, args.save, args.verbose, args.override_IPA)
+      process_page(i, page, args.save, args.verbose, args)
 
 for regex, subvals in manual_pronun_mapping:
   if regex not in applied_manual_pronun_mappings:
