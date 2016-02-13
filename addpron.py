@@ -103,6 +103,11 @@
 #     before adding new one.
 # 31. (DONE) Implement --non-lemma-file and --forms to specify a list of
 #     lemmas whose non-lemma forms should be processed.
+# 32. When propagating from lemma to non-lemma, check for text before or
+#     after the ru-IPA call and preserve that text. Example: бассе́йн
+#     (with phon=бассэ́йн labeled {{a|St. Petersburg or dated}}), неонацист
+#     (with phon=нэ̀онаци́ст and phon=нэ̀о̂наци́ст both labeled
+#     {{i|less common or dated}}).
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
