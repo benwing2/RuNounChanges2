@@ -1898,7 +1898,7 @@ def process_lemma(index, pagetitle, forms, save, verbose, program_args):
       for form in forms:
         if form in args:
           for formpagename in re.split(",", args[form]):
-            formpagename = ru.remove_accents(formpagename)
+            formpagename = ru.remove_accents(re.sub("//.*", "", formpagename))
             formpage = pywikibot.Page(site, formpagename)
             if not formpage.exists():
               pagemsg("WARNING: Form page %s doesn't exist, skipping" % formpagename)
