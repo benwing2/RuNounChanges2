@@ -256,6 +256,8 @@ manual_pronun_mapping = [
     # This adds доӂӂ- pronunciations as for дождь above
     (u"^(кисло́тн.*? )дожд", [ur"\1дожд", ur"\1доӂӂ"]),
     (u"^кни́г(.*?) за семью́ печа́тям", ur"кни́г\1 за семью́ печа́тя̣м"),
+    # NOTE: The following remains unapplied because the non-lemma forms
+    # haven't been created yet
     (u"^коми-зыря́н", u"ко̀ми-зыря́н"),
     (u"^лесополо́с", u"лѐсополо́с"),
     (u"^лесостеп", u"лѐсостеп"),
@@ -269,8 +271,10 @@ manual_pronun_mapping = [
     (u"^(носов.*? )радио(прозра́чн.*? обтека́т.*? )анте́нны радиолокац",
       ur"phon=\1ра̀дио\2антэ́нны ра̀диолокац"),
     (u"^несча́стий$", u"неща́стий"),
+    # нетопырь handled correctly without override
     (u"^ново(англича́н)", ur"но̀во\1"),
     (u"^обезьяно([лч])", ur"обезья̀но\1"),
+    # паремия handled correctly without override
     (u"^(пере́дн.*?) бронеперегоро́д", ur"\1 бро̀неперегоро́д"),
     #(u"^подна́йм", u"по̀дна́йм"),
     (u"^политкаторжа́н", u"полѝткаторжа́н"),
@@ -299,6 +303,10 @@ manual_pronun_mapping = [
     (u"^про́волок(.)", ur"про́вол(о)к\1"),
     (u"^прое́зж(.*? ча́?ст)", [ur"прое́зж\1", ur"прое́ӂӂ\1"]),
     (u"^радио(локацио́нн.*? дальноме́р)", ur"ра̀дио\1"),
+    (u"^радио(локацио́нн.*? дальноме́р)", ur"ра̀дио\1"),
+    # раджа handled correctly without override
+    (u"^романтик", (u"романтик", "{{i|romantic meeting}} ", "")),
+    (u"^скучн([аы]́)$", [(ur"phon=скушн\1", "{{a|Moscow}} ", ""), (ur"скучн\1", "{{a|Saint Petersburg}} ", "")]),
     (u"^соцсет", u"со̀цсет"),
     (u"^(су́?д.*? на подво́дных )кры́льях", ur"\1кры́лья̣х"),
     (u"^тео́ри(.*?) ха́оса", ur"тео́ри\1 ха́о̂са"),
@@ -306,12 +314,13 @@ manual_pronun_mapping = [
     (u"^турбо(реакти́вн.*? дви́гат)", ur"ту̀рбо\1"),
     (u"(^уто́пленн.*? )воз(духозабо́рник)", ur"\1во̀з\2"),
     # override pronunciation у́к(о)р, which should apply only to base form
-    (u"^(у́кг(а|у|ом|е|ы|ов|ам|ами|ах))$", ur"\1"),
+    (u"^(у́кр(а|у|ом|е|ы|ов|ам|ами|ах))$", ur"\1"),
     (u"ультракоротко(волно́в.*?) радио(ста́нц)",
         [ur"у̀льтракоротко\1 ра̀дио\2", ur"у̀льтракоро̀тко\1 ра̀дио\2"]),
     (u"^человеко(обра́зн.*? обезья́н)", ur"человѐко\1"),
     (u"^четырёх(та́кт.*? дви́гател)", ur"четырё̀х\1"),
     (u"^четверг", [u"четверг", u"phon=четверьг"]),
+    # щавель handled correctly without override
     (u"^электро(магни́тн.*?) взаимо(де́йств)", ur"элѐктро\1 взаѝмо\2"),
     (u"^электро(поезд)", ur"элѐктро\1"),
 ]
@@ -1346,10 +1355,14 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
         if type(subvals) is not list:
           subvals = [subvals]
         for subval in subvals:
+          if type(subval) is tuple:
+            subval, pre, post = subval
+          else:
+            subval, pre, post = (subval, "", "")
           newpronun = re.sub(regex, subval, pronun)
           pagemsg("Replacing headword-based pronunciation %s with %s due to manual_pronun_mapping"
               % (pronun, newpronun))
-          append_pronun_line(newpronun)
+          append_pronun_line(newpronun, pre, post)
         subbed_pronun = True
         manually_subbed_pronun = True
 
@@ -2101,7 +2114,15 @@ else:
     for i, page in blib.cat_articles(category, start, end):
       process_page(i, page, args.save, args.verbose, args)
 
+def subval_to_string(subval):
+  if type(subval) is tuple:
+    pron, pre, post = subval
+    return unicode(FoundPronun(pron, pre, post))
+  else:
+    return subval
+
 for regex, subvals in manual_pronun_mapping:
   if regex not in applied_manual_pronun_mappings:
     msg("WARNING: Unapplied manual_pronun_mapping %s->%s" % (regex,
-      ",".join(subvals) if type(subvals) is list else subvals))
+      ",".join(subval_to_string(x) for x in subvals) if type(subvals) is list
+      else subval_to_string(subvals)))
