@@ -1331,7 +1331,8 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
             pagemsg("Found final geminate in pronun %s, removing gem=y and gem=opt" % pronun)
             our_headword_gemparam = ""
 
-      pronun_for_comment = "%s%s" % (pronun, our_headword_gemparam)
+      pronun_base_for_comment = "%s%s" % (pronun, our_headword_gemparam)
+      pronun_for_comment = unicode(FoundPronun(pronun_base_for_comment, pre, post))
       if pronun_for_comment not in pronuns_for_comment:
         pronuns_for_comment.append(pronun_for_comment)
 
