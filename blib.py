@@ -173,15 +173,21 @@ def iter_items(items, startsort = None, endsort = None, get_name = get_page_name
   i = 0
   t = None
   steps = 50
+  skipsteps = 1000
 
   for current in items:
     i += 1
 
     if startsort != None:
+      should_skip = False
       if isinstance(startsort, int):
         if i < startsort:
-          continue
+          should_skip = True
       elif get_page_name(current) < startsort:
+        should_skip = True
+      if should_skip:
+        if i % skipsteps == 0:
+          pywikibot.output("skipping %s" % str(i))
         continue
 
     if endsort != None:
