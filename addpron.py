@@ -182,10 +182,15 @@ fronting = {
 }
 
 skip_pages = [
+    u"^б/у$",
+    u"^в/о$",
     u"^г-ж",
     u"^г-н",
     u"^е$",
     u"^и$",
+    # FIXME! Script wrongly removes the stressed form here; it should notice
+    # that the word is normally unstressed and not do this
+    u"^не$",
     u"^ы$",
     u"^я$"
 ]
@@ -2030,7 +2035,8 @@ def read_pages(filename, start, end):
 
 parser = argparse.ArgumentParser(description="Add pronunciation sections to Russian Wiktionary entries")
 parser.add_argument('--pagefile', help="File containing pages to process, one per line")
-parser.add_argument('--non-lemma-file', help="File containing lemmas to process, one per line; non-lemma forms will be done")
+parser.add_argument('--lemma-file', help="File containing lemmas to process, one per line; non-lemma forms will be done")
+parser.add_argument('--lemmas', help="List of comma-separated lemmas to process; non-lemma forms will be done")
 parser.add_argument("--forms", help="Form codes of non-lemma forms to process in conjunction with --non-lemma-file.")
 parser.add_argument('--tempfile', help="File containing templates and headwords for quick offline reprocessing, one per line")
 parser.add_argument('start', help="Starting page index", nargs="?")
@@ -2043,7 +2049,7 @@ parser.add_argument('--cats', default="lemma,nonlemma", help="Categories to do (
 args = parser.parse_args()
 start, end = blib.get_args(args.start, args.end)
 
-if args.non_lemma_file:
+if args.lemma_file or args.lemmas:
   if args.forms == "all-verb":
     forms = [
         "pres_1sg", "pres_2sg", "pres_3sg", "pres_1pl", "pres_2pl", "pres_3pl",
@@ -2067,7 +2073,11 @@ if args.non_lemma_file:
   else:
     forms = re.split(",", args.forms)
 
-  for i, lemma in read_pages(args.non_lemma_file, start, end):
+  if args.lemma_file:
+    lemmas = read_pages(args.lemma_file, start, end)
+  else:
+    lemmas = blib.iter_items(re.split(",", args.lemmas.decode("utf-8")), start, end)
+  for i, lemma in lemmas:
     process_lemma(i, lemma, forms, args.save, args.verbose, args)
 
 elif args.pagefile:
