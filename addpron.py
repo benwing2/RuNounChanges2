@@ -1988,10 +1988,9 @@ def process_lemma(index, pagetitle, forms, save, verbose, program_args):
   for t in parsed.filter_templates():
     tname = unicode(t.name)
     tempcall = None
-    if tname.startswith("ru-conj-"):
-      m = re.search(r"^\{\{ru-conj-(.*?)\|(.*)\}\}$", unicode(t), re.S)
-      verbtype, params = m.groups()
-      tempcall = "{{ru-generate-verb-forms|type=%s|%s}}" % (verbtype, params)
+    if tname == "ru-conj":
+      tempcall = re.sub(r"^\{\{ru-conj", "{{ru-generate-verb-forms",
+          unicode(t))
     elif tname == "ru-noun-table":
       tempcall = re.sub(r"^\{\{ru-noun-table", "{{ru-generate-noun-args",
           unicode(t))
