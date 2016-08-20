@@ -300,7 +300,7 @@ manual_pronun_mapping = [
     (u"^полу(ты́сяч)", ur"по̀лу\1"),
     (u"^полу(ча́?с)", ur"по̀лу\1"),
     (u"^после(обе́денн.*? вре́?м)", ur"по̀сле\1"),
-    (u"^пост(травмат.*?) стре́сс", ur"phon=по̀ст\1 стрэ̀сс"),
+    (u"^пост(травмат.*?) стре́сс", ur"phon=по̀ст\1 стрэ́сс"),
     (u"^пра(воохрани́тельн.*? о́рган)", [ur"пра̀\1", ur"пра\1"]),
     (u"^пра(материк)", ur"пра̀\1"),
     (u"^пресс(-секретар)", ur"прѐсс\1"),
@@ -996,6 +996,10 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
     return expand_text("{{#invoke:ru-common|dereduce_stem|%s||%s}}" %
         (stem, "y" if epvowel else ""))
 
+  def get_iotated_stem(stem, shch):
+    return expand_text("{{#invoke:ru-common|iotation|%s||%s}}" %
+        (stem, u"щ" if shch else ""))
+
   # Apply a function to a list of found pronunciations. If a pronunciation
   # begins with phon=, strip it off before applying the function and then
   # add it back. Don't include results where the return value from the
@@ -1051,6 +1055,26 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
         append_stem_foundstems(deredstem, deredfoundpronstems)
         pagemsg("Adding adjectival dereduced stem mapping %s->%s" % (
           deredstem, ",".join(unicode(x) for x in deredfoundpronstems)))
+    # Also check for verbal stem
+    verbstem = re.sub(u"(ова́?|[аеияо]́?)ть(ся)?$", "", hpron)
+    if verbstem != hpron:
+      foundpronstems = frob_foundprons(foundprons,
+          lambda x:re.sub(u"(ова́?|[аеияоу]́?)ть(ся)?$", "", x))
+      append_stem_foundstems(verbstem, foundpronstems)
+      pagemsg("Adding verbal stem mapping %s->%s" % (
+        verbstem, ",".join(unicode(x) for x in foundpronstems)))
+      # Iotate both with and without shch transformation, if called for
+      for shch in [False, True]:
+        # shch only makes a difference if stem ends with т
+        if shch and not verbstem.endswith(u"т"):
+          continue
+        iotstem = get_iotated_stem(verbstem, shch)
+        iotfoundpronstems = frob_foundprons(foundpronstems,
+            lambda x:get_iotated_stem(x, shch))
+        append_stem_foundstems(iotstem, iotfoundpronstems)
+        pagemsg("Adding verbal iotated stem mapping %s->%s" % (
+          iotstem, ",".join(unicode(x) for x in iotfoundpronstems)))
+
     matches_stems[hpron] = stems
 
   # Check to see if the mappings have different numbers of acute accents and
@@ -1209,6 +1233,8 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
     pagetitle, verbose, pagemsg, expand_text):
   assert indentlevel in [3, 4]
   notes = []
+
+  was_unable_to_match = False
 
   def compute_ipa():
     computed_ipa = {}
@@ -1417,6 +1443,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
         pagemsg("WARNING: Unable to match mapping %s->(%s) in non-lemma form(s)"
           % (hpron, ",".join("%s:%s" % (stem, "/".join(unicode(x) for x in foundprons))
             for stem, foundprons in stem_foundprons)))
+        was_unable_to_match = True
 
   # Check for indications of pre-reform spellings
   for cat in [u"Russian spellings with е instead of ё",
@@ -1514,7 +1541,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
     if num_replaced < len(ipa_templates):
       pagemsg("Unable to replace %s of %s raw IPA template(s)" % (
         len(ipa_templates) - num_replaced, len(ipa_templates)))
-    return section, notes
+    return section, notes, was_unable_to_match
 
   def canonicalize_pronun(pron, paramname):
     newpron = re.sub(u"ё́", u"ё", pron)
@@ -1638,7 +1665,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
       pagemsg("WARNING: Existing pronunciation template has different pronunciation %s from headword-derived pronunciation %s, but only in gem=" %
             (joined_foundpronuns, joined_headword_pronuns))
 
-    return section, notes
+    return section, notes, was_unable_to_match
 
   pronunsection = "%sPronunciation%s\n%s\n" % ("="*indentlevel, "="*indentlevel,
       "".join(pronun_lines))
@@ -1687,7 +1714,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
   else:
     notes.append("add pronunciation %s" % ",".join(pronuns_for_comment))
 
-  return section, notes
+  return section, notes, was_unable_to_match
 
 def process_page_text(index, text, pagetitle, verbose, program_args):
   def pagemsg(txt):
@@ -1699,6 +1726,7 @@ def process_page_text(index, text, pagetitle, verbose, program_args):
   notes = []
 
   foundrussian = False
+  was_unable_to_match = False
   sections = re.split("(^==[^=]*==\n)", text, 0, re.M)
   orig_text = text
   for j in xrange(2, len(sections), 2):
@@ -1869,8 +1897,9 @@ def process_page_text(index, text, pagetitle, verbose, program_args):
                 verbose, pagemsg, expand_text)
             if result is None:
               continue
-            etymsections[k], etymsection_notes = result
+            etymsections[k], etymsection_notes, etymsection_unable_to_match = result
             notes.extend(etymsection_notes)
+            was_unable_to_match = was_unable_to_match or etymsection_unable_to_match
           sections[j] = "".join(etymsections)
           text = "".join(sections)
         else:
@@ -1898,8 +1927,9 @@ def process_page_text(index, text, pagetitle, verbose, program_args):
             program_args, pagetitle, verbose, pagemsg, expand_text)
         if result is None:
           continue
-        sections[j], section_notes = result
+        sections[j], section_notes, section_unable_to_match = result
         notes.extend(section_notes)
+        was_unable_to_match = was_unable_to_match or section_unable_to_match
         text = "".join(sections)
 
   if not foundrussian:
@@ -1921,7 +1951,7 @@ def process_page_text(index, text, pagetitle, verbose, program_args):
     notes = [fmt_key_val(x, y) for x, y in notescount]
     comment = "; ".join(notes)
 
-  return text, comment
+  return text, comment, was_unable_to_match
 
 def process_page(index, page, save, verbose, program_args):
   pagetitle = unicode(page.title())
@@ -1950,10 +1980,12 @@ def process_page(index, page, save, verbose, program_args):
   if result is None:
     return
 
-  newtext, comment = result
+  newtext, comment, was_unable_to_match = result
 
   if newtext != text:
     assert comment
+    if was_unable_to_match:
+      pagemsg("WARNING: Would save and unable to match mapping")
 
   # Eliminate sequences of 3 or more newlines, which may come from
   # ensure_two_trailing_nl(). Add comment if none, in case of existing page
