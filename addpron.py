@@ -108,6 +108,12 @@
 #     (with phon=бассэ́йн labeled {{a|St. Petersburg or dated}}), неонацист
 #     (with phon=нэ̀онаци́ст and phon=нэ̀о̂наци́ст both labeled
 #     {{i|less common or dated}}).
+# 33. (DONE) Support verbs in match_headword_and_found_pronuns(), including
+#     iotation.
+# 34. (DONE) Display a special message when unable to match and would or will
+#     save changes for a term.
+# 35. (DONE) Remove accents in lemmas taken from --lemmas/--lemma-file.
+# 36. (DONE) Generalize code that parses --forms.
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
@@ -311,7 +317,7 @@ manual_pronun_mapping = [
     (u"^радио(локацио́нн.*? дальноме́р)", ur"ра̀дио\1"),
     (u"^радио(локацио́нн.*? дальноме́р)", ur"ра̀дио\1"),
     # not correctly handled as form of расстава́ться
-    (u"^расстаё", "^рас(с)таё"),
+    (u"^расстаё", u"^рас(с)таё"),
     # раджа handled correctly without override
     (u"^романтик", (u"романтик", "{{i|romantic meeting}} ", "")),
     (u"^скучн([аы]́)$", [(ur"phon=скушн\1", "{{a|Moscow}} ", ""), (ur"скучн\1", "{{a|Saint Petersburg}} ", "")]),
@@ -2083,36 +2089,60 @@ parser.add_argument('--cats', default="lemma,nonlemma", help="Categories to do (
 args = parser.parse_args()
 start, end = blib.get_args(args.start, args.end)
 
+form_aliases = {
+  "pres": [
+    "pres_1sg", "pres_2sg", "pres_3sg", "pres_1pl", "pres_2pl", "pres_3pl"
+  ],
+  "futr": [
+    "futr_1sg", "futr_2sg", "futr_3sg", "futr_1pl", "futr_2pl", "futr_3pl"
+  ],
+  "impr": ["impr_sg", "impr_pl"],
+  "past": [
+    "past_m", "past_f", "past_n", "past_pl",
+    "past_m_short", "past_f_short", "past_n_short", "past_pl_short"
+  ],
+  "all-verb": ["pres", "futr", "impr", "past"],
+  "sg": [
+    "nom_sg", "gen_sg", "dat_sg", "acc_sg", "acc_sg_an", "acc_sg_in",
+      "ins_sg", "pre_sg"
+  ],
+  "pl": [
+    "nom_pl", "gen_pl", "dat_pl", "acc_pl", "acc_pl_an", "acc_pl_in",
+      "ins_pl", "pre_pl"
+  ],
+  "all-noun": ["sg", "pl"],
+  "long": [
+    "nom_m", "nom_f", "nom_n", "nom_p", "nom_mp", "gen_m", "gen_f", "gen_p",
+    "dat_m", "dat_f", "dat_p", "acc_f", "acc_n", "ins_m", "ins_f", "ins_p",
+    "pre_m", "pre_f", "pre_p"
+  ],
+  "short": ["short_m", "short_f", "short_n", "short_p"],
+  "all-adj": ["long", "short"],
+  "all": ["all-verb", "all-noun", "all-adj"]
+}
+
+def parse_form_aliases(forms):
+  retval = []
+  def parse_one_form(form):
+    if form in form_aliases:
+      for f in form_aliases[form]:
+        parse_one_form(f)
+    else:
+      if form not in retval:
+        retval.append(form)
+  for form in re.split(",", forms):
+    parse_one_form(form)
+  return retval
+
 if args.lemma_file or args.lemmas:
-  if args.forms == "all-verb":
-    forms = [
-        "pres_1sg", "pres_2sg", "pres_3sg", "pres_1pl", "pres_2pl", "pres_3pl",
-        "futr_1sg", "futr_2sg", "futr_3sg", "futr_1pl", "futr_2pl", "futr_3pl",
-        "impr_sg", "impr_pl",
-        "past_m", "past_f", "past_n", "past_pl",
-        "past_m_short", "past_f_short", "past_n_short", "past_pl_short"
-    ]
-  elif args.forms == "all-noun":
-    forms = [
-        "nom_sg", "gen_sg", "dat_sg", "acc_sg", "acc_sg_an", "acc_sg_in",
-          "ins_sg", "pre_sg",
-        "nom_pl", "gen_pl", "dat_pl", "acc_pl", "acc_pl_an", "acc_pl_in",
-          "ins_pl", "pre_pl"
-    ]
-  elif args.forms == "all-adj":
-    forms = [
-        "nom_m", "nom_f", "nom_n", "nom_p", "nom_mp", "gen_m", "gen_f", "gen_p",
-        "dat_m", "dat_f", "dat_p", "acc_f", "acc_n", "ins_m", "ins_f", "ins_p",
-        "pre_m", "pre_f", "pre_p", "short_m", "short_f", "short_n", "short_p"]
-  else:
-    forms = re.split(",", args.forms)
+  forms = parse_form_aliases(args.forms)
 
   if args.lemma_file:
     lemmas = read_pages(args.lemma_file, start, end)
   else:
     lemmas = blib.iter_items(re.split(",", args.lemmas.decode("utf-8")), start, end)
   for i, lemma in lemmas:
-    process_lemma(i, lemma, forms, args.save, args.verbose, args)
+    process_lemma(i, ru.remove_accents(lemma), forms, args.save, args.verbose, args)
 
 elif args.pagefile:
   for i, page in read_pages(args.pagefile, start, end):
