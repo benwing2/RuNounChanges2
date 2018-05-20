@@ -214,14 +214,24 @@ def iter_items(items, startsort = None, endsort = None, get_name = get_page_name
 
       pywikibot.output(str(i) + "/" + str(endsort) + tdisp)
 
-def get_args(startsort, endsort):
-  if startsort:
+starttime = time.time()
+
+def create_argparser(desc):
+  msg("Beginning at %s" % time.ctime(starttime))
+  parser = argparse.ArgumentParser(description=desc)
+  parser.add_argument('start', help="Starting page index", nargs="?")
+  parser.add_argument('end', help="Ending page index", nargs="?")
+  parser.add_argument('-s', '--save', action="store_true", help="Save results")
+  parser.add_argument('-v', '--verbose', action="store_true", help="More verbose output")
+  return parser
+
+def parse_start_end(startsort, endsort):
+  if startsort != None:
     try:
       startsort = int(startsort)
     except ValueError:
       startsort = str.decode(startsort, "utf-8")
-
-  if endsort:
+  if endsort != None:
     try:
       endsort = int(endsort)
     except ValueError:
@@ -229,13 +239,18 @@ def get_args(startsort, endsort):
 
   return (startsort, endsort)
 
-def create_argparser(desc):
-  parser = argparse.ArgumentParser(description=desc)
-  parser.add_argument('start', help="Starting page index", nargs="?")
-  parser.add_argument('end', help="Ending page index", nargs="?")
-  parser.add_argument('--save', action="store_true", help="Save results")
-  parser.add_argument('--verbose', action="store_true", help="More verbose output")
-  return parser
+def elapsed_time():
+  endtime = time.time()
+  elapsed = endtime - starttime
+  hours = int(elapsed // 3600)
+  hoursecs = elapsed % 3600
+  mins = int(hoursecs / 60)
+  secs = hoursecs % 60
+  if hours:
+    msg("Elapsed time: %s hours %s mins %0.2f secs" % (hours, mins, secs))
+  else:
+    msg("Elapsed time: %s mins %0.2f secs" % (mins, secs))
+  msg("Ending at %s" % time.ctime(endtime))
 
 languages = None
 languages_byCode = None

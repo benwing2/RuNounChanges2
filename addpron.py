@@ -114,6 +114,11 @@
 #     save changes for a term.
 # 35. (DONE) Remove accents in lemmas taken from --lemmas/--lemma-file.
 # 36. (DONE) Generalize code that parses --forms.
+# 37. (NOT A BUG BUT A MISTAKE IN THE PAGE ITSELF) BUG: Handles пузыриться
+#     (with two possible stresses) wrong, e.g. пузырившийся ends up with
+#     three pronunciations, one of which is wrong:
+#     {{ru-IPA|пузы́ри́вшийся|ann=пузыри́вшийся}}. For some reason,
+#     газировать (also with two possible stresses) is handled correctly.
 
 # WORDS NEEDING SPECIAL HANDLING IN PRONUN:
 #
@@ -194,9 +199,13 @@ skip_pages = [
     u"^г-н",
     u"^е$",
     u"^и$",
-    # FIXME! Script wrongly removes the stressed form here; it should notice
-    # that the word is normally unstressed and not do this
+    # FIXME! Script wrongly removes the stressed form in the next three;
+    # it should notice that the word is normally unstressed and not do this;
+    # for the first one, should also notice that it's actually two words
+    u"^м-да$",
+    u"^на$",
     u"^не$",
+    u"^промеж$", # has unstressed multisyllabic form
     u"^ы$",
     u"^я$"
 ]
@@ -211,23 +220,41 @@ allow_unaccented = [
 
 applied_manual_pronun_mappings = set()
 
-# Used when the automatic headword->pronun mapping fails (typically, where
-# there's a secondary stress and either multiword phrases or accent type
-# c/d/e/f or accent type b with masculine nouns). Each tuple is of the form
+# Used when the automatic headword->pronun mapping fails for non-lemma forms
+# (typically, where there's a secondary stress along with either multiword
+# phrases or accent type c/d/e/f or accent type b with masculine nouns;
+# basically, where there is a non-identity pronunciation mapping and the stem
+# of the headword, including acute accents, isn't a possible beginning
+# substring of the non-lemma form, and reverse-translit from the translit
+# won't generate the right pronunciation [reverse-translit will correctly
+# handle most cases where е is pronounced э]). Each tuple is of the form
 # (HEADWORD, SUB) where HEADWORD is a regex and SUB is either a single string
-# to substitute in the regex or a list of such strings.
+# to substitute in the regex or a list of such strings. (In place of a single
+# string can be a three-entry type of (SUB, TEXTBEFORE, TEXTAFTER) for
+# cases where there is surrounding text such as {{i|romantic meeting}} or
+# {{a|Moscow}}). The entries included are those that won't be handled right;
+# for single words with secondary accents, these are typically for the
+# non-lemma forms that don't have the same stress as the headword (e.g.
+# (u"^авиакорпус", u"а̀виакорпус") handles plurals like а̀виакорпусы́,
+# а̀виакорпусо́в vs. headword авиако́рпус.
+#
+# To find new cases to add, look for the message
+# "WARNING: Would save and unable to match mapping" and check whether the
+# pronunciation that is generated automatically is correct.
 manual_pronun_mapping = [
     (u"^авиакорпус", u"а̀виакорпус"),
     (u"^авиаполк", [u"авиаполк", u"а̀виаполк"]),
     (u"^авиазве́н", u"а̀виазве́н"),
     (u"^авиаэскадри́лий", u"а̀виаэскадри́лий"),
+    (u"^автозапра́вочн(.*?) ста́нц", ur"а̀втозапра́вочн\1 ста́нц"),
+    (u"^автозапчаст", ur"а̀втозапчаст"),
     (u"^автоко́льц", [u"автоко́льц", u"а̀втоко́льц"]),
     (u"^автоколе́ц", [u"автоколе́ц", u"а̀втоколе́ц"]),
     (u"^аминокисло́т", u"амѝнокисло́т"),
     (u"^ампер-час", u"ампѐр-час"),
     (u"^антител", u"а̀нтител"),
     (u"^антивеще́ств", u"а̀нтивеще́ств"),
-    (u"^анте́нн(.*?) радио(локаци)", ur"phon=антэ́нн\1 ра̀дио\2"),
+    (u"^анте́нн(.*?) радио(локаци)", [ur"phon=антэ́нн\1 ра̀дио\2", ur"phon=антэ́нн\1 ра̀дио̂\2"]),
     (u"^аэронавигацио́нн(.*?) ог", ur"а̀эронавигацио́нн\1 ог"),
     (u"^(бальза́м.*?) на́ душу", ur"\1 на́‿душу"),
     # For бензозаправочная колонка, бензозаправочная станция
@@ -245,6 +272,7 @@ manual_pronun_mapping = [
       ur"бухг\1"]),
     (u"^видеои́гр", [u"вѝдеои́гр", u"вѝдео̂и́гр"]),
     (u"^вое́?нно-", u"воѐнно-"),
+    (u"^(вредоно́сн.*?) ПО$", ur"phon=\1 пэ-о́"),
     # for various expressions like гравитационное взаимодействие
     (u" взаимоде́йств", u" взаѝмоде́йств"),
     (u"^гендиректор", u"гѐндиректор"),
@@ -253,7 +281,9 @@ manual_pronun_mapping = [
     (u"^го́спод", [u"го́спод", u"ɣо́спод"]),
     (u"^Го́спод", [u"Го́спод", u"ɣо́спод"]),
     (u"^госсекретар", u"го̀ссекретар"),
+    (u"^(гражда́нск.*? войн.* в) США$", ur"\1 сэ-шэ-а́"),
     (u"^дезоксирибонуклеи́нов(.*?) кисл", ur"дезоксирѝбонуклеи́нов\1 кисл"),
+    (u"^детсад", [u"дѐтсад", u"детсад"]),
     # This adds доӂӂ- pronunciations to non-lemma forms (lemma has an
     # accent, до́ждь)
     (u"^дожд(я́|ю́|ём|е́|и́|е́й|я́м|я́ми|я́х)$", [ur"дожд\1", ur"доӂӂ\1"]),
@@ -262,6 +292,7 @@ manual_pronun_mapping = [
     (u"^дрожж", [u"дроӂӂ", u"дрожж"]),
     (u"^жа(ле́?)", ur"phon=же\1"),
     (u"^заво́д(.*?)-подря́дчик", ur"заво̀д\1-подря́дчик"),
+    (u"^загранпаспорт", u"загра̀нпаспорт"),
     # reverse-translit would produce ёркширский тэрье́р etc.
     (u"^(йо́ркширск.*?) терье́р", ur"phon=\1 тэрье́р"),
     (u"^квартирохозя́", u"квартѝрохозя́"),
@@ -275,10 +306,13 @@ manual_pronun_mapping = [
     (u"^лесостеп", u"лѐсостеп"),
     (u"^льносем", u"льно̀сем"),
     (u"^лю́к(.*?) фотопулемёт", ur"лю́к\1 фо̀топулемёт"),
+    (u"^мало(заме́т.*? бомбардиро́вщик)", [ur"ма̀ло\1"]),
+    (u"^мало(россия́н)", [ur"ма̀ло\1", ur"мало\1"]),
     (u"^меж(ъягоди́чн.*? скла́д)", [ur"мѐж\1", ur"мѐш\1", ur"меж\1"]),
     (u"^микрово́лн", u"мѝкрово́лн"),
     (u"^микро(волно́в.*? пе́?ч)", ur"мѝкро\1"),
     (u"^мозжеч(ко́в.*? минда́лин)", [ur"мозжеч\1", ur"моӂӂеч\1"]),
+    (u"^моче(испуска́тельн.*? кана́л)", ur"мо̀че\1"),
     (u"^мундштук", u"phon=мунштук"),
     (u"^(носов.*? )радио(прозра́чн.*? обтека́т.*? )анте́нны радиолокац",
       ur"phon=\1ра̀дио\2антэ́нны ра̀диолокац"),
@@ -288,11 +322,14 @@ manual_pronun_mapping = [
     (u"^обезьяно([лч])", ur"обезья̀но\1"),
     # паремия handled correctly without override
     (u"^(пере́дн.*?) бронеперегоро́д", ur"\1 бро̀неперегоро́д"),
+    # forms of перейти́
+    (u"^перейд", [u"перейд", u"phon=перед"]),
     #(u"^подна́йм", u"по̀дна́йм"),
     (u"^политкаторжа́н", u"полѝткаторжа́н"),
     (u"^полу(в[её]д)", ur"по̀лу\1"),
     (u"^полу(ве́?к)", ur"по̀лу\1"),
     (u"^полу(го́?д)", ur"по̀лу\1"),
+    (u"^полу(дю́жин)", ur"по̀лу\1"),
     (u"^полу(им)", ur"по̀лу\1"),
     (u"^полу(килом)", ur"по̀лу\1"),
     (u"^полу(ли́тр)", ur"по̀лу\1"),
@@ -314,14 +351,20 @@ manual_pronun_mapping = [
     (u"^(прибо́р.*? управле́ния) фото", ur"\1 фо̀то"),
     (u"^про́волок(.)", ur"про́вол(о)к\1"),
     (u"^прое́зж(.*? ча́?ст)", [ur"прое́зж\1", ur"прое́ӂӂ\1"]),
-    (u"^радио(локацио́нн.*? дальноме́р)", ur"ра̀дио\1"),
-    (u"^радио(локацио́нн.*? дальноме́р)", ur"ра̀дио\1"),
+    (u"^радио(локацио́нн.*? дальноме́р)", [ur"ра̀дио\1", ur"ра̀дио̂\1"]),
     # not correctly handled as form of расстава́ться
-    (u"^расстаё", u"^рас(с)таё"),
+    (u"^расста([юё])", ur"^рас(с)та\1"),
+    # forms of расчеса́ть
+    (u"^расче́ш", [u"расче́ш", u"раще́ш"]),
+    (u"^расчёс", [u"расчёс", u"ращёс"]),
     # раджа handled correctly without override
     (u"^романтик", (u"романтик", "{{i|romantic meeting}} ", "")),
+    (u"^санузл", [u"санузл", u"са̀нузл", u"са̀нъузл"]),
+    (u"^сверх(но́в.*? зв)", ur"свѐрх\1"),
     (u"^скучн([аы]́)$", [(ur"phon=скушн\1", "{{a|Moscow}} ", ""), (ur"скучн\1", "{{a|Saint Petersburg}} ", "")]),
     (u"^соцсет", u"со̀цсет"),
+    (u"^суперзвёзд", u"су̀перзвёзд"), # суперзвезда́
+    (u"^счётши", u"щчётши"), # form of счесть
     (u"^(су́?д.*? на подво́дных )кры́льях", ur"\1кры́лья̣х"),
     (u"^тео́ри(.*?) ха́оса", ur"тео́ри\1 ха́о̂са"),
     (u"^трёх(эта́жн.*? сло́?в)", ur"трё̀х\1"),
@@ -330,10 +373,11 @@ manual_pronun_mapping = [
     # override pronunciation у́к(о)р, which should apply only to base form
     (u"^(у́кр(а|у|ом|е|ы|ов|ам|ами|ах))$", ur"\1"),
     (u"ультракоротко(волно́в.*?) радио(ста́нц)",
-        [ur"у̀льтракоротко\1 ра̀дио\2", ur"у̀льтракоро̀тко\1 ра̀дио\2"]),
+        [ur"у̀льтракоротко\1 радио\2", ur"у̀льтракоро̀тко\1 радио\2"]),
     (u"^человеко(обра́зн.*? обезья́н)", ur"человѐко\1"),
     (u"^четырёх(та́кт.*? дви́гател)", ur"четырё̀х\1"),
     (u"^четверг", [u"четверг", u"phon=четверьг"]),
+    (u"^шеф-повар", u"шѐф-повар"),
     # щавель handled correctly without override
     (u"^электро(магни́тн.*?) взаимо(де́йств)", ur"элѐктро\1 взаѝмо\2"),
     (u"^электро(поезд)", ur"элѐктро\1"),
@@ -1064,11 +1108,12 @@ def match_headword_and_found_pronuns(headword_pronuns, found_pronuns, pagemsg,
         append_stem_foundstems(deredstem, deredfoundpronstems)
         pagemsg("Adding adjectival dereduced stem mapping %s->%s" % (
           deredstem, ",".join(unicode(x) for x in deredfoundpronstems)))
-    # Also check for verbal stem
-    verbstem = re.sub(u"(ова́?|[аеияо]́?)ть(ся)?$", "", hpron)
+    # Also check for verbal stem; peel off parts that don't occur in all
+    # forms of the verb
+    verbstem = re.sub(u"(ова́?|ну́?|[аеияо]́?)ть(ся)?$", "", hpron)
     if verbstem != hpron:
       foundpronstems = frob_foundprons(foundprons,
-          lambda x:re.sub(u"(ова́?|[аеияоу]́?)ть(ся)?$", "", x))
+          lambda x:re.sub(u"(ова́?|ну́?|[аеияо]́?)ть(ся)?$", "", x))
       append_stem_foundstems(verbstem, foundpronstems)
       pagemsg("Adding verbal stem mapping %s->%s" % (
         verbstem, ",".join(unicode(x) for x in foundpronstems)))
@@ -1509,17 +1554,17 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
           pagemsg("WARNING: Headword %s to be used to replace manual IPA contains Latin chars, skipping" %
                 headword)
           return None
-        elif contains_non_cyrillic(headword):
+        elif contains_non_cyrillic_non_latin(headword):
           pagemsg("WARNING: Headword %s to be used to replace manual IPA contains non-Cyrillic non-Latin chars, skipping" %
                 headword)
           return None
         retval = ipa_matches(headword, getparam(ipa_template, "1"), autoipa,
             ipa_templates_msg, pagemsg)
-        if retval != True and program_args.override_ipa and (
+        if retval != True and program_args.override_IPA and (
             len(ipa_templates) > 1 or len(computed_ipa_items) > 1):
           pagemsg("WARNING: Can't override IPA because multiple IPA templates or headwords: %s template(s), %s headword(s)" % (
             len(ipa_templates), len(computed_ipa_items)))
-        elif retval == True or program_args.override_ipa:
+        elif retval == True or program_args.override_IPA:
           orig_ipa_template = unicode(ipa_template)
           rmparam(ipa_template, "lang")
           rmparam(ipa_template, "1")
@@ -1529,7 +1574,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
             return None
           ipa_template.name = "ru-IPA"
           ipa_template.add("1", headword)
-          if retval != True and program_args.override_ipa:
+          if retval != True and program_args.override_IPA:
             pagemsg("WARNING: Overriding IPA despite pronunciation mismatch")
             mismatch_msgs.append(retval)
             for m in mismatch_msgs:
@@ -1539,7 +1584,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
           num_replaced += 1
           mismatch_msgs = []
           notes.append("replace {{IPA|...}} with {{ru-IPA|...}} for %s%s" % (
-            headword, " (IPA override)" if retval != True and program_args.override_ipa else ""))
+            headword, " (IPA override)" if retval != True and program_args.override_IPA else ""))
           break
         mismatch_msgs.append(retval)
       if mismatch_msgs:
@@ -2073,21 +2118,17 @@ def read_pages(filename, start, end):
         page = line
     yield i, page
 
-parser = argparse.ArgumentParser(description="Add pronunciation sections to Russian Wiktionary entries")
+parser = blib.create_argparser("Add pronunciation sections to Russian Wiktionary entries")
 parser.add_argument('--pagefile', help="File containing pages to process, one per line")
 parser.add_argument('--lemma-file', help="File containing lemmas to process, one per line; non-lemma forms will be done")
 parser.add_argument('--lemmas', help="List of comma-separated lemmas to process; non-lemma forms will be done")
 parser.add_argument("--forms", help="Form codes of non-lemma forms to process in conjunction with --non-lemma-file.")
 parser.add_argument('--tempfile', help="File containing templates and headwords for quick offline reprocessing, one per line")
-parser.add_argument('start', help="Starting page index", nargs="?")
-parser.add_argument('end', help="Ending page index", nargs="?")
-parser.add_argument('--save', action="store_true", help="Save results")
-parser.add_argument('--verbose', action="store_true", help="More verbose output")
 parser.add_argument('--override-IPA', action="store_true", help="Change IPA to ru-IPA even when pronunciations can't be reconciled")
 parser.add_argument('--override-pronun', action="store_true", help="Override existing pronunciations")
 parser.add_argument('--cats', default="lemma,nonlemma", help="Categories to do (lemma, nonlemma or comma-separated list)")
 args = parser.parse_args()
-start, end = blib.get_args(args.start, args.end)
+start, end = blib.parse_start_end(args.start, args.end)
 
 form_aliases = {
   "pres": [
@@ -2101,7 +2142,11 @@ form_aliases = {
     "past_m", "past_f", "past_n", "past_pl",
     "past_m_short", "past_f_short", "past_n_short", "past_pl_short"
   ],
-  "all-verb": ["pres", "futr", "impr", "past"],
+  "part": [
+    "pres_actv_part", "past_actv_part", "pres_pasv_part", "past_pasv_part",
+    "pres_adv_part", "past_adv_part", "past_adv_part_short"
+  ],
+  "all-verb": ["pres", "futr", "impr", "past", "part"],
   "sg": [
     "nom_sg", "gen_sg", "dat_sg", "acc_sg", "acc_sg_an", "acc_sg_in",
       "ins_sg", "pre_sg"
@@ -2201,3 +2246,5 @@ for regex, subvals in manual_pronun_mapping:
     msg("WARNING: Unapplied manual_pronun_mapping %s->%s" % (regex,
       ",".join(subval_to_string(x) for x in subvals) if type(subvals) is list
       else subval_to_string(subvals)))
+
+blib.elapsed_time()

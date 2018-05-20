@@ -56,7 +56,7 @@ parser.add_argument('--save', action="store_true", help="Save results")
 parser.add_argument('--verbose', action="store_true", help="More verbose output")
 parser.add_argument('--pagefile', help="File containing pages to process, one per line")
 args = parser.parse_args()
-start, end = blib.get_args(args.start, args.end)
+start, end = blib.parse_start_end(args.start, args.end)
 
 pages = [x.strip() for x in codecs.open(args.pagefile, "r", "utf-8")]
 for i, page in blib.iter_items(pages, start, end):
