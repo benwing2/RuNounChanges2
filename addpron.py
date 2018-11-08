@@ -272,17 +272,22 @@ manual_pronun_mapping = [
       ur"бухг\1"]),
     (u"^видеои́гр", [u"вѝдеои́гр", u"вѝдео̂и́гр"]),
     (u"^вое́?нно-", u"воѐнно-"),
+    (u"^вольноопределя́ющ", u"во̀льноопределя́ющ"),
     (u"^(вредоно́сн.*?) ПО$", ur"phon=\1 пэ-о́"),
-    # for various expressions like гравитационное взаимодействие
-    (u" взаимоде́йств", u" взаѝмоде́йств"),
     (u"^гендиректор", u"гѐндиректор"),
     (u"^гидромёт", [u"гидромёт", u"гѝдромёт"]),
+    (u"город([ао])́(.*?)-геро́", ur"город\1̀\2-геро́"), # го́род-геро́й
+    (u"^госвласт", u"го̀свласт"),
     (u"^госдепартамент", u"го̀сдепартамент"),
     (u"^го́спод", [u"го́спод", u"ɣо́спод"]),
     (u"^Го́спод", [u"Го́спод", u"ɣо́спод"]),
     (u"^госсекретар", u"го̀ссекретар"),
     (u"^(гражда́нск.*? войн.* в) США$", ur"\1 сэ-шэ-а́"),
-    (u"^дезоксирибонуклеи́нов(.*?) кисл", ur"дезоксирѝбонуклеи́нов\1 кисл"),
+    # Need to handle гэ́канье manually; has two pronunciations, one requiring
+    # tr= and one not; FIXME, addpron.py doesn't create a pronunciation for
+    # гэ́каний|tr=hɛ́kanij at all and lists both pronunciations for both cases
+    # for the other non-lemma forms.
+    (u"^дезоксирибонуклеи́нов(.*?) кисл", ur"phon=дэзоксирѝбонуклеи́нов\1 кисл"),
     (u"^детсад", [u"дѐтсад", u"детсад"]),
     # This adds доӂӂ- pronunciations to non-lemma forms (lemma has an
     # accent, до́ждь)
@@ -296,6 +301,7 @@ manual_pronun_mapping = [
     # reverse-translit would produce ёркширский тэрье́р etc.
     (u"^(йо́ркширск.*?) терье́р", ur"phon=\1 тэрье́р"),
     (u"^квартирохозя́", u"квартѝрохозя́"),
+    (u"^киберво́йн", u"кѝберво́йн"),
     # This adds доӂӂ- pronunciations as for дождь above
     (u"^(кисло́тн.*? )дожд", [ur"\1дожд", ur"\1доӂӂ"]),
     (u"^кни́г(.*?) за семью́ печа́тям", ur"кни́г\1 за семью́ печа́тя̣м"),
@@ -308,6 +314,8 @@ manual_pronun_mapping = [
     (u"^лю́к(.*?) фотопулемёт", ur"лю́к\1 фо̀топулемёт"),
     (u"^мало(заме́т.*? бомбардиро́вщик)", [ur"ма̀ло\1"]),
     (u"^мало(россия́н)", [ur"ма̀ло\1", ur"мало\1"]),
+    # genitive plural of межсезо́нье; FIXME, should be handled correctly
+    (u"^межсезо́ний$", u"мѐжсезо́ний"),
     (u"^меж(ъягоди́чн.*? скла́д)", [ur"мѐж\1", ur"мѐш\1", ur"меж\1"]),
     (u"^микрово́лн", u"мѝкрово́лн"),
     (u"^микро(волно́в.*? пе́?ч)", ur"мѝкро\1"),
@@ -316,6 +324,7 @@ manual_pronun_mapping = [
     (u"^мундштук", u"phon=мунштук"),
     (u"^(носов.*? )радио(прозра́чн.*? обтека́т.*? )анте́нны радиолокац",
       ur"phon=\1ра̀дио\2антэ́нны ра̀диолокац"),
+    (u"^не́рвно-паралити́ческ(.*?) га́з", u"нѐрвно-паралити́ческ(.*?) га́з"),
     (u"^несча́стий$", u"неща́стий"),
     # нетопырь handled correctly without override
     (u"^ново(англича́н)", ur"но̀во\1"),
@@ -324,6 +333,7 @@ manual_pronun_mapping = [
     (u"^(пере́дн.*?) бронеперегоро́д", ur"\1 бро̀неперегоро́д"),
     # forms of перейти́
     (u"^перейд", [u"перейд", u"phon=перед"]),
+    (u"^пионерлагер", u"поинѐрлагер"),
     #(u"^подна́йм", u"по̀дна́йм"),
     (u"^политкаторжа́н", u"полѝткаторжа́н"),
     (u"^полу(в[её]д)", ur"по̀лу\1"),
@@ -351,17 +361,23 @@ manual_pronun_mapping = [
     (u"^(прибо́р.*? управле́ния) фото", ur"\1 фо̀то"),
     (u"^про́волок(.)", ur"про́вол(о)к\1"),
     (u"^прое́зж(.*? ча́?ст)", [ur"прое́зж\1", ur"прое́ӂӂ\1"]),
+    (u"^противополо́ж", [u"противополо́ж", u"про̀тивополо́ж"]),
+    (u"^радиово́лн", [u"ра̀диово́лн", u"ра̀дио̂во́лн"]),
     (u"^радио(локацио́нн.*? дальноме́р)", [ur"ра̀дио\1", ur"ра̀дио̂\1"]),
+    (u"^раке́т(.*?)-носи́тел", ur"ракѐт\1-носи́тел"),
     # not correctly handled as form of расстава́ться
     (u"^расста([юё])", ur"^рас(с)та\1"),
     # forms of расчеса́ть
     (u"^расче́ш", [u"расче́ш", u"раще́ш"]),
     (u"^расчёс", [u"расчёс", u"ращёс"]),
     # раджа handled correctly without override
+    (u"^рибонуклеи́нов(.*?) кисл", ur"рѝбонуклеи́нов\1 кисл"),
     (u"^романтик", (u"романтик", "{{i|romantic meeting}} ", "")),
     (u"^санузл", [u"санузл", u"са̀нузл", u"са̀нъузл"]),
+    (u"^сверх(лю́?д)", ur"свѐрх\1"), # from сверхчелове́к
     (u"^сверх(но́в.*? зв)", ur"свѐрх\1"),
     (u"^скучн([аы]́)$", [(ur"phon=скушн\1", "{{a|Moscow}} ", ""), (ur"скучн\1", "{{a|Saint Petersburg}} ", "")]),
+    (u"^сёгу́н", [u"сё̂гу́н", (u"сегу́н", "", " {{i|uncommon or fast and casual speech}}")]),
     (u"^соцсет", u"со̀цсет"),
     (u"^суперзвёзд", u"су̀перзвёзд"), # суперзвезда́
     (u"^счётши", u"щчётши"), # form of счесть
@@ -369,18 +385,29 @@ manual_pronun_mapping = [
     (u"^тео́ри(.*?) ха́оса", ur"тео́ри\1 ха́о̂са"),
     (u"^трёх(эта́жн.*? сло́?в)", ur"трё̀х\1"),
     (u"^турбо(реакти́вн.*? дви́гат)", ur"ту̀рбо\1"),
-    (u"(^уто́пленн.*? )воз(духозабо́рник)", ur"\1во̀з\2"),
+    (u"^(уто́пленн.*? )воз(духозабо́рник)", ur"\1во̀з\2"),
     # override pronunciation у́к(о)р, which should apply only to base form
     (u"^(у́кр(а|у|ом|е|ы|ов|ам|ами|ах))$", ur"\1"),
-    (u"ультракоротко(волно́в.*?) радио(ста́нц)",
+    (u"^ультракоротко(волно́в.*?) радио(ста́нц)",
         [ur"у̀льтракоротко\1 радио\2", ur"у̀льтракоро̀тко\1 радио\2"]),
+    (u"^ум([ауоеы])́(.*?)-ра́зум", ur"ум\1̀\2-ра́зум"), # forms of у́м-ра́зум
     (u"^человеко(обра́зн.*? обезья́н)", ur"человѐко\1"),
     (u"^четырёх(та́кт.*? дви́гател)", ur"четырё̀х\1"),
     (u"^четверг", [u"четверг", u"phon=четверьг"]),
     (u"^шеф-повар", u"шѐф-повар"),
+    (u"^(шпио́нск.*?) ПО$", ur"phon=\1 пэ-о́"),
     # щавель handled correctly without override
     (u"^электро(магни́тн.*?) взаимо(де́йств)", ur"элѐктро\1 взаѝмо\2"),
+    # for various expressions like гравитационное взаимодействие; this
+    # must follow the previous entry for электромагнитное взаимодействие,
+    # so that entry takes precendence
+    (u" взаимоде́йств", u" взаѝмоде́йств"),
     (u"^электро(поезд)", ur"элѐктро\1"),
+    # numerals
+    (u"^((?:.*? )?)пятьдеся́т((?: .*?)?)$", [ur"\1пятьдеся́т\2|gem=opt", (ur"phon=\1пееся́т\2", "{{i|colloquial or fast speech}} ", "")]),
+    (u"^((?:.*? )?)шестьдеся́т", [ur"\1шестьдеся́т", (ur"phon=\1шееся́т", "{{i|colloquial or fast speech}} ", "")]),
+    (u"^((?:.*? )?)се́мьдесят", [ur"\1се́мьдесят", ur"phon=\1се́мдесят"]),
+    (u"^((?:.*? )?)во́семьдесят", [ur"\1во́семьдесят", ur"phon=\1во́семдесят"]),
 ]
 
 # Make sure there are two trailing newlines
@@ -1358,7 +1385,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
         headword_annparam = ""
 
       # Check for various badnesses in the pronunciation
-      check_pronun = re.sub("^phon=", "", pronun)
+      check_pronun = re.sub(r"\|gem=.*", "", re.sub("^phon=", "", pronun))
       if check_pronun.startswith("-") or check_pronun.endswith("-"):
         pagemsg("WARNING: Skipping prefix or suffix: %s" % pronun)
         bad_pronun_need_to_return[0] = True
@@ -1451,6 +1478,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
           append_pronun_line(newpronun, pre, post)
         subbed_pronun = True
         manually_subbed_pronun = True
+        break
 
     # If there is an automatically-derived headword->pronun mapping (e.g.
     # in case of secondary stress or phon=), try to apply it.
@@ -2126,7 +2154,7 @@ parser.add_argument("--forms", help="Form codes of non-lemma forms to process in
 parser.add_argument('--tempfile', help="File containing templates and headwords for quick offline reprocessing, one per line")
 parser.add_argument('--override-IPA', action="store_true", help="Change IPA to ru-IPA even when pronunciations can't be reconciled")
 parser.add_argument('--override-pronun', action="store_true", help="Override existing pronunciations")
-parser.add_argument('--cats', default="lemma,nonlemma", help="Categories to do (lemma, nonlemma or comma-separated list)")
+parser.add_argument('--cats', default="lemmas,nonlemmas", help="Categories to do ('lemmas', 'nonlemmas', an arbitrary category minus the 'Russian ' prefix, or comma-separated list)")
 args = parser.parse_args()
 start, end = blib.parse_start_end(args.start, args.end)
 
@@ -2157,9 +2185,13 @@ form_aliases = {
   ],
   "all-noun": ["sg", "pl"],
   "long": [
-    "nom_m", "nom_f", "nom_n", "nom_p", "nom_mp", "gen_m", "gen_f", "gen_p",
-    "dat_m", "dat_f", "dat_p", "acc_f", "acc_n", "ins_m", "ins_f", "ins_p",
-    "pre_m", "pre_f", "pre_p"
+    "nom_m", "nom_f", "nom_n", "nom_p", "nom_mp", "nom_fp",
+    "gen_m", "gen_f", "gen_p", "gen_mp", "gen_fp",
+    "dat_m", "dat_f", "dat_p", "dat_mp", "dat_fp",
+    "acc_m_an", "acc_m_in", "acc_f", "acc_n", "acc_p_an", "acc_p_in",
+    "acc_mp_an", "acc_mp_in", "acc_fp_an", "acc_fp_in", "acc_mp", "acc_fp",
+    "ins_m", "ins_f", "ins_p", "ins_mp", "ins_fp",
+    "pre_m", "pre_f", "pre_p", "pre_mp", "pre_fp",
   ],
   "short": ["short_m", "short_f", "short_n", "short_p"],
   "all-adj": ["long", "short"],
@@ -2222,13 +2254,10 @@ elif args.tempfile:
 else:
   categories = []
   for cattype in re.split(",", args.cats):
-    if cattype == "lemma":
-      categories.append("Russian lemmas")
-    elif cattype == "nonlemma":
+    if cattype == "nonlemmas":
       categories.append("Russian non-lemma forms")
     else:
-      raise RuntimeError("Invalid value %s, should be 'lemma' or 'nonlemma'" %
-          cattype)
+      categories.append("Russian " + cattype)
   for category in categories:
     msg("Processing category: %s" % category)
     for i, page in blib.cat_articles(category, start, end):
