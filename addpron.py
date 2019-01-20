@@ -271,6 +271,7 @@ manual_pronun_mapping = [
       ur"phon=буг\1",
       ur"буɣ\1",
       ur"бухг\1"]),
+    (u"^ветврач", u"вѐтврач"),
     (u"^видеои́гр", [u"вѝдеои́гр", u"вѝдео̂и́гр"]),
     (u"^вое́?нно-", u"воѐнно-"),
     (u"^вольноопределя́ющ", u"во̀льноопределя́ющ"),
@@ -311,6 +312,7 @@ manual_pronun_mapping = [
     (u"^коми-зыря́н", u"ко̀ми-зыря́н"),
     (u"^лесополо́с", u"лѐсополо́с"),
     (u"^лесостеп", u"лѐсостеп"),
+    (u"^лимфодренаж", u"лѝмфодренаж"),
     (u"^льносем", u"льно̀сем"),
     (u"^лю́к(.*?) фотопулемёт", ur"лю́к\1 фо̀топулемёт"),
     (u"^мало(заме́т.*? бомбардиро́вщик)", [ur"ма̀ло\1"]),
@@ -335,6 +337,7 @@ manual_pronun_mapping = [
     # forms of перейти́
     (u"^перейд", [u"перейд", u"phon=перед"]),
     (u"^пионерлагер", u"поинѐрлагер"),
+    (u"^(пла́н.*?) Б$", ur"\1 бэ́"),
     #(u"^подна́йм", u"по̀дна́йм"),
     (u"^политкаторжа́н", u"полѝткаторжа́н"),
     (u"^полу(в[её]д)", ur"по̀лу\1"),
@@ -1322,7 +1325,7 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
     computed_ipa = {}
     for cyr, tr in headword_pronuns:
       pronun = tr or cyr
-      result = expand_text("{{#invoke:ru-pron|ipa|%s}}" % pronun)
+      result = expand_text("{{#invoke:ru-pron|ipa_string|%s}}" % pronun)
       if not result:
         return False
       computed_ipa[pronun] = result
