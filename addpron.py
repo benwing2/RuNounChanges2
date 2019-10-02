@@ -192,6 +192,10 @@ fronting = {
   u'ʊ': u'ʉ',
 }
 
+# Alt-ё templates for specifying terms spelled with е in place of ё.
+alt_yo_templates = [u"ru-noun-alt-ё", u"ru-verb-alt-ё", u"ru-adj-alt-ё",
+  u"ru-proper noun-alt-ё", u"ru-pos-alt-ё"]
+
 skip_pages = [
     u"^б/у$",
     u"^в/о$",
@@ -733,6 +737,19 @@ def ru_tr_as_pronun(cyr, tr):
   else:
     return cyr
 
+def get_first_param(t):
+  lang = getparam(t, "lang")
+  if lang:
+    if lang == "ru":
+      return "1"
+    else:
+      return None
+  else:
+    if getparam(t, "1") == "ru":
+      return "2"
+    else:
+      return None
+
 # Get a list of headword pronuns, a list of (HEAD, TRANSLIT) tuples.
 def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   # Get the headword pronunciation(s)
@@ -774,7 +791,7 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   for t in parsed.filter_templates():
     check_extra_heads = False
     tname = unicode(t.name)
-    if tname == u"ru-noun-alt-ё":
+    if tname in alt_yo_templates or tname == u"ru-alt-ё":
       pagemsg("WARNING: Found %s template, skipping" % tname)
       return None
     elif tname in ["ru-noun", "ru-proper noun", "ru-adj", "ru-adv", "ru-verb"]:
@@ -847,21 +864,23 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   found_semireduced_inflection = False
   for t in parsed.filter_templates():
     tname = unicode(t.name)
-    if tname == "inflection of" and getparam(t, "lang") == "ru":
-      numparams = []
-      for param in t.params:
-        pname = unicode(param.name)
-        if re.search(r"^[0-9]+$", pname):
-          pnum = int(pname)
-          if pnum >= 3:
-            numparams.append(unicode(param.value))
-        if "3" in numparams and ("p" in numparams or "pl" in numparams or "plural" in numparams):
-          found_semireduced_inflection = True
-        elif (("p" in numparams or "pl" in numparams or "plural" in numparams) and (
-          "dat" in numparams or "dative" in numparams or
-          "ins" in numparams or "instrumental" in numparams or
-          "pre" in numparams or "prep" in numparams or "prepositional" in numparams)):
-          found_semireduced_inflection = True
+    if tname == "inflection of":
+      first_param = get_first_param(t)
+      if first_param:
+        numparams = []
+        for param in t.params:
+          pname = unicode(param.name)
+          if re.search(r"^[0-9]+$", pname):
+            pnum = int(pname)
+            if pnum >= int(first_param) + 2:
+              numparams.append(unicode(param.value))
+          if "3" in numparams and ("p" in numparams or "pl" in numparams or "plural" in numparams):
+            found_semireduced_inflection = True
+          elif (("p" in numparams or "pl" in numparams or "plural" in numparams) and (
+            "dat" in numparams or "dative" in numparams or
+            "ins" in numparams or "instrumental" in numparams or
+            "pre" in numparams or "prep" in numparams or "prepositional" in numparams)):
+            found_semireduced_inflection = True
   if found_semireduced_inflection:
     def update_semireduced(pron, tr):
       if tr:
@@ -992,7 +1011,7 @@ class FoundPronun(object):
 # headword and FOUNDPRONSTEMS is a list of the corresponding
 # found-pronunciation stems. (Each such stem is actually a FoundPronun object,
 # with the pre-text and post-text coming from the corresponding text before
-# and before and the {{ru-IPA}} template where the pronunciation was found.)
+# and after the {{ru-IPA}} template where the pronunciation was found.)
 # We return a list of stem tuples because there may be multiple stems to
 # consider for each headword -- including reduced and dereduced variants
 # (e.g. for автозапра́вка with corresponding pronunciation а̀втозапра́вка we
@@ -1182,9 +1201,13 @@ def get_lemmas_of_form_page(parsed):
   lemmas = set()
   for t in parsed.filter_templates():
     tname = unicode(t.name)
-    if (tname == "inflection of" and getparam(t, "lang") == "ru" or
-        tname == "ru-participle of"):
-      lemma = ru.remove_accents(blib.remove_links(getparam(t, "1")))
+    first_param = None
+    if (tname in ["inflection of", "comparative of", "superlative of"]):
+      first_param = get_first_param(t)
+    elif tname == "ru-participle of":
+      first_param = "1"
+    if first_param:
+      lemma = ru.remove_accents(blib.remove_links(getparam(t, first_param)))
       lemmas.add(lemma)
   return lemmas
 
@@ -1543,19 +1566,21 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
   ipa_templates = []
   for t in parsed.filter_templates():
     tname = unicode(t.name)
-    if tname in ["ru-pre-reform", u"ru-noun-alt-ё", u"ru-alt-ё", "ru-IPA-manual"]:
+    if tname in ["ru-pre-reform", u"ru-alt-ё", "ru-IPA-manual"] or tname in alt_yo_templates:
       pagemsg("WARNING: Found %s template, skipping" % tname)
       return None
-    if tname in ["alternative form of", "alternative spelling of"] and getparam(t, "lang") == "ru":
-      # Check if word spelled with е instead of ё, without using
-      # [[Category:Russian spellings with е instead of ё]], which we
-      # catch above.
-      target = getparam(t, "1")
-      if u"ё" in target and re.sub(u"ё", u"е", target) == pagetitle:
-        pagemsg(u"WARNING: Found apparent alternative form using е in place of ё without explicit category, skipping: %s" %
-            unicode(t))
-        return None
-    if tname == "IPA" and getparam(t, "lang") == "ru":
+    if tname in ["alternative form of", "alternative spelling of"]:
+      first_param = get_first_param(t)
+      if first_param:
+        # Check if word spelled with е instead of ё, without using
+        # [[Category:Russian spellings with е instead of ё]], which we
+        # catch above.
+        target = getparam(t, first_param)
+        if u"ё" in target and re.sub(u"ё", u"е", target) == pagetitle:
+          pagemsg(u"WARNING: Found apparent alternative form using е in place of ё without explicit category, skipping: %s" %
+              unicode(t))
+          return None
+    if tname == "IPA" and get_first_param(t):
       ipa_templates.append(t)
   if (re.search(r"[Aa]bbreviation", section) and not
       re.search("==Abbreviations==", section) or
@@ -1598,8 +1623,14 @@ def process_section(section, indentlevel, headword_pronuns, program_args,
             len(ipa_templates), len(computed_ipa_items)))
         elif retval == True or program_args.override_IPA:
           orig_ipa_template = unicode(ipa_template)
-          rmparam(ipa_template, "lang")
-          rmparam(ipa_template, "1")
+          lang = getparam(ipa_template, "lang")
+          if lang:
+            assert lang == "ru"
+            rmparam(ipa_template, "lang")
+            rmparam(ipa_template, "1")
+          else:
+            rmparam(ipa_template, "1")
+            rmparam(ipa_template, "2")
           if len(ipa_template.params) > 0:
             pagemsg("WARNING: IPA template has extra parameters, skipping: %s" %
                 orig_ipa_template)
@@ -2132,7 +2163,7 @@ def process_lemma(index, pagetitle, forms, save, verbose, program_args):
             elif formpagename == pagetitle:
               pagemsg("WARNING: Skipping dictionary form")
             else:
-              process_page(i, formpage, save, verbose, program_args)
+              process_page(index, formpage, save, verbose, program_args)
 
 def read_pages(filename, start, end):
   lines = [x.strip() for x in codecs.open(filename, "r", "utf-8")]
@@ -2154,7 +2185,7 @@ parser = blib.create_argparser("Add pronunciation sections to Russian Wiktionary
 parser.add_argument('--pagefile', help="File containing pages to process, one per line")
 parser.add_argument('--lemma-file', help="File containing lemmas to process, one per line; non-lemma forms will be done")
 parser.add_argument('--lemmas', help="List of comma-separated lemmas to process; non-lemma forms will be done")
-parser.add_argument("--forms", help="Form codes of non-lemma forms to process in conjunction with --non-lemma-file.")
+parser.add_argument("--forms", help="Form codes of non-lemma forms to process in conjunction with --lemmas and --lemma-file.")
 parser.add_argument('--tempfile', help="File containing templates and headwords for quick offline reprocessing, one per line")
 parser.add_argument('--override-IPA', action="store_true", help="Change IPA to ru-IPA even when pronunciations can't be reconciled")
 parser.add_argument('--override-pronun', action="store_true", help="Override existing pronunciations")
