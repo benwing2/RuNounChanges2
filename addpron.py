@@ -304,6 +304,7 @@ manual_pronun_mapping = [
     (u"^жа(ле́?)", ur"phon=же\1"),
     (u"^заво́д(.*?)-подря́дчик", ur"заво̀д\1-подря́дчик"),
     (u"^загранпаспорт", u"загра̀нпаспорт"),
+    (u"^зернофураж", u"зѐрнофураж"),
     # reverse-translit would produce ёркширский тэрье́р etc.
     (u"^(йо́ркширск.*?) терье́р", ur"phon=\1 тэрье́р"),
     (u"^квартирохозя́", u"квартѝрохозя́"),
@@ -344,6 +345,7 @@ manual_pronun_mapping = [
     (u"^(пла́н.*?) Б$", ur"\1 бэ́"),
     #(u"^подна́йм", u"по̀дна́йм"),
     (u"^политкаторжа́н", u"полѝткаторжа́н"),
+    (u"^(полубо́?г(а|у|ом|е|и|о́в|а́м|а́ми|а́х))$", ur"\1"),
     (u"^полу(в[её]д)", ur"по̀лу\1"),
     (u"^полу(ве́?к)", ur"по̀лу\1"),
     (u"^полу(го́?д)", ur"по̀лу\1"),
@@ -358,6 +360,7 @@ manual_pronun_mapping = [
     (u"^полу(ос)", ur"по̀лу\1"),
     (u"^полу(остров)", [ur"по̀лу\1", ur"полу\1"]),
     (u"^полу(очк)", ur"по̀лу\1"),
+    (u"^полу(плоск)", [ur"по̀лу\1", ur"полу\1"]),
     (u"^полу(со́т)", ur"по̀лу\1"),
     (u"^полу(ты́сяч)", ur"по̀лу\1"),
     (u"^полу(ча́?с)", ur"по̀лу\1"),
@@ -370,8 +373,10 @@ manual_pronun_mapping = [
     (u"^про́волок(.)", ur"про́вол(о)к\1"),
     (u"^прое́зж(.*? ча́?ст)", [ur"прое́зж\1", ur"прое́ӂӂ\1"]),
     (u"^противополо́ж", [u"противополо́ж", u"про̀тивополо́ж"]),
+    # пуп земли handled correctly without override
     (u"^радиово́лн", [u"ра̀диово́лн", u"ра̀дио̂во́лн"]),
     (u"^радио(локацио́нн.*? дальноме́р)", [ur"ра̀дио\1", ur"ра̀дио̂\1"]),
+    # forms of разъебать handled correctly without override
     (u"^раке́т(.*?)-носи́тел", ur"ракѐт\1-носи́тел"),
     # not correctly handled as form of расстава́ться
     (u"^расста([юё])", ur"^рас(с)та\1"),
@@ -382,15 +387,18 @@ manual_pronun_mapping = [
     (u"^рибонуклеи́нов(.*?) кисл", ur"рѝбонуклеи́нов\1 кисл"),
     (u"^романтик", (u"романтик", "{{i|romantic meeting}} ", "")),
     (u"^санузл", [u"санузл", u"са̀нузл", u"са̀нъузл"]),
+    (u"^саундтрек", [u"phon=са̀ундтрэк", u"phon=са̂ундтрэк", u"phon=саундтрэк"]),
     (u"^сверх(лю́?д)", ur"свѐрх\1"), # from сверхчелове́к
     (u"^сверх(но́в.*? зв)", ur"свѐрх\1"),
     (u"^скучн([аы]́)$", [(ur"phon=скушн\1", "{{a|Moscow}} ", ""), (ur"скучн\1", "{{a|Saint Petersburg}} ", "")]),
     (u"^сёгу́н", [u"сё̂гу́н", (u"сегу́н", "", " {{i|uncommon or fast and casual speech}}")]),
     (u"^соцсет", u"со̀цсет"),
+    # стольный град handled correctly without override
     (u"^суперзвёзд", u"су̀перзвёзд"), # суперзвезда́
     (u"^счётши", u"щчётши"), # form of счесть
     (u"^(су́?д.*? на подво́дных )кры́льях", ur"\1кры́лья̣х"),
     (u"^тео́ри(.*?) ха́оса", ur"тео́ри\1 ха́о̂са"),
+    (u"^топмачтовик", u"то̀пмачтовик"),
     (u"^трёх(эта́жн.*? сло́?в)", ur"трё̀х\1"),
     (u"^турбо(реакти́вн.*? дви́гат)", ur"ту̀рбо\1"),
     (u"^(уто́пленн.*? )воз(духозабо́рник)", ur"\1во̀з\2"),
@@ -402,6 +410,7 @@ manual_pronun_mapping = [
     (u"^человеко(обра́зн.*? обезья́н)", ur"человѐко\1"),
     (u"^четырёх(та́кт.*? дви́гател)", ur"четырё̀х\1"),
     (u"^четверг", [u"четверг", u"phon=четверьг"]),
+    # член-учредитель handled correctly without override
     (u"^шеф-повар", u"шѐф-повар"),
     (u"^(шпио́нск.*?) ПО$", ur"phon=\1 пэ-о́"),
     # щавель handled correctly without override
@@ -417,6 +426,25 @@ manual_pronun_mapping = [
     (u"^((?:.*? )?)се́мьдесят", [ur"\1се́мьдесят", ur"phon=\1се́мдесят"]),
     (u"^((?:.*? )?)во́семьдесят", [ur"\1во́семьдесят", ur"phon=\1во́семдесят"]),
 ]
+
+semicolon_tags = [';', ';<!--\n-->']
+
+# FIXME: Remove this and use infltags.py once we move to ../RuNounChanges.
+# Split tags into tag sets.
+def split_tags_into_tag_sets(tags):
+  tag_set_group = []
+  cur_tag_set = []
+  for tag in tags:
+    if tag in semicolon_tags:
+      if cur_tag_set:
+        tag_set_group.append(cur_tag_set)
+      cur_tag_set = []
+    else:
+      cur_tag_set.append(tag)
+  if cur_tag_set:
+    tag_set_group.append(cur_tag_set)
+  return tag_set_group
+
 
 # Make sure there are two trailing newlines
 def ensure_two_trailing_nl(text):
@@ -864,23 +892,32 @@ def get_headword_pronuns(parsed, pagetitle, pagemsg, expand_text):
   found_semireduced_inflection = False
   for t in parsed.filter_templates():
     tname = unicode(t.name)
-    if tname == "inflection of":
+    if tname in ["inflection of", "infl of"]:
       first_param = get_first_param(t)
       if first_param:
-        numparams = []
+        tags = []
         for param in t.params:
           pname = unicode(param.name)
           if re.search(r"^[0-9]+$", pname):
             pnum = int(pname)
             if pnum >= int(first_param) + 2:
-              numparams.append(unicode(param.value))
-          if "3" in numparams and ("p" in numparams or "pl" in numparams or "plural" in numparams):
+              tags.append(unicode(param.value))
+        tag_sets = split_tags_into_tag_sets(tags)
+        for tag_set in tag_sets:
+          def has(infl):
+            return any(not not re.search(r"\b%s\b" % infl, x) for x in tag_set)
+          if (has("3") or has("13") or has("23") or has("123")) and (
+              has("p") or has("pl") or has("plural")):
             found_semireduced_inflection = True
-          elif (("p" in numparams or "pl" in numparams or "plural" in numparams) and (
-            "dat" in numparams or "dative" in numparams or
-            "ins" in numparams or "instrumental" in numparams or
-            "pre" in numparams or "prep" in numparams or "prepositional" in numparams)):
+            break
+          elif ((has("p") or has("pl") or has("plural")) and (
+            has("dat") or has("dative") or
+            has("ins") or has("instrumental") or
+            has("pre") or has("prep") or has("prepositional"))):
             found_semireduced_inflection = True
+            break
+        if found_semireduced_inflection:
+          break
   if found_semireduced_inflection:
     def update_semireduced(pron, tr):
       if tr:
@@ -1202,7 +1239,7 @@ def get_lemmas_of_form_page(parsed):
   for t in parsed.filter_templates():
     tname = unicode(t.name)
     first_param = None
-    if (tname in ["inflection of", "comparative of", "superlative of"]):
+    if (tname in ["inflection of", "infl of", "comparative of", "superlative of"]):
       first_param = get_first_param(t)
     elif tname == "ru-participle of":
       first_param = "1"
